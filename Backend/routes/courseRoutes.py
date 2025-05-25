@@ -1,38 +1,33 @@
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter, HTTPException
 from models.courseModel import Course
-from supabase import create_client,Client
+from supabase import create_client, Client
 import os
 
-router=APIRouter()
+router = APIRouter()
+
+# Supabase setup
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise Exception("Supabase credentials not found in environment variables.")
+
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-
 @router.post("/add")
-def add_Course(c:Course):
-    print(c)
+def add_course(c: Course):
+    try:
+        print(c)
+        response = supabase.table("courses").insert(c.dict()).execute()
+        print(response)
+        return response.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Exception occurred: {str(e)}")
 
-
-    # existing=supabase.table("courses").select('*').eq("title",c.title).execute()
-    # if existing.data:
-    #     raise HTTPException(status_code=400, detail="Course with this title already exists.")
-
-    response=supabase.table("courses").insert(c.__dict__).execute()
-    print(response)
-    if response.error:
-        raise HTTPException(status_code=500, detail="Failed to add course: " + str(response.error))
-    return {"message": "Course added successfully"}
- 
-
-from fastapi import APIRouter, HTTPException
-from supabase import create_client  # assuming supabase is set up
 
 @router.get("/getall")
-def getall_Course():
-    try:
-        response = supabase.table("courses").select("*").execute()
-        return response.data  
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching courses: {str(e)}")
+def get_all_courses():
+    res=supabase.table("courses").select("*").execute()
+    print(res.data)
+    return res.data

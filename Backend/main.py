@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from routes.authRoute import router as auth_router
 from routes.courseRoutes import router as course_router
 from routes.moduleRoutes import router as module_router
-
+from routes.moduleCardsRoutes import router as cards_router
 
 load_dotenv()
 app = FastAPI()
@@ -24,6 +24,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth")
 app.include_router(course_router,prefix="/courses")
 app.include_router(module_router,prefix="/modules")
+app.include_router(cards_router,prefix="/cards")
 
 if __name__ == "__main__":
     import uvicorn

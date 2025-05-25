@@ -24,4 +24,4 @@ def add_module(module:Module):
     # res  = requests.post(url,  json=data)
     # if res.status_code != 201: 
     #     raise Exception("Failed to add module")
-    return res.data
+    return res.data[0]
