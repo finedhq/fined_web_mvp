@@ -20,11 +20,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router, prefix="/api/auth")
+app.include_router(course_router, prefix="/api/courses")
+app.include_router(module_router, prefix="/api/modules")
+app.include_router(cards_router, prefix="/api/cards")
 
-app.include_router(auth_router, prefix="/auth")
-app.include_router(course_router,prefix="/courses")
-app.include_router(module_router,prefix="/modules")
-app.include_router(cards_router,prefix="/cards")
 
 if __name__ == "__main__":
     import uvicorn
