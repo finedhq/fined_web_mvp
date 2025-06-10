@@ -32,11 +32,10 @@ const SignUpPage = () => {
     setLoading(true);
 
 
-    setTimeout(() => {
-      setLoading(false);
-      alert('Signup successful (placeholder). You can now log in.');
-      navigate('/signin');
-    }, 1000);
+     setTimeout(() => {
+    setLoading(false);
+    navigate('/home');  
+  }, 1000);
   };
 
   return (

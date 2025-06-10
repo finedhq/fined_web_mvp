@@ -204,7 +204,7 @@ export default function LandingPage() {
           <Link to="/contact">Contact Us</Link>
           <Link to="/feedback">Feedback</Link>
         </div>
-        <div className="column newsletter">
+        <div className="newsletter">
           <h4>NEWSLETTER</h4>
           <input type="email" placeholder="Enter your email address" />
           <button>Subscribe Now</button>

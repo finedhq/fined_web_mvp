@@ -437,7 +437,6 @@ footer .social-icons img {
 footer .social-icons img:hover {
   transform: scale(1.1);
 }
-
 footer .newsletter input {
   padding: 12px;
   width: 100%;
@@ -445,6 +444,7 @@ footer .newsletter input {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 footer .newsletter button {
@@ -457,12 +457,12 @@ footer .newsletter button {
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s;
+  box-sizing: border-box;
 }
 
 footer .newsletter button:hover {
   background-color: #fbbf24;
 }
-
 
 .copyright {
   text-align: center;

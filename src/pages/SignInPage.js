@@ -23,12 +23,11 @@ const SignInPage = () => {
 
     setLoading(true);
 
-    
-    setTimeout(() => {
-      setLoading(false);
-      alert('Sign-in successful (placeholder)');
-      navigate('/dashboard'); 
-    }, 1000);
+
+     setTimeout(() => {
+    setLoading(false);
+    navigate('/home');  
+  }, 1000);
   };
 
   const handleGoogleLogin = () => {
