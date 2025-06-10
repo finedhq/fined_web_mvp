@@ -1,0 +1,21 @@
+CREATE TABLE modules (
+    module_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    course_id UUID NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    order_index INTEGER,
+    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
+);
+CREATE TABLE cards (
+    card_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    module_id UUID NOT NULL,
+    content_type VARCHAR(20) CHECK (content_type IN ('text', 'video', 'audio', 'question')),
+    content_text TEXT,
+    video_url TEXT,
+    audio_url TEXT,
+    question_type VARCHAR(20) CHECK (question_type IN ('mcq', 'descriptive')),
+    options TEXT[],  -- For PostgreSQL array support
+    correct_answer TEXT,
+    order_index INTEGER,
+    FOREIGN KEY (module_id) REFERENCES modules(module_id) ON DELETE CASCADE
+);
