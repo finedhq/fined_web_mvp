@@ -13,6 +13,7 @@ const CoursesPage = () => {
     try {
       const res = await axios.get("/courses/getall");
       setCourses(res.data);
+      console.log(res.data);
     } catch (err) {
       console.error("Error fetching courses:", err);
     } finally {

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from '/src/lib/axios.js';
-// import Loader from '/src/components/Loader.jsx';
 import Loader from "../../components/Loader";
 
 const CardsPage = () => {
@@ -15,6 +14,7 @@ const CardsPage = () => {
       try {
         const res = await axios.get(`/cards/${moduleId}/getall`);
         setCards(res.data);
+        console.log(res.data);
       } catch (err) {
         console.error('Error fetching cards:', err);
       } finally {
@@ -50,11 +50,78 @@ const CardsPage = () => {
       ) : (
         <div className="grid gap-4">
           {cards.map((card) => (
-            <div key={card.card_id} className="border p-4 rounded shadow">
-              <h3 className="font-semibold">Type: {card.content_type}</h3>
-              {card.content_text && <p>{card.content_text}</p>}
-              {card.video_url && <p>🎥 Video: {card.video_url}</p>}
-              {card.audio_url && <p>🔊 Audio: {card.audio_url}</p>}
+            <div key={card.card_id} className="border p-4 rounded shadow space-y-3">
+              <h3 className="font-semibold capitalize">Type: {card.content_type}</h3>
+
+              {card.content_text && (
+                <p className="text-gray-800">{card.content_text}</p>
+              )}
+
+              {card.image_url && (
+                <div>
+                  <img
+                    src={card.image_url}
+                    alt="Card visual"
+                    className="w-full max-w-md rounded"
+                  />
+                </div>
+              )}
+
+              {card.video_url && (
+                <video controls className="w-full max-w-md">
+                  <source src={card.video_url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+
+              {card.audio_url && (
+                <audio controls className="w-full">
+                  <source src={card.audio_url} type="audio/mpeg" />
+                  Your browser does not support the audio tag.
+                </audio>
+              )}
+
+              {/* Question rendering logic */}
+              {card.content_type === 'question' && (
+                <div className="space-y-2">
+                  <p className="font-medium">Question Type: {card.question_type}</p>
+
+                  {card.question_type === 'mcq_single' && card.options?.length > 0 && (
+                    <div className="space-y-1">
+                      {card.options.map((option, idx) => (
+                        <label key={idx} className="block">
+                          <input type="radio" name={`mcq_${card.card_id}`} value={option} className="mr-2" />
+                          {option}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {card.question_type === 'mcq_multiple' && card.options?.length > 0 && (
+                    <div className="space-y-1">
+                      {card.options.map((option, idx) => (
+                        <label key={idx} className="block">
+                          <input type="checkbox" value={option} className="mr-2" />
+                          {option}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {card.question_type === 'subjective' && (
+                    <textarea
+                      placeholder="Type your answer here..."
+                      className="w-full p-2 border rounded"
+                      rows={3}
+                    />
+                  )}
+
+                  {card.feedback_type && (
+                    <p className="text-sm text-gray-500">Feedback Type: {card.feedback_type}</p>
+                  )}
+                </div>
+              )}
+
               <p className="text-sm text-gray-600">
                 Finstars: {card.allotted_finstars || 0}
               </p>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from '../lib/axios.js'
+import axios from "../lib/axios.js";
 import { Link } from "react-router-dom";
 
 const CourseForm = () => {
@@ -8,27 +8,36 @@ const CourseForm = () => {
     description: "",
     modules_count: "",
     duration: "",
-    thumbnail_url: "",
   });
+
+  const [thumbnailFile, setThumbnailFile] = useState(null);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/courses/add", form);
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+      if (thumbnailFile) {
+        formData.append("thumbnail_file", thumbnailFile);
+      }
+
+      const res = await axios.post("/courses/add", formData);
       console.log("Course added:", res.data);
+
       setForm({
         title: "",
         description: "",
         modules_count: "",
         duration: "",
-        thumbnail_url: "",
       });
+      setThumbnailFile(null);
 
-      // Optional: alert or toast
       alert("✅ Course successfully added!");
     } catch (error) {
       console.error("❌ Error adding course:", error.response?.data || error.message);
@@ -39,9 +48,11 @@ const CourseForm = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6">
-        <span><h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
-          <Link to={'/admin'}>Home</Link>
-        </h2></span>
+        <span>
+          <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+            <Link to={"/admin"}>Home</Link>
+          </h2>
+        </span>
         <h1 className="text-lg font-semibold text-center mb-3 text-gray-800">
           Add a New Course
         </h1>
@@ -49,7 +60,7 @@ const CourseForm = () => {
           Create a course to engage learners.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
               Course Title
@@ -101,17 +112,16 @@ const CourseForm = () => {
           </div>
 
           <div>
-            <label htmlFor="thumbnail_url" className="block text-sm font-medium text-gray-700 mb-1">
-              Thumbnail URL
+            <label htmlFor="thumbnail_file" className="block text-sm font-medium text-gray-700 mb-1">
+              Upload Thumbnail
             </label>
             <input
-              type="text"
-              id="thumbnail_url"
-              name="thumbnail_url"
-              placeholder="https://example.com/image.jpg"
-              value={form.thumbnail_url}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="file"
+              id="thumbnail_file"
+              name="thumbnail_file"
+              accept="image/*"
+              onChange={(e) => setThumbnailFile(e.target.files[0])}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 file:mr-3 file:py-2 file:px-4 file:border-0 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
             />
           </div>
 

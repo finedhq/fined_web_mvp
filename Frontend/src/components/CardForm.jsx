@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import axios from '../lib/axios.js'
+import axios from '../lib/axios.js';
 import { useParams, Link } from 'react-router-dom';
-
 
 const CardForm = () => {
   const { moduleId } = useParams();
   const [cardType, setCardType] = useState('text');
   const [form, setForm] = useState({
     content_text: '',
-    video_url: '',
-    audio_url: '',
     question_type: '',
     options: '',
     correct_answer: '',
     allotted_finstars: 0,
     order_index: 0,
     answer_compulsory: false,
-    feedback_type: ''
+    feedback_type: '',
+    image_file: null,
+    audio_file: null,
+    video_file: null,
   });
 
   const handleChange = (e) => {
@@ -27,274 +27,223 @@ const CardForm = () => {
     }));
   };
 
+  const handleFileChange = (e, type) => {
+    const file = e.target.files[0];
+    if (file) {
+      setForm((prev) => ({ ...prev, [`${type}_file`]: file }));
+    }
+  };
+
   const handleCardTypeChange = (e) => {
     const selectedType = e.target.value;
     setCardType(selectedType);
     setForm({
       content_text: '',
-      video_url: '',
-      audio_url: '',
       question_type: '',
       options: '',
       correct_answer: '',
       allotted_finstars: 0,
       order_index: 0,
       answer_compulsory: false,
-      feedback_type: ''
+      feedback_type: '',
+      image_file: null,
+      audio_file: null,
+      video_file: null,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const data = new FormData();
 
-    const payload = {
-      content_type: cardType,  // ✅ MUST match backend naming
-      ...form,
-      options:
-        form.question_type === 'mcq_single' || form.question_type === 'mcq_multiple'
-          ? form.options.split(',').map((opt) => opt.trim())
-          : undefined,
-    };
+    data.append('content_type', cardType);
+    data.append('content_text', form.content_text);
+    data.append('question_type', form.question_type);
+    data.append('correct_answer', form.correct_answer);
+    data.append('allotted_finstars', form.allotted_finstars);
+    data.append('order_index', form.order_index);
+    data.append('answer_compulsory', form.answer_compulsory);
+    data.append('feedback_type', form.feedback_type);
 
+    if (form.options && (form.question_type === 'mcq_single' || form.question_type === 'mcq_multiple')) {
+      form.options.split(',').forEach((opt, index) => {
+        data.append(`options[${index}]`, opt.trim());
+      });
+    }
+
+    if (form.image_file) data.append('image_file', form.image_file);
+    if (form.audio_file) data.append('audio_file', form.audio_file);
+    if (form.video_file) data.append('video_file', form.video_file);
 
     try {
-      const res = await axios.post(`/cards/add/${moduleId}`, payload);
-      console.log("Success:", res.data);
-      alert("Card added!")
+      const res = await axios.post(`/cards/add/${moduleId}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      alert('Card added successfully!');
+      console.log(res.data);
     } catch (err) {
-      console.error("Error posting card:", err);
-      alert("Error in card addition")
+      alert('Error adding card.');
+      console.error(err);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6">
-        <span><h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
-          <Link to={'/admin'}>Home</Link>
-        </h2></span>
-        <h1 className="text-lg font-semibold text-center mb-3 text-gray-800">
-          Add a New Card
-        </h1>
-        <p className="text-center text-gray-500 mb-5">
-          Create a new card to enhance your module.
-        </p>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+          <Link to="/admin">Home</Link> / Add Card
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="cardType" className="block text-sm font-medium text-gray-700 mb-1">
-              Card Type
-            </label>
-            <select
-              id="cardType"
-              name="cardType"
-              value={cardType}
-              onChange={handleCardTypeChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
+          <label className="block">
+            Card Type
+            <select name="cardType" value={cardType} onChange={handleCardTypeChange} className="w-full mt-1 border rounded p-2">
               <option value="text">Text</option>
               <option value="video">Video</option>
+              <option value="image">Image</option>
               <option value="audio">Audio</option>
               <option value="question">Question</option>
             </select>
-          </div>
+          </label>
 
-          <div>
-            <label htmlFor="allotted_finstars" className="block text-sm font-medium text-gray-700 mb-1">
-              Allotted Finstars
-            </label>
+          <label className="block">
+            Allotted Finstars
             <input
-              id="allotted_finstars"
               type="number"
               name="allotted_finstars"
-              placeholder="e.g., 10"
               value={form.allotted_finstars}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full mt-1 border rounded p-2"
               required
-              min="0"
             />
-          </div>
+          </label>
 
-          <div>
-            <label htmlFor="order_index" className="block text-sm font-medium text-gray-700 mb-1">
-              Order Index
-            </label>
+          <label className="block">
+            Order Index
             <input
-              id="order_index"
               type="number"
               name="order_index"
-              placeholder="e.g., 1"
               value={form.order_index}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full mt-1 border rounded p-2"
               required
-              min="0"
             />
-          </div>
+          </label>
 
-          {cardType === 'text' && (
-            <div>
-              <label htmlFor="content_text" className="block text-sm font-medium text-gray-700 mb-1">
-                Text Content
-              </label>
+          {(cardType === 'text' || cardType === 'question' || cardType === 'audio' || cardType === 'video' || cardType === 'image') && (
+            <label className="block">
+              Content Text
               <textarea
-                id="content_text"
                 name="content_text"
-                placeholder="Enter text content..."
                 value={form.content_text}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-                rows="4"
-                required
+                className="w-full mt-1 border rounded p-2"
               />
-            </div>
+            </label>
           )}
 
-          {cardType === 'video' && (
-            <div>
-              <label htmlFor="video_url" className="block text-sm font-medium text-gray-700 mb-1">
-                Video URL
-              </label>
+          {cardType === 'image' && (
+            <label className="block">
+              Upload Image
               <input
-                id="video_url"
-                type="url"
-                name="video_url"
-                placeholder="https://example.com/video.mp4"
-                value={form.video_url}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, 'image')}
+                className="w-full mt-1"
                 required
               />
-            </div>
+            </label>
           )}
 
           {cardType === 'audio' && (
-            <div>
-              <label htmlFor="audio_url" className="block text-sm font-medium text-gray-700 mb-1">
-                Audio URL
-              </label>
+            <label className="block">
+              Upload Audio
               <input
-                id="audio_url"
-                type="url"
-                name="audio_url"
-                placeholder="https://example.com/audio.mp3"
-                value={form.audio_url}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="file"
+                accept="audio/*"
+                onChange={(e) => handleFileChange(e, 'audio')}
+                className="w-full mt-1"
                 required
               />
-            </div>
+            </label>
+          )}
+
+          {cardType === 'video' && (
+            <label className="block">
+              Upload Video
+              <input
+                type="file"
+                accept="video/*"
+                onChange={(e) => handleFileChange(e, 'video')}
+                className="w-full mt-1"
+                required
+              />
+            </label>
           )}
 
           {cardType === 'question' && (
             <>
-              <div>
-                <label htmlFor="content_text" className="block text-sm font-medium text-gray-700 mb-1">
-                  Question Text
-                </label>
-                <textarea
-                  id="content_text"
-                  name="content_text"
-                  placeholder="Enter the question text..."
-                  value={form.content_text}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-                  rows="3"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="question_type" className="block text-sm font-medium text-gray-700 mb-1">
-                  Question Type
-                </label>
-                <select
-                  id="question_type"
-                  name="question_type"
-                  value={form.question_type}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Select question type</option>
-                  <option value="mcq_single">MCQ (Single Answer)</option>
-                  <option value="mcq_multiple">MCQ (Multiple Answers)</option>
+              <label className="block">
+                Question Type
+                <select name="question_type" value={form.question_type} onChange={handleChange} className="w-full mt-1 border rounded p-2">
+                  <option value="">Select type</option>
+                  <option value="mcq_single">MCQ - Single Answer</option>
+                  <option value="mcq_multiple">MCQ - Multiple Answers</option>
                   <option value="subjective">Subjective</option>
                 </select>
-              </div>
+              </label>
 
               {(form.question_type === 'mcq_single' || form.question_type === 'mcq_multiple') && (
                 <>
-                  <div>
-                    <label htmlFor="options" className="block text-sm font-medium text-gray-700 mb-1">
-                      Options (comma separated)
-                    </label>
+                  <label className="block">
+                    Options (comma-separated)
                     <textarea
-                      id="options"
                       name="options"
-                      placeholder="Option1, Option2, Option3"
                       value={form.options}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-                      rows="3"
-                      required
+                      className="w-full mt-1 border rounded p-2"
                     />
-                  </div>
-
-                  <div>
-                    <label htmlFor="correct_answer" className="block text-sm font-medium text-gray-700 mb-1">
-                      Correct Answer
-                    </label>
+                  </label>
+                  <label className="block">
+                    Correct Answer
                     <input
-                      id="correct_answer"
                       type="text"
                       name="correct_answer"
-                      placeholder="Enter correct answer"
                       value={form.correct_answer}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
+                      className="w-full mt-1 border rounded p-2"
                     />
-                  </div>
+                  </label>
                 </>
               )}
 
-              <div>
-                <label htmlFor="feedback_type" className="block text-sm font-medium text-gray-700 mb-1">
-                  Feedback Type (optional)
-                </label>
+              <label className="block">
+                Feedback Type (optional)
                 <input
-                  id="feedback_type"
                   type="text"
                   name="feedback_type"
-                  placeholder="e.g., text, paragraph"
                   value={form.feedback_type}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full mt-1 border rounded p-2"
                 />
-              </div>
+              </label>
 
-              <label className="flex items-center gap-2">
+              <label className="inline-flex items-center gap-2 mt-2">
                 <input
-                  id="answer_compulsory"
                   type="checkbox"
                   name="answer_compulsory"
                   checked={form.answer_compulsory}
                   onChange={handleChange}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm font-medium text-gray-700">Answer Compulsory</span>
+                <span className="text-sm">Answer Compulsory</span>
               </label>
             </>
           )}
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200"
-          >
-            Post Card
+          <button type="submit" className="w-full bg-blue-600 text-white rounded p-2 mt-4 hover:bg-blue-700 transition">
+            Add Card
           </button>
         </form>
       </div>
