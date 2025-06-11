@@ -20,7 +20,6 @@ def add_course(c: Course):
     try:
         print(c)
         response = supabase.table("courses").insert(c.dict()).execute()
-        print(response)
         return response.data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Exception occurred: {str(e)}")
@@ -29,5 +28,4 @@ def add_course(c: Course):
 @router.get("/getall")
 def get_all_courses():
     res=supabase.table("courses").select("*").execute()
-    print(res.data)
     return res.data

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import axios from '../lib/axios.js'
+import { Link } from "react-router-dom";
 
 const CourseForm = () => {
   const [form, setForm] = useState({
@@ -13,14 +15,33 @@ const CourseForm = () => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    console.log("Form submitted:", form);
+    try {
+      const res = await axios.post("/courses/add", form);
+      console.log("Course added:", res.data);
+      setForm({
+        title: "",
+        description: "",
+        modules_count: "",
+        duration: "",
+        thumbnail_url: "",
+      });
+
+      // Optional: alert or toast
+      alert("✅ Course successfully added!");
+    } catch (error) {
+      console.error("❌ Error adding course:", error.response?.data || error.message);
+      alert("Failed to add course.");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6">
+        <span><h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          <Link to={'/admin'}>Home</Link>
+        </h2></span>
         <h1 className="text-lg font-semibold text-center mb-3 text-gray-800">
           Add a New Course
         </h1>

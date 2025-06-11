@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
+import axios from '../lib/axios.js'
+import { useParams, Link } from 'react-router-dom';
+
+
 
 const ModuleForm = () => {
+  const {courseId} = useParams();
+  console.log(courseId);
+  // const [courseId, setcourseId] = useState()
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -14,14 +21,31 @@ const ModuleForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', form);
+    try {
+      const res = await axios.post(`/modules/add/${courseId}`, form);
+      console.log("✅ Module created:", res.data);
+
+      alert("Module added successfully!");
+
+      setForm({
+        title: '',
+        description: '',
+        order_index: '',
+      });
+    } catch (err) {
+      console.error("❌ Failed to add module:", err.response?.data || err.message);
+      alert("Failed to add module");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6">
+        <span><h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          <Link to={'/admin'}>Home</Link>
+        </h2></span>
         <h1 className="text-lg font-semibold text-center mb-3 text-gray-800">
           Add a New Module
         </h1>

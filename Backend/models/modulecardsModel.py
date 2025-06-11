@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import Optional, List, Literal
 
 class CardCreate(BaseModel):
-    module_id: str
     content_type: Literal['text', 'video', 'audio', 'question']
     content_text: Optional[str] = None
     video_url: Optional[str] = None

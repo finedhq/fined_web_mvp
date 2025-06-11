@@ -21,10 +21,11 @@ def get_modules_by_course(course_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/add")
-def add_module(module: Module):
+@router.post("/add/{course_id}")
+def add_module(course_id:str,module: Module):
     try:
         data = module.dict()
+        data["course_id"]=course_id
         res = supabase.table("modules").insert(data).execute()
         if len(res.data) == 0:
             raise HTTPException(status_code=500, detail="Failed to add module")

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+import axios from '../lib/axios.js'
+import { useParams, Link } from 'react-router-dom';
+
 
 const CardForm = () => {
+  const { moduleId } = useParams();
   const [cardType, setCardType] = useState('text');
   const [form, setForm] = useState({
     content_text: '',
@@ -40,14 +44,35 @@ const CardForm = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', { content_type: cardType, ...form });
+
+    const payload = {
+      content_type: cardType,  // ✅ MUST match backend naming
+      ...form,
+      options:
+        form.question_type === 'mcq_single' || form.question_type === 'mcq_multiple'
+          ? form.options.split(',').map((opt) => opt.trim())
+          : undefined,
+    };
+
+
+    try {
+      const res = await axios.post(`/cards/add/${moduleId}`, payload);
+      console.log("Success:", res.data);
+      alert("Card added!")
+    } catch (err) {
+      console.error("Error posting card:", err);
+      alert("Error in card addition")
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-lg bg-white rounded-lg shadow-md p-6">
+        <span><h2 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          <Link to={'/admin'}>Home</Link>
+        </h2></span>
         <h1 className="text-lg font-semibold text-center mb-3 text-gray-800">
           Add a New Card
         </h1>

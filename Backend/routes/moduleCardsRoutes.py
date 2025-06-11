@@ -15,16 +15,15 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 @router.get("/{module_id}/getall", response_model=List[CardOut])
 def get_cards_by_module(module_id: str):
     res=supabase.table("cards").select("*").eq("module_id",module_id).order("order_index").execute()
-    print(res.data)
     return res.data
 
-# Add a new card
-@router.post("/{module_id}/add", response_model=CardOut)
-def add_card(card: CardCreate):
+@router.post("/add/{moduleId}", response_model=CardOut)
+def add_card(moduleId: str, card: CardCreate):
     try:
         print(card)
-        response = supabase.table("cards").insert(card.dict()).execute()
-        print(response)
+        data = card.dict()
+        data["module_id"] = moduleId
+        response = supabase.table("cards").insert(data).execute()
         return response.data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Exception occurred: {str(e)}")
