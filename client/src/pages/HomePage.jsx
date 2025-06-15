@@ -77,7 +77,7 @@ const HomePage = () => {
   <section className="score-card">
         <div className="score-card-header">
     <h3>FinScore</h3>
-      <div className="info-icon">i</div>
+      <div className="scoreinfo-icon">i</div>
     </div>
     <div className="score-circle">
       <div className="score">789</div>
