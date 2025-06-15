@@ -13,8 +13,8 @@ const HomePage = () => {
 
   return (
     <div className="app">
-      <header className="header">
-        <div className="logo">
+      <header className="homeheader">
+        <div className="homelogo">
           <img src="logo.jpg" alt="FinEd Logo" />
         </div>
         <nav className="navhome">
@@ -36,7 +36,7 @@ const HomePage = () => {
         <img src="profile.png" alt="Profile" />
         <img src="edit.png" className="edit-icon" alt="Edit" />
       </div>
-      <h2>Kristen Waters</h2>
+      <h3>Kristen Waters</h3>
       <div className="stats">
         <div><img src="star.png" alt="Star" /> 320</div>
         <div><img src="flame.png" alt="Fire" /> 4</div>
@@ -75,7 +75,10 @@ const HomePage = () => {
 
 
   <section className="score-card">
+        <div className="score-card-header">
     <h3>FinScore</h3>
+      <div className="info-icon">i</div>
+    </div>
     <div className="score-circle">
       <div className="score">789</div>
     </div>
