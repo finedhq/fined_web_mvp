@@ -7,6 +7,8 @@ import ModuleForm from './components/ModuleForm.jsx'
 import CardsPage from './pages/AdminDashboard/CardsPage.jsx'
 import CardForm from './components/CardForm.jsx'
 import AdminHome from './pages/AdminDashboard/AdminHome.jsx';
+import ArticleForm from './components/ArticleForm.jsx';
+import ArticleList from './pages/AdminDashboard/ArticleList.jsx';
 const App = () => {
   return (
     <Routes>
@@ -17,6 +19,8 @@ const App = () => {
       <Route path='/admin/courses/:courseId/modules/add' element={<ModuleForm></ModuleForm>}></Route>
       <Route path="/admin/modules/:moduleId/cards" element={<CardsPage></CardsPage>} />
       <Route path="/admin/modules/:moduleId/cards/add" element={<CardForm></CardForm>} />
+      <Route path="/admin/articles/add" element={<ArticleForm></ArticleForm>}></Route>
+      <Route path="/admin/articles" element={<ArticleList></ArticleList>}></Route>
     </Routes>
 
   )

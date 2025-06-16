@@ -10,8 +10,16 @@ const AdminHome = () => {
       onClick: () => navigate("/admin/courses/add"),
     },
     {
+      label:"Add New Articles",
+      onClick:()=> navigate("/admin/articles/add"),
+    },
+    {
       label: "View All Courses",
       onClick: () => navigate("/admin/courses"),
+    },
+    {
+      label:"View All Articles",
+      onClick: () => navigate("/admin/articles"),
     },
     {
       label: "Settings (Coming Soon)",
