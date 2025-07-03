@@ -20,6 +20,7 @@ import HomePage from './pages/HomePage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 
+
 function App() {
   return (
     <Router>
@@ -34,10 +35,6 @@ function App() {
         <Route path="/admin/modules/:moduleId/cards/add" element={<CardForm></CardForm>} />
         <Route path="/admin/articles/add" element={<ArticleForm></ArticleForm>}></Route>
         <Route path="/admin/articles" element={<ArticleList></ArticleList>}></Route>
-
-
-
-
 
         <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<HomePage />} />
