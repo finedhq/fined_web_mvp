@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
 export default function LandingPage() {
   const { user,isAuthenticated, isLoading } = useAuth0();
   const navigate = useNavigate();
+  const location = useLocation();
   console.log(isAuthenticated,user);
   useEffect(() => {
-    if (!isLoading && isAuthenticated) navigate('/home');
-  }, [isAuthenticated, isLoading]);
+    if (!isLoading && isAuthenticated && location.pathname !== '/home') navigate('/home');
+  }, [isAuthenticated, isLoading, location.pathname]);
 
 
   return (

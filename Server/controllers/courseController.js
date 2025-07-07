@@ -47,158 +47,49 @@ export const addCourse = async (req, res) => {
   }
 };
 
-// export const getAllCourses = async (req, res) => {
-//   try {
-//     const { userid, email } = req.query;
-//     if (!userid) {
-//       return res.status(400).json({ error: "User ID is required to update streak" });
-//     }
-
-//     const today = new Date().toISOString().split("T")[0];
-//     const yesterday = new Date();
-//     yesterday.setDate(yesterday.getDate() - 1);
-//     const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-//     let newStreak = 1;
-//     let lastvisit = null;
-
-//     const { data: candidate, error: canerror } = await supabase
-//       .from("users")
-//       .select("*")
-//       .eq("user_sub", userid)
-//       .single();
-
-//     if (!candidate) {
-//       // New user → insert
-//       const { error: inserterror } = await supabase.from("users").insert([{
-//         user_sub: userid,
-//         email: email,
-//         streak_count: 1,
-//         last_date: today
-//       }]);
-//       if (inserterror) throw inserterror;
-//     } else {
-//       // Existing user → calculate streak
-//       lastvisit = candidate.last_date?.split("T")[0]; // Fix: access field, not function
-
-//       if (lastvisit === yesterdayStr) {
-//         newStreak = candidate.streak_count + 1;
-//       } else if (lastvisit === today) {
-//         newStreak = candidate.streak_count;
-//       } else {
-//         newStreak = 1;
-//       }
-
-//       // Update only if not already today
-//       if (lastvisit !== today) {
-//         const { error: updateError } = await supabase
-//           .from("users")
-//           .update({
-//             streak_count: newStreak,
-//             last_date: today,
-//           })
-//           .eq("user_sub", userid);
-//         if (updateError) throw updateError;
-//       }
-//     }
-
-//     // Fetch courses
-//     const { data: courses, error } = await supabase.from("courses").select("*");
-//     if (error) throw error;
-
-//     // Fetch Latest article:
-//     const {data:article ,arterror}=await supabase.from("articles").select("*").order("created_at",{ ascending: false }).limit(1).single();
-//     console.log(article.title);
-
-
-//     // Return both courses and streak
-//     res.json({ courses, streak: newStreak,article });
-
-//   } catch (err) {
-//     res.status(500).json({ error: `Error fetching courses: ${err.message}` });
-//   }
-// };
-
 export const getAllCourses = async (req, res) => {
   try {
-    const { data:courses, error } = await supabase.from("courses").select("*");
+    const { data, error } = await supabase.from("courses").select("*");
 
     if (error) throw error;
-    res.json({courses});
+
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: `Error fetching courses: ${err.message}` });
   }
 };
 
-export const updatestreak=async (req,res) => {
+export const getOngoingCourse = async (req, res) => {
+  const { email } = req.body;
+
   try {
-    const { userid, email } = req.query;
-    if (!userid) {
-      return res.status(400).json({ error: "User ID is required to update streak" });
-    }
-
-    const today = new Date().toISOString().split("T")[0];
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-    let newStreak = 1;
-    let lastvisit = null;
-
-    const { data: candidate, error: canerror } = await supabase
+    const { data: userData, error: userFetchError } = await supabase
       .from("users")
-      .select("*")
-      .eq("user_sub", userid)
-      .single();
+      .select("ongoing_course_id")
+      .eq("email", email)
+      .maybeSingle();
 
-    if (!candidate) {
-      // New user → insert
-      const { error: inserterror } = await supabase.from("users").insert([{
-        user_sub: userid,
-        email: email,
-        streak_count: 1,
-        last_date: today
-      }]);
-      if (inserterror) throw inserterror;
-    } else {
-      // Existing user → calculate streak
-      lastvisit = candidate.last_date?.split("T")[0]; // Fix: access field, not function
+    if (userFetchError) throw userFetchError;
 
-      if (lastvisit === yesterdayStr) {
-        newStreak = candidate.streak_count + 1;
-      } else if (lastvisit === today) {
-        newStreak = candidate.streak_count;
-      } else {
-        newStreak = 1;
-      }
+    const courseId = userData?.ongoing_course_id;
 
-      // Update only if not already today
-      if (lastvisit !== today) {
-        const { error: updateError } = await supabase
-          .from("users")
-          .update({
-            streak_count: newStreak,
-            last_date: today,
-          })
-          .eq("user_sub", userid);
-        if (updateError) throw updateError;
-      }
+    if (!courseId) {
+      return res.json({ error: "No ongoing course found for this user." });
     }
-    // Fetch Latest article:
-    const {data:article ,arterror}=await supabase.from("articles").select("*").order("created_at",{ ascending: false }).limit(1).single();
-    console.log(article.title);
 
+    const { data, error: courseFetchError } = await supabase
+      .from("courses")
+      .select("*")
+      .eq("id", courseId)
+      .maybeSingle();
 
-    // Return both courses and streak
-    res.json({streak: newStreak,article });
-  } catch (error) {
-    res.status(500).json({ error: `Error fetching courses: ${error.message}` });
+    if (courseFetchError) throw courseFetchError;
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: `Error fetching ongoing course: ${err.message}` });
   }
-  
-}
-
-
-
+};
 
 export const getACourse = async (req, res) => {
   const { course_id } = req.params;
@@ -261,7 +152,7 @@ export const getACourse = async (req, res) => {
 
 export const getACard = async (req, res) => {
   try {
-    const { module_id, card_id } = req.params;
+    const { course_id, module_id, card_id } = req.params;
     const { email } = req.body;
 
     const { data: allCards, error: allCardsError } = await supabase
@@ -274,6 +165,13 @@ export const getACard = async (req, res) => {
     if (currentIndex === -1) throw new Error("Card not found");
 
     const currentCard = allCards[currentIndex];
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ ongoing_module_id: module_id, ongoing_course_id: course_id })
+      .eq("email", email);
+
+    if (updateError) throw updateError;
 
     const { data: userProgress } = await supabase
       .from("userCourses")
@@ -318,7 +216,7 @@ export const updateACard = async (req, res) => {
         card_id,
         progress_type: "card",
       })
-      .single();
+      .maybeSingle();
 
     if (checkError && checkError.code !== 'PGRST116') throw checkError;
 
@@ -359,26 +257,33 @@ export const updateACard = async (req, res) => {
       progressUpdate = data;
     }
 
-    // Update FinStars
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("fin_stars")
       .eq("email", email)
-      .single();
+      .maybeSingle();
 
     if (userError) throw userError;
 
     const currentStars = userData?.fin_stars || 0;
     const newStars = currentStars + (finStars || 0);
 
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ fin_stars: newStars })
-      .eq("email", email);
+    if (!userData) {
+      const { error: insertError } = await supabase
+        .from("users")
+        .insert([
+          { email, fin_stars: newStars }
+        ]);
 
-    if (updateError) throw updateError;
+      if (insertError) throw insertError;
+    } else {
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ fin_stars: newStars })
+        .eq("email", email);
 
-    // 🆕 Fetch the card again (with content + module progress)
+      if (updateError) throw updateError;
+    }
     const { data: allCards, error: allCardsError } = await supabase
       .from("cards")
       .select("*")
@@ -392,7 +297,6 @@ export const updateACard = async (req, res) => {
     const prevCardId = currentIndex > 0 ? allCards[currentIndex - 1].card_id : null;
     const nextCardId = currentIndex < allCards.length - 1 ? allCards[currentIndex + 1].card_id : null;
 
-    // Progress in this module
     const { data: moduleProgressData, error: progressError } = await supabase
       .from("userCourses")
       .select("status")

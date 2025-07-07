@@ -4,6 +4,7 @@ import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
 import { RxCross2 } from "react-icons/rx"
 import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
+import toast from 'react-hot-toast'
 
 const ModuleContentPage = () => {
 
@@ -62,6 +63,7 @@ const ModuleContentPage = () => {
   }
 
   useEffect(() => {
+    if (!email) return
     setLoading(true)
     setCard({})
     setSelectedIndex(null)
@@ -85,6 +87,9 @@ const ModuleContentPage = () => {
       if (res.data?.module_progress && res.data?.module_total_cards) {
         const percent = Math.round((res.data.module_progress / res.data.module_total_cards) * 100)
         setProgressPercent(percent)
+      }
+      if (finStarsToAward > 0) {
+        toast.success(`🎉 You earned ${finStarsToAward} FinStars!`)
       }
     } catch (err) {
       setWarning("Failed to update course card.")
@@ -271,7 +276,7 @@ const ModuleContentPage = () => {
             <div className="flex justify-end pt-4">
               <button
                 onClick={() => { setWarning(false); navigate("/courses") }}
-                className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
+                className="bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg cursor-pointer"
               >
                 Close
               </button>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import instance from "../lib/axios.js"
+import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 
 const imageAssets = {
@@ -18,7 +18,7 @@ export default function CourseOverviewPage() {
   const { user, isLoading, isAuthenticated, logout } = useAuth0()
   const [role, setrole] = useState("")
 
-  const [email, setEmail] = useState("bandraladitya32@gmail.com")
+  const [email, setEmail] = useState("")
   const [courseTitle, setCourseTitle] = useState("")
   const [course, setCourse] = useState([])
   const [showLockedAlert, setShowLockedAlert] = useState(false)
@@ -40,32 +40,39 @@ export default function CourseOverviewPage() {
   }, [isLoading, isAuthenticated])
 
   async function fetchCourse() {
+    setLoading(true)
     try {
       const res = await instance.post(`/courses/course/${course_id}`, { email })
       console.log(res.data)
       setCourseTitle(res.data.title)
       setCourse(res.data.data)
-    } catch (err) {
-      setWarning("Failed to load courses.")
-    } finally {
       setLoading(false)
+    } catch (err) {
+      setWarning("Failed to load course.")
     }
   }
 
   useEffect(() => {
-    fetchCourse()
+    if (email)
+      fetchCourse()
   }, [email])
 
   async function fetchEnteredEmail() {
-    const res = await instance.post("/articles/getenteredemail", { email })
-    if (res.data[0]?.enteredEmail) {
-      setEnteredEmail(res.data[0].enteredEmail)
-      setIsEnteredEmail(true)
+    try {
+      const res = await instance.post("/articles/getenteredemail", { email })
+      if (res.data[0]?.enteredEmail) {
+        setEnteredEmail(res.data[0]?.enteredEmail || null)
+        setIsEnteredEmail(true)
+      }
+    } catch (error) {
+      setEnteredEmail("")
+      setIsEnteredEmail(false)
     }
   }
 
   useEffect(() => {
-    fetchEnteredEmail()
+    if (email)
+      fetchEnteredEmail()
   }, [email])
 
   const saveEmail = async () => {
@@ -149,26 +156,26 @@ export default function CourseOverviewPage() {
         </div>
       </header>
 
-      <div className="py-10 bg-white min-h-screen">
-        <div className="bg-violet-800 text-white rounded-2xl overflow-hidden mb-6 w-full max-w-3xl mx-auto">
-          <div className="flex items-center px-4 py-3 border-b border-white/40">
-            <button onClick={() => navigate('/courses')} className="text-xl mr-4">←</button>
-            <h2 className="text-lg font-semibold">{courseTitle}</h2>
-          </div>
-          <div className="px-4 py-2">
-            <div className="font-semibold">Module 1</div>
-            <div className="text-m">{course[0]?.moduleTitle}</div>
-          </div>
+      {loading ?
+        <div className="flex flex-col gap-8 items-center my-20">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="w-[50%] h-24 bg-gray-300 rounded-2xl animate-pulse" />
+          ))}
         </div>
-
-        {loading ?
-          <div className="flex flex-col gap-8 items-center mt-20">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="w-[50%] h-24 bg-gray-300 rounded-2xl animate-pulse" />
-            ))}
+        :
+        <div className="py-10 bg-white min-h-screen">
+          <div className="bg-violet-800 text-white rounded-2xl overflow-hidden mb-6 w-full max-w-3xl mx-auto">
+            <div className="flex items-center px-4 py-3 border-b border-white/40">
+              <button onClick={() => navigate('/courses')} className="text-xl mr-4 cursor-pointer">←</button>
+              <h2 className="text-lg font-semibold">{courseTitle}</h2>
+            </div>
+            <div className="px-4 py-2">
+              <div className="font-semibold">Module 1</div>
+              <div className="text-m">{course[0]?.moduleTitle}</div>
+            </div>
           </div>
-          :
-          course.map((module, index) => (
+
+          {course.map((module, index) => (
             <div key={index} className="mb-20 mx-auto max-w-3xl">
               {index !== 0 && (
                 <div className="bg-violet-800 text-white px-4 py-2 rounded-2xl font-medium text-left w-full">
@@ -224,7 +231,8 @@ export default function CourseOverviewPage() {
               </div>
             </div>
           ))}
-      </div>
+        </div>
+      }
       <footer className="bg-[#f7fafc] py-10 px-6 md:px-12 flex flex-wrap justify-between text-[#333] font-sans">
 
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
@@ -280,7 +288,7 @@ export default function CourseOverviewPage() {
             </p>
             <div className="flex justify-end pt-4">
               <button
-                onClick={() => { setWarning(false); navigate("/courses") }}
+                onClick={() => { setWarning(false); setLoading(false); navigate("/courses") }}
                 className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
               >
                 Close

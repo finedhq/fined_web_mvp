@@ -20,36 +20,41 @@ import ExpenseTracker from './components/ExpenseTracker.jsx'
 import NewsLetter from './pages/AdminDashboard/AdminNewsletter.jsx';
 import CoursesHomePage from './pages/CoursesPage.jsx';
 import FinToolsPage from './pages/FinToolsPage.jsx';
+
+import { Toaster } from 'react-hot-toast';
+
 const App = () => {
   return (
-    <Routes>
+    <>
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+      <Routes>
 
-      {/* ADMIN ROUTES!~! */}
-      <Route path='/admin' element={<AdminHome></AdminHome>}></Route>
-      <Route path='/admin/newsletters' element={<NewsLetter />} ></Route>
-      <Route path="/admin/courses" element={<CoursesPage></CoursesPage>} />
-      <Route path="/admin/courses/add" element={<CourseForm></CourseForm>} />
-      <Route path='/admin/courses/:courseId/modules' element={<ModulesPage></ModulesPage>}></Route>
-      <Route path='/admin/courses/:courseId/modules/add' element={<ModuleForm></ModuleForm>}></Route>
-      <Route path="/admin/modules/:moduleId/cards" element={<CardsPage></CardsPage>} />
-      <Route path="/admin/modules/:moduleId/cards/add" element={<CardForm></CardForm>} />
-      <Route path="/admin/articles/add" element={<ArticleForm></ArticleForm>}></Route>
-      <Route path="/admin/articles" element={<ArticleList></ArticleList>}></Route>
+        {/* ADMIN ROUTES!~! */}
+        <Route path='/admin' element={<AdminHome></AdminHome>}></Route>
+        <Route path='/admin/newsletters' element={<NewsLetter />} ></Route>
+        <Route path="/admin/courses" element={<CoursesPage></CoursesPage>} />
+        <Route path="/admin/courses/add" element={<CourseForm></CourseForm>} />
+        <Route path='/admin/courses/:courseId/modules' element={<ModulesPage></ModulesPage>}></Route>
+        <Route path='/admin/courses/:courseId/modules/add' element={<ModuleForm></ModuleForm>}></Route>
+        <Route path="/admin/modules/:moduleId/cards" element={<CardsPage></CardsPage>} />
+        <Route path="/admin/modules/:moduleId/cards/add" element={<CardForm></CardForm>} />
+        <Route path="/admin/articles/add" element={<ArticleForm></ArticleForm>}></Route>
+        <Route path="/admin/articles" element={<ArticleList></ArticleList>}></Route>
 
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/courses" element={<CoursesHomePage />} />
-      <Route path="/courses/course/:course_id" element={<CourseOverviewPage />} />
-      <Route path="/courses/course/:courseId/module/:moduleId/card/:cardId" element={<ModuleContentPage />} />
-      <Route path="/articles" element={<ArticlesPage />} />
-      <Route path="/signin" element={<SignInPage />} />
-      <Route path="/signup" element={<SignUpPage />} />
-      <Route path="/fin-tools" element={<FinToolsPage />} />
-      <Route path="/fin-tools/expensetracker" element={<ExpenseTracker />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/courses" element={<CoursesHomePage />} />
+        <Route path="/courses/course/:course_id" element={<CourseOverviewPage />} />
+        <Route path="/courses/course/:courseId/module/:moduleId/card/:cardId" element={<ModuleContentPage />} />
+        <Route path="/articles" element={<ArticlesPage />} />
+        <Route path="/signin" element={<SignInPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/fin-tools" element={<FinToolsPage />} />
+        <Route path="/fin-tools/expensetracker" element={<ExpenseTracker />} />
 
 
-    </Routes>
-
+      </Routes>
+    </>
   )
 }
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
+import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
 
 const ArticlesPage = () => {
   const navigate = useNavigate()
@@ -10,7 +11,7 @@ const ArticlesPage = () => {
   const { user, isLoading, isAuthenticated, logout } = useAuth0()
   const [role, setrole] = useState("")
 
-  const [email, setEmail] = useState("bandraladitya32@gmail.com")
+  const [email, setEmail] = useState("")
   const [articles, setArticles] = useState([])
   const carouselRef1 = useRef(null)
   const carouselRef2 = useRef(null)
@@ -19,6 +20,8 @@ const ArticlesPage = () => {
   const [canScrollLeft2, setCanScrollLeft2] = useState(false)
   const [canScrollRight2, setCanScrollRight2] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState(null)
+  const [isArticleClosed, setIsArticleClosed] = useState(true)
+  const [isFadingOut, setIsFadingOut] = useState(false)
   const selectedIndex = selectedArticle ? articles.findIndex(a => a.id === selectedArticle.id) : -1
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -68,42 +71,44 @@ const ArticlesPage = () => {
     }
   };
 
+  async function fetchEnteredEmail() {
+    try {
+      const res = await instance.post("/articles/getenteredemail", { email })
+      if (res.data[0]?.enteredEmail) {
+        setEnteredEmail(res.data[0]?.enteredEmail || null)
+        setIsEnteredEmail(true)
+      }
+    } catch (error) {
+      setEnteredEmail("")
+      setIsEnteredEmail(false)
+    }
+  }
+
+  useEffect(() => {
+    if (email)
+      fetchEnteredEmail()
+  }, [email])
+
   const fetchArticles = async () => {
     if (!hasMore) return
+    setLoading(true)
     try {
-      setLoading(true)
       const limit = offset === 0 ? 37 : ARTICLES_PER_PAGE
       const res = await instance.post("/articles/getall", { limit, offset })
       if (res.data.length < limit) setHasMore(false)
 
       setArticles(prev => [...prev, ...res.data])
       setOffset(prev => prev + limit)
+      setLoading(false)
     } catch (err) {
       setError("Failed to load articles.")
-    } finally {
-      setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchArticles()
-  }, [])
-
-  async function fetchEnteredEmail() {
-    try {
-      const res = await instance.post("/articles/getenteredemail", { email })
-      setEnteredEmail(res.data[0]?.enteredEmail || "")
-      setIsEnteredEmail(true)
-    } catch (error) {
-      setEnteredEmail("")
-      setIsEnteredEmail(false)
-      setError("Failed to fetch your subscription email.")
-    }
-  }
-
-  useEffect(() => {
-    fetchEnteredEmail()
-  }, [])
+    if (email)
+      fetchArticles()
+  }, [email])
 
   useEffect(() => {
     const el1 = carouselRef1.current;
@@ -207,46 +212,12 @@ const ArticlesPage = () => {
     }
   }
 
-  if (loading && articles.length === 0) {
-    return (
-      <div className="min-h-screen w-full p-10 bg-gray-50 space-y-10 animate-pulse">
-        <div className="flex gap-10">
-          <div className="bg-white rounded-3xl shadow-md w-1/2 h-96"></div>
-          <div className="flex flex-col gap-8 w-1/2">
-            <div className="h-6 bg-gray-300 rounded w-2/3"></div>
-            <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-300 rounded w-full"></div>
-            <div className="h-4 bg-gray-300 rounded w-5/6"></div>
-          </div>
-        </div>
-        <div className="flex gap-12">
-          <div className="flex flex-col gap-4 w-1/2">
-            <div className="h-72 bg-gray-300 rounded-2xl w-full"></div>
-            <div className="h-5 bg-gray-300 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-300 rounded w-full"></div>
-            <div className="h-4 bg-gray-300 rounded w-5/6"></div>
-          </div>
-          <div className="flex flex-col gap-4 w-1/2">
-            <div className="h-5 bg-gray-300 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-300 rounded w-full"></div>
-            <div className="h-64 bg-gray-300 rounded-2xl w-full"></div>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex gap-5 mb-6 p-4 bg-white rounded-lg shadow">
-              <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
-              <div className="flex flex-col gap-3 w-full">
-                <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-                <div className="h-5 bg-gray-300 rounded w-full"></div>
-                <div className="h-4 bg-gray-300 rounded w-5/6"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+  const openArticle = (article) => {
+    setSelectedArticle(article)
+    setIsArticleClosed(false)
+    setIsFadingOut(false)
   }
+
 
   return (
     <div className="mx-auto px-10 py-5 bg-gray-50 font-inter text-[#1e1e1e]">
@@ -300,156 +271,196 @@ const ArticlesPage = () => {
           <img src="/bell.png" alt="Bell Icon" width="24" />
         </div>
       </header>
-
-      <div className="flex py-10 gap-10">
-
-        <div onClick={() => setSelectedArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden shadow-md cursor-pointer">
-          <div className="relative">
-            <img src={articles[0]?.image_url || "_"} alt="article_image_1" className="w-full h-96 object-cover" />
-            <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
+      {loading ?
+        <div className="min-h-screen w-full p-10 bg-gray-50 space-y-10 animate-pulse">
+          <div className="flex gap-10">
+            <div className="bg-gray-300 rounded-3xl shadow-md w-1/2 h-96"></div>
+            <div className="flex flex-col gap-8 w-1/2">
+              <div className="h-6 bg-gray-300 rounded w-2/3"></div>
+              <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-300 rounded w-full"></div>
+              <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+            </div>
           </div>
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
-            <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-            <p className='text-gray-600 text-sm mb-4' >[ . . . ]</p>
-            <p className="text-xs text-gray-400">{new Date(articles[0]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+          <div className="flex gap-12">
+            <div className="flex flex-col gap-4 w-1/2">
+              <div className="h-72 bg-gray-300 rounded-2xl w-full"></div>
+              <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-300 rounded w-full"></div>
+              <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+            </div>
+            <div className="flex flex-col gap-4 w-1/2">
+              <div className="h-5 bg-gray-300 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-300 rounded w-full"></div>
+              <div className="h-64 bg-gray-300 rounded-2xl w-full"></div>
+            </div>
           </div>
-        </div>
-
-
-        <div className="flex flex-col gap-12">
-
-          <div className="flex justify-end items-center space-x-2">
-            <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollLeft1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
-              onClick={() => scrollLeft(carouselRef1)}
-              disabled={!canScrollLeft1}
-            >
-              ❮
-            </button>
-
-            <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollRight1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
-              onClick={() => scrollRight(carouselRef1)}
-              disabled={!canScrollRight1}
-            >
-              ❯
-            </button>
-          </div>
-          <div ref={carouselRef1} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="max-h-[60vh] columns-1 carousel-track-1 space-x-4 space-y-4" >
-            {articles.slice(3).map((article, index) =>
-              <div onClick={() => setSelectedArticle(article)} key={index + 4} className="flex gap-6 cursor-pointer">
-                <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 object-cover rounded-lg" />
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
-                  <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
-                  <p className='text-gray-600 text-sm' >[ . . . ]</p>
+          <div className="grid grid-cols-2 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex gap-5 mb-6 p-4 bg-white rounded-lg shadow">
+                <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
+                <div className="flex flex-col gap-3 w-full">
+                  <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                  <div className="h-5 bg-gray-300 rounded w-full"></div>
+                  <div className="h-4 bg-gray-300 rounded w-5/6"></div>
                 </div>
               </div>
-            )}
-            <div ref={loaderRef} className="h-1"></div>
-            {loading && (
-              <div className="text-center py-4 text-gray-500">Loading more articles...</div>
-            )}
-            {!hasMore && (
-              <div className="text-center py-4 text-gray-500">✔️ You're all caught up.</div>
-            )}
+            ))}
           </div>
         </div>
-      </div>
+        :
+        <div>
+          <div className="flex py-10 gap-10">
 
-      <div className="bg-gray-50 px-8 py-12">
-        <div className="flex gap-12">
-
-
-          <div onClick={() => setSelectedArticle(articles[1])} className='cursor-pointer' >
-            <img src={articles[1]?.image_url || "_"} alt="article_image_2" className="rounded-2xl w-full h-72 object-cover mb-6" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
-            <div className="flex items-center text-sm text-gray-500 mb-4">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-            </div>
-            <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-            <p className='text-gray-600 text-sm' >[ . . . ]</p>
-          </div>
-
-
-          <div className="flex flex-col gap-10">
-
-            <div onClick={() => setSelectedArticle(articles[2])} className='cursor-pointer' >
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
-              <div className="flex items-center text-sm text-gray-500 mb-4">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+            <div onClick={() => openArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden shadow-md cursor-pointer">
+              <div className="relative">
+                <img src={articles[0]?.image_url || "_"} alt="article_image_1" className="w-full h-96 object-cover" />
+                <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
               </div>
-              <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-              <p className='text-gray-600 text-sm' >[ . . . ]</p>
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
+                <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
+                <p className='text-gray-600 text-sm mb-4' >[ . . . ]</p>
+                <p className="text-xs text-gray-400">{new Date(articles[0]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+              </div>
             </div>
 
-            <div>
-              <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
+
+            <div className="flex flex-col gap-12">
+
+              <div className="flex justify-end items-center space-x-2">
+                <button
+                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+              transition-all duration-200 border cursor-pointer 
+              ${canScrollLeft1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+                  onClick={() => scrollLeft(carouselRef1)}
+                  disabled={!canScrollLeft1}
+                >
+                  ❮
+                </button>
+
+                <button
+                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+              transition-all duration-200 border cursor-pointer 
+              ${canScrollRight1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+                  onClick={() => scrollRight(carouselRef1)}
+                  disabled={!canScrollRight1}
+                >
+                  ❯
+                </button>
+              </div>
+              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="max-h-[60vh] columns-1 carousel-track-1 space-x-4 space-y-4" >
+                {articles.slice(3).map((article, index) =>
+                  <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-6 cursor-pointer">
+                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 object-cover rounded-lg" />
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
+                      <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
+                      <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                    </div>
+                  </div>
+                )}
+                <div ref={loaderRef} className="h-1"></div>
+                {loading && (
+                  <div className="text-center py-4 text-gray-500">Loading more articles...</div>
+                )}
+                {!hasMore && (
+                  <div className="text-center py-4 text-gray-500">✔️ You're all caught up.</div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="bg-gray-50 px-8 py-12">
-        <div className="flex justify-between items-center mb-12">
-          <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
-          <div className="flex gap-3">
-            <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer
-              ${canScrollLeft2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
-              onClick={() => scrollLeft(carouselRef2)}
-              disabled={!canScrollLeft2}
-            >
-              ❮
-            </button>
+          <div className="bg-gray-50 px-8 py-12">
+            <div className="flex gap-12">
 
-            <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer
-              ${canScrollRight2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
-              onClick={() => scrollRight(carouselRef2)}
-              disabled={!canScrollRight2}
-            >
-              ❯
-            </button>
-          </div>
-        </div>
 
-        <div ref={carouselRef2} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="max-h-[80vh] columns-2 carousel-track-2 space-x-4" >
-          {articles.slice(3).map((article, index) =>
-            <div key={index + 4} onClick={() => setSelectedArticle(article)} className="flex gap-5 mb-6 p-4 cursor-pointer">
-              <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 rounded-md object-cover" />
-              <div>
-                <p className="text-sm text-gray-500 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
-                <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
+              <div onClick={() => openArticle(articles[1])} className='cursor-pointer' >
+                <img src={articles[1]?.image_url || "_"} alt="article_image_2" className="rounded-2xl w-full h-72 object-cover mb-6" />
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
+                <div className="flex items-center text-sm text-gray-500 mb-4">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                </div>
+                <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
                 <p className='text-gray-600 text-sm' >[ . . . ]</p>
               </div>
-            </div>
-          )}
-          <div ref={loaderRef} className="h-1"></div>
-          {loading && (
-            <div className="text-center py-4 text-gray-500">Loading more articles...</div>
-          )}
-          {!hasMore && (
-            <div className="text-center py-4 text-gray-500">✔️ You're all caught up.</div>
-          )}
-        </div>
 
-      </div>
+
+              <div className="flex flex-col gap-10">
+
+                <div onClick={() => openArticle(articles[2])} className='cursor-pointer' >
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
+                  <div className="flex items-center text-sm text-gray-500 mb-4">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                  </div>
+                  <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
+                  <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                </div>
+
+                <div>
+                  <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 px-8 py-12">
+            <div className="flex justify-between items-center mb-12">
+              <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
+              <div className="flex gap-3">
+                <button
+                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+              transition-all duration-200 border cursor-pointer
+              ${canScrollLeft2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+                  onClick={() => scrollLeft(carouselRef2)}
+                  disabled={!canScrollLeft2}
+                >
+                  ❮
+                </button>
+
+                <button
+                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+              transition-all duration-200 border cursor-pointer
+              ${canScrollRight2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+                  onClick={() => scrollRight(carouselRef2)}
+                  disabled={!canScrollRight2}
+                >
+                  ❯
+                </button>
+              </div>
+            </div>
+
+            <div ref={carouselRef2} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="max-h-[80vh] columns-2 carousel-track-2 space-x-4" >
+              {articles.slice(3).map((article, index) =>
+                <div key={index + 4} onClick={() => openArticle(article)} className="flex gap-5 mb-6 p-4 cursor-pointer">
+                  <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 rounded-md object-cover" />
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
+                    <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
+                    <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                  </div>
+                </div>
+              )}
+              <div ref={loaderRef} className="h-1"></div>
+              {loading && (
+                <div className="text-center py-4 text-gray-500">Loading more articles...</div>
+              )}
+              {!hasMore && (
+                <div className="text-center py-4 text-gray-500">✔️ You're all caught up.</div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      }
 
       <footer className="bg-[#f7fafc] py-10 px-6 md:px-12 flex flex-wrap justify-between text-[#333] font-sans">
 
@@ -498,8 +509,8 @@ const ArticlesPage = () => {
         </p>
       </footer>
 
-      {selectedArticle && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4">
+      {!isArticleClosed && (
+        <div className={`fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4 ${isFadingOut ? "fade-out" : "fade-in"}`}>
           <div className="absolute top-1/2 left-1/7 transform -translate-y-1/2">
             <button
               className={`w-12 h-12 rounded-full text-lg flex items-center justify-center 
@@ -507,7 +518,7 @@ const ArticlesPage = () => {
               onClick={() => selectedIndex > 0 && setSelectedArticle(articles[selectedIndex - 1])}
               disabled={selectedIndex <= 0}
             >
-              ←
+              <FaArrowLeft />
             </button>
           </div>
 
@@ -527,13 +538,19 @@ const ArticlesPage = () => {
               }}
               disabled={!hasMore && selectedIndex >= articles.length - 1}
             >
-              →
+              <FaArrowRight />
             </button>
           </div>
           <div className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-lg shadow-lg p-8 relative">
 
             <button
-              onClick={() => setSelectedArticle(null)}
+              onClick={() => {
+                setIsFadingOut(true)
+                setTimeout(() => {
+                  setIsArticleClosed(true)
+                  setSelectedArticle(null)
+                }, 1000)
+              }}
               className="absolute top-4 right-4 text-gray-600 hover:text-black text-xl font-bold cursor-pointer"
             >
               ×
@@ -584,7 +601,7 @@ const ArticlesPage = () => {
             </p>
             <div className="flex justify-end pt-4">
               <button
-                onClick={() => { setError(false); navigate("/home") }}
+                onClick={() => { setError(false); setLoading(false); navigate("/home") }}
                 className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
               >
                 Close

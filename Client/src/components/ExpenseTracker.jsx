@@ -93,7 +93,7 @@ export default function ExpenseTracker() {
 
   async function fetchBankEmail() {
     const res = await instance.post("/fin-tools/expensetracker/fetchBankEmail", { email })
-    if (res.data.data[0]) {
+    if (res.data.data[0]?.bankEmail) {
       setBankEmail(res.data.data[0].bankEmail)
       setisGmailConnected(true)
       setIsAutoFetch(res.data.data[0].autofetchStatus)
@@ -102,8 +102,9 @@ export default function ExpenseTracker() {
   }
 
   useEffect(() => {
+    if (!email) return
     fetchBankEmail()
-  }, [isGmailConnected])
+  }, [isGmailConnected, email])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -591,8 +592,8 @@ export default function ExpenseTracker() {
 
 
   return (
-    <div className="relative px-10 py-5" >
-      <header className="flex justify-between items-center h-[63px] bg-white box-border">
+    <div className="relative px-10 py-5 bg-gray-50" >
+      <header className="flex justify-between items-center h-[63px] bg-gray-50 box-border">
 
         <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
@@ -804,12 +805,12 @@ export default function ExpenseTracker() {
                       />
                       <span>I understand and want to continue.</span>
                     </label>
-                    <label className="flex items-center space-x-2 text-sm text-gray-700">
+                    <label className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isAutoFetch}
                         onChange={(e) => setIsAutoFetch(e.target.checked)}
-                        className="accent-yellow-500"
+                        className="accent-yellow-500 cursor-pointer"
                       />
                       <span>Automatically read mails everytime you visit this page. </span>
                     </label>
@@ -824,12 +825,12 @@ export default function ExpenseTracker() {
                   </div>
                   :
                   <div>
-                    <label className="flex items-center space-x-2 text-sm text-gray-700">
+                    <label className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isAutoFetch}
                         onChange={(e) => { setIsAutoFetch(e.target.checked); setIsStatusChanged(prev => !prev) }}
-                        className="accent-yellow-500"
+                        className="accent-yellow-500 cursor-pointer"
                       />
                       <span>Automatically read mails everytime you visit this page. </span>
                     </label>

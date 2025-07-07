@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import instance from "../lib/axios.js"
+import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
+import toast from 'react-hot-toast'
 
 export default function CoursesHomePage() {
     const navigate = useNavigate()
@@ -12,6 +13,7 @@ export default function CoursesHomePage() {
 
     const [email, setEmail] = useState("")
     const [courses, setCourses] = useState([])
+    const [ongoingCourse, setOngoingCourse] = useState({})
     const [loading, setLoading] = useState(true)
     const [warning, setWarning] = useState("")
     const [error, setError] = useState("")
@@ -38,24 +40,40 @@ export default function CoursesHomePage() {
     }, [isLoading, isAuthenticated])
 
     async function fetchCourses() {
+        setLoading(true)
         try {
-            const res = await instance.get('/courses/getall', {
-                params: {
-                    userid: user?.sub,
-                    email: user?.email,
-                }
-            });
-            setCourses(res?.data?.courses)
-            console.log(res);
+            const res = await instance.get("/courses/getall")
+            if (res.data.length > 0) {
+                setCourses(res.data)
+                setLoading(false)
+            }
         } catch (err) {
             setError("Failed to load courses.")
-        } finally {
-            setLoading(false)
+        }
+    }
+
+    async function fetchOngoingCourses() {
+        try {
+            const res = await instance.post("/courses/getongoingcourse", {email})
+            console.log(res.data)
+            if (res.data?.title) {
+                setOngoingCourse(res.data)
+            }
+            else {
+                toast.error("No ongoing course found. Start a course.")
+            }
+        } catch (err) {
+            setWarning("Failed to load ongoing course.")
         }
     }
 
     useEffect(() => {
         fetchCourses()
+    }, [email])
+
+    useEffect(() => {
+        if (!email) return
+        fetchOngoingCourses()
     }, [email])
 
     const checkScroll = (el, setLeft, setRight) => {
@@ -107,12 +125,13 @@ export default function CoursesHomePage() {
     async function fetchEnteredEmail() {
         try {
             const res = await instance.post("/articles/getenteredemail", { email })
-            setEnteredEmail(res.data[0]?.enteredEmail || "")
-            setIsEnteredEmail(true)
+            if (res.data[0]?.enteredEmail) {
+                setEnteredEmail(res.data[0]?.enteredEmail || null)
+                setIsEnteredEmail(true)
+            }
         } catch (error) {
             setEnteredEmail("")
             setIsEnteredEmail(false)
-            setError("Failed to fetch your subscription email.")
         }
     }
 
@@ -284,19 +303,27 @@ export default function CoursesHomePage() {
                             </div>
                         </div>
                         <div className="flex gap-5 w-full h-[400px] mb-4" >
-                            <div className="bg-white h-96 w-1/5 p-4 rounded-xl shadow hover:shadow-md transition shrink-0">
-                                <img
-                                    src={courses[0]?.thumbnail_url}
-                                    alt={courses[0]?.title}
-                                    className="w-full h-28 object-cover rounded-md mb-2"
-                                />
-                                <p className="text-xs text-gray-500 mb-1">{courses[0]?.duration}</p>
-                                <h3 className="font-semibold text-blue-800 text-sm mb-1">
-                                    {courses[0]?.title}
-                                </h3>
-                                <p className="text-xs text-gray-600 mb-2">{courses[0]?.description}</p>
-                                <button>Start Now</button>
-                            </div>
+                                    <div className="bg-white rounded-xl shadow hover:shadow-md transition w-1/5 h-96 shrink-0 ml-1">
+                                        <img
+                                            src={ongoingCourse?.thumbnail_url || courses[5]?.thumbnail_url}
+                                            alt={ongoingCourse?.title || courses[5]?.title}
+                                            className="w-full h-40 object-cover rounded-md mb-2"
+                                        />
+                                        <div className="p-4 flex flex-col justify-between h-52" >
+                                            <div>
+                                                <div className="flex gap-1" >
+                                                    <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.modules_count || courses[5]?.modules_count}  Modules</p>
+                                                    <p className="text-xs text-gray-500 mb-1">&bull;</p>
+                                                    <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.duration || courses[5]?.duration} mins</p>
+                                                </div>
+                                                <h3 className="font-semibold text-cyan-800 text-base tracking-wide mb-2">
+                                                    {ongoingCourse?.title || courses[5]?.title}
+                                                </h3>
+                                                <p className="text-xs text-gray-600 mb-2">{ongoingCourse?.description || courses[5]?.description}</p>
+                                            </div>
+                                            <button onClick={() => navigate(`course/${ongoingCourse?.id || courses[5]?.id}`)} className="bg-amber-400 text-white px-6 py-2 rounded-full self-end mt-2 cursor-pointer" >{ongoingCourse?.id ? "Continue Learning" : "Start Now"}</button>
+                                        </div>
+                                    </div>
                             <div ref={carouselRef1} className="w-full flex overflow-hidden gap-[6px]" >
                                 {courses.map((course, index) =>
                                     <div key={index} className="bg-white rounded-xl shadow hover:shadow-md transition w-68 h-96 shrink-0 ml-1">
@@ -358,7 +385,7 @@ export default function CoursesHomePage() {
                                         </button>
                                     </div>
                                 </div>
-                                <div ref={carouselRef2} className="flex border border-gray-50 flex-col flex-wrap gap-4 h-screen overflow-hidden">
+                                <div ref={carouselRef2} className="flex border border-gray-50 flex-col flex-wrap gap-4 h-[740px] overflow-hidden">
                                     {courses.map((course) => (
                                         <CourseCard key={course.id} course={course} />
                                     ))}
@@ -444,7 +471,7 @@ export default function CoursesHomePage() {
                         </p>
                         <div className="flex justify-end pt-4">
                             <button
-                                onClick={() => { setError(""); navigate("/home") }}
+                                onClick={() => { setError(""); setLoading(false); navigate("/home") }}
                                 className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
                             >
                                 Close

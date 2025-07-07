@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 
 import adminRouter from './routes/newsletters.js';
+import homeRouter from './routes/home.js'
 import courseRouter from './routes/courses.js';
 import moduleRouter from './routes/modules.js';
 import cardsRouter from './routes/cards.js';
@@ -20,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.use('/api/admin', adminRouter);
+app.use('/api/home', homeRouter);
 app.use('/api/courses', courseRouter);
 app.use('/api/modules', moduleRouter);
 app.use('/api/cards', cardsRouter);
