@@ -4,15 +4,76 @@ const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
 
 export const getAllArticles = async (req, res) => {
   try {
+    const { limit = 30, offset = 0 } = req.body;
     const { data, error } = await supabase
       .from("articles")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
     if (error) throw error;
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: `Error fetching articles: ${err.message}` });
+  }
+};
+
+export const saveEmail = async (req, res) => {
+  const { email, enteredEmail } = req.body;
+
+  if (!email || !enteredEmail) {
+    return res.status(400).json({ error: "Both email and enteredEmail are required." });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("newsletter_gmails")
+      .upsert(
+        [{ email, enteredEmail: enteredEmail }],
+        { onConflict: ['email'] }
+      );
+
+    if (error) throw error;
+
+    res.status(200).json({ message: "Email saved successfully", data });
+  } catch (err) {
+    res.status(500).json({ error: `Error saving email: ${err.message}` });
+  }
+};
+
+export const removeEmail = async (req, res) => {
+  const { email, enteredEmail } = req.body;
+
+  if (!email || !enteredEmail) {
+    return res.status(400).json({ error: "Both email and enteredEmail are required." });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("newsletter_gmails")
+      .delete()
+      .match({ email, enteredEmail });
+
+    if (error) throw error;
+
+    res.status(200).json({ message: "Email removed successfully", data });
+  } catch (err) {
+    res.status(500).json({ error: `Error removing email: ${err.message}` });
+  }
+};
+
+export const fetchEnteredEmail = async (req, res) => {
+  const { email } = req.body
+  try {
+    const { data, error } = await supabase
+      .from("newsletter_gmails")
+      .select("enteredEmail")
+      .eq("email", email);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: `Error fetching entered email: ${err.message}` });
   }
 };
 

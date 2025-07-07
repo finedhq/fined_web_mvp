@@ -2,16 +2,23 @@ import express from "express";
 import multer from "multer";
 import {
   getAllArticles,
+  saveEmail,
+  removeEmail,
   addArticle,
+  fetchEnteredEmail
 } from "../controllers/articleController.js";
 
 const router = express.Router();
-const upload = multer(); // for handling `multipart/form-data`
+const upload = multer();
 
-// GET all articles
-router.get("/getall", getAllArticles);
+router.post("/getall", getAllArticles);
 
-// POST add article
+router.post("/saveemail", saveEmail);
+
+router.post("/removeemail", removeEmail);
+
+router.post("/getenteredemail", fetchEnteredEmail);
+
 router.post("/add", upload.single("image"), addArticle);
 
 export default router;
