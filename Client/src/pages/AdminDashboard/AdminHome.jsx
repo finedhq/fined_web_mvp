@@ -28,6 +28,11 @@ const AdminHome = () => {
       onClick: () => navigate("/admin/articles"),
     },
     {
+      label: "Send Newsletter",
+      icon: "📝",
+      onClick: () => navigate("/admin/newsletters"),
+    },
+    {
       label: "Settings (Coming Soon)",
       icon: "⚙️",
       disabled: true,
@@ -66,11 +71,10 @@ const AdminHome = () => {
               key={index}
               onClick={card.onClick}
               disabled={card.disabled}
-              className={`flex flex-col items-center justify-center p-6 rounded-xl shadow-md text-white font-semibold text-lg text-center transition ${
-                card.disabled
+              className={`flex flex-col items-center justify-center p-6 rounded-xl shadow-md text-white font-semibold text-lg text-center transition ${card.disabled
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-700"
-              }`}
+                }`}
             >
               <span className="text-4xl mb-3">{card.icon}</span>
               {card.label}

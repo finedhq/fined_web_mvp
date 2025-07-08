@@ -345,8 +345,9 @@ export default function ExpenseTracker() {
   }
 
   useEffect(() => {
+    if (!email) return
     fetchMoreTransactions()
-  }, [email])
+  }, [email, seeAll])
 
   useEffect(() => {
     if (seeAll) {
@@ -401,32 +402,48 @@ export default function ExpenseTracker() {
 
   async function saveTransaction() {
     setIsCustomCategory(false)
+
     if (!transaction.title || !transaction.amount || !transaction.date) {
       setWarning("Please fill in all fields.")
       return
     }
+
     const transactionData = {
       ...transaction,
       email,
       messageId: null
     }
+
     setIsAddingTransaction(false)
-    const res = await instance.post("/fin-tools/expensetracker/transaction", {
-      transaction: transactionData
-    })
-    if (res.data?.message) {
-      setTransaction({
-        title: "",
-        category: "Food",
-        type: "expense",
-        amount: "",
-        date: ""
+
+    try {
+      const res = await instance.post("/fin-tools/expensetracker/transaction", {
+        transaction: transactionData
       })
-      await fetchExpenses()
-      await fetchPieOrRecentExpenses(filterMonthforPieChart, setPieFetchedTransactions)
-      await fetchPieOrRecentExpenses(filterMonthforTransactions, setRecentFetchedTransactions)
-      await fetchCategoryBudgets()
-      await fetchUserCategories()
+
+      if (res.data?.message) {
+        setTransaction({
+          title: "",
+          category: "Food",
+          type: "expense",
+          amount: "",
+          date: ""
+        })
+
+        await fetchExpenses()
+        await fetchPieOrRecentExpenses(filterMonthforPieChart, setPieFetchedTransactions)
+        await fetchPieOrRecentExpenses(filterMonthforTransactions, setRecentFetchedTransactions)
+        await fetchCategoryBudgets()
+        await fetchUserCategories()
+        const txnMonth = new Date(transactionData.date).toLocaleString("default", { month: "long" })
+        const currentMonth = new Date().toLocaleString("default", { month: "long" })
+
+        if (txnMonth === currentMonth) {
+          setNewTransactions(prev => [...prev, transactionData])
+        }
+      }
+    } catch (err) {
+      setWarning("Failed to save transaction.")
     }
   }
 
@@ -461,6 +478,16 @@ export default function ExpenseTracker() {
         await fetchPieOrRecentExpenses(filterMonthforTransactions, setRecentFetchedTransactions)
         await fetchCategoryBudgets()
         await fetchUserCategories()
+
+        const currentMonth = new Date().toLocaleString("default", { month: "long" })
+        const currentMonthTxns = transactionsToSave.filter(txn => {
+          const txnMonth = new Date(txn.date).toLocaleString("default", { month: "long" })
+          return txnMonth === currentMonth
+        })
+
+        if (currentMonthTxns.length > 0) {
+          setNewTransactions(prev => [...prev, ...currentMonthTxns])
+        }
       } else {
         setWarning("Failed to save transactions.")
       }
@@ -527,6 +554,7 @@ export default function ExpenseTracker() {
       await fetchPieOrRecentExpenses(filterMonthforPieChart, setPieFetchedTransactions)
       await fetchPieOrRecentExpenses(filterMonthforTransactions, setRecentFetchedTransactions)
       await fetchExpenses()
+      setNewTransactions(prev => prev.filter(t => t.id !== transactionId))
     } catch (err) {
       setWarning("Error deleting transaction.")
     } finally {
@@ -562,6 +590,7 @@ export default function ExpenseTracker() {
       if (res.data?.message) {
         setWarning("Changes saved successfully.")
         setAutomatePopup(false)
+        setIsStatusChanged(false)
       } else {
         setWarning("Failed to save changes")
       }
@@ -704,22 +733,22 @@ export default function ExpenseTracker() {
               <div className="w-3/5 space-y-4" >
                 <div className="flex justify-between" >
                   <button onClick={() => setIsAddingTransaction(true)} className="bg-violet-900 hover:bg-violet-950 transition-all duration-200 py-4 px-6 text-white shadow-sm text-lg font-semibold rounded-xl flex items-center justify-center gap-4 cursor-pointer" ><p className="text-3xl" >+</p>Add transaction</button>
-                  <button onClick={() => setIsBudgetEditing(true)} className="bg-gray-100 hover:bg-gray-200 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Set budget goals</button>
-                  <button className="bg-gray-100 hover:bg-gray-200 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Add receipts & trips</button>
+                  <button onClick={() => setIsBudgetEditing(true)} className="bg-white hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Set budget goals</button>
+                  <button className="bg-white hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Add receipts & trips</button>
                 </div>
                 <div>
                   <WorkingCapitalChart data={fetchedTransactions} monthsRange={monthsRange} setMonthsRange={setMonthsRange} />
                 </div>
                 <div className="flex gap-3" >
-                  <div className="w-1/2 border-2 border-gray-300 shadow-sm rounded-2xl p-2" >
+                  <div className="w-1/2 border-2 border-gray-300 bg-white shadow-sm rounded-2xl p-2" >
                     <ExpensesPieChart data={filteredTransactionsforPieChart} filterMonthforPieChart={filterMonthforPieChart} setFilterMonthforPieChart={setFilterMonthforPieChart} />
                   </div>
-                  <div className="w-1/2 border-2 border-gray-300 shadow-sm rounded-2xl p-2" >
+                  <div className="w-1/2 border-2 border-gray-300 bg-white shadow-sm rounded-2xl p-2" >
                     <SpendVsBudgetGauge data={gaugeBudgets} filterMonthforGaugeChart={filterMonthforGaugeChart} setFilterMonthforGaugeChart={setFilterMonthforGaugeChart} />
                   </div>
                 </div>
               </div>
-              <div className="w-2/5 border-2 border-gray-300 shadow-sm rounded-2xl p-4">
+              <div className="w-2/5 border-2 border-gray-300 bg-white shadow-sm rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-4" >
                   <p title="Displays a list of your most recent transactions for the selected month." className="font-semibold text-lg">Recent Transactions</p>
                   <select value={filterMonthforTransactions} onChange={(e) => setFilterMonthforTransactions(e.target.value)} className="border-2 border-gray-300 outline-none rounded-xl p-1 cursor-pointer" >

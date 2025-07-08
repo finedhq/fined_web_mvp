@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
+import toast from 'react-hot-toast'
 
 const ArticlesPage = () => {
   const navigate = useNavigate()
@@ -26,7 +27,8 @@ const ArticlesPage = () => {
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const loaderRef = useRef(null)
+  const loaderRef1 = useRef(null)
+  const loaderRef2 = useRef(null)
   const [pendingNextAfterFetch, setPendingNextAfterFetch] = useState(false)
   const [prefetchingNext, setPrefetchingNext] = useState(false)
   const ARTICLES_PER_PAGE = 30
@@ -48,12 +50,13 @@ const ArticlesPage = () => {
   }, [isLoading, isAuthenticated])
 
   const checkScroll = (el, setLeft, setRight) => {
-    if (!el) return
-    const scrollLeft = el.scrollLeft
-    const maxScrollLeft = el.scrollWidth - el.clientWidth
-    setLeft(scrollLeft > 0)
-    setRight(scrollLeft < maxScrollLeft)
-  }
+    if (!el) return;
+    const scrollLeft = el.scrollLeft;
+    const maxScrollLeft = el.scrollWidth - el.clientWidth;
+
+    setLeft(scrollLeft > 2);
+    setRight(scrollLeft < maxScrollLeft - 2);
+  };
 
   const scrollLeft = (ref) => {
     const el = ref.current;
@@ -71,7 +74,29 @@ const ArticlesPage = () => {
     }
   };
 
+  const fetchArticles = async () => {
+    if (!hasMore) return
+    if (offset === 0 && articles.length > 0) return
+    try {
+      const limit = offset === 0 ? 37 : ARTICLES_PER_PAGE
+      const res = await instance.post("/articles/getall", { limit, offset })
+      console.log(res.data)
+      if (res.data.length < limit) setHasMore(false)
+
+      setArticles(prev => [...prev, ...res.data])
+      setOffset(prev => prev + limit)
+    } catch (err) {
+      setError("Failed to load articles.")
+    }
+  }
+
+  useEffect(() => {
+    if (!email) return
+    fetchArticles()
+  }, [email])
+
   async function fetchEnteredEmail() {
+    setLoading(true)
     try {
       const res = await instance.post("/articles/getenteredemail", { email })
       if (res.data[0]?.enteredEmail) {
@@ -81,56 +106,63 @@ const ArticlesPage = () => {
     } catch (error) {
       setEnteredEmail("")
       setIsEnteredEmail(false)
-    }
-  }
-
-  useEffect(() => {
-    if (email)
-      fetchEnteredEmail()
-  }, [email])
-
-  const fetchArticles = async () => {
-    if (!hasMore) return
-    setLoading(true)
-    try {
-      const limit = offset === 0 ? 37 : ARTICLES_PER_PAGE
-      const res = await instance.post("/articles/getall", { limit, offset })
-      if (res.data.length < limit) setHasMore(false)
-
-      setArticles(prev => [...prev, ...res.data])
-      setOffset(prev => prev + limit)
+    } finally {
       setLoading(false)
-    } catch (err) {
-      setError("Failed to load articles.")
     }
   }
 
   useEffect(() => {
-    if (email)
-      fetchArticles()
+    if (!email) return
+    fetchEnteredEmail()
   }, [email])
 
   useEffect(() => {
     const el1 = carouselRef1.current;
     const el2 = carouselRef2.current;
 
-    const handler1 = () => checkScroll(el1, setCanScrollLeft1, setCanScrollRight1)
-    const handler2 = () => checkScroll(el2, setCanScrollLeft2, setCanScrollRight2)
+    const updateScrollStates = () => {
+      checkScroll(el1, setCanScrollLeft1, setCanScrollRight1);
+      checkScroll(el2, setCanScrollLeft2, setCanScrollRight2);
+    };
+
+    const handler1 = () => checkScroll(el1, setCanScrollLeft1, setCanScrollRight1);
+    const handler2 = () => checkScroll(el2, setCanScrollLeft2, setCanScrollRight2);
 
     if (el1) {
-      el1.addEventListener('scroll', handler1)
-      checkScroll(el1, setCanScrollLeft1, setCanScrollRight1)
+      el1.addEventListener('scroll', handler1);
     }
     if (el2) {
-      el2.addEventListener('scroll', handler2)
-      checkScroll(el2, setCanScrollLeft2, setCanScrollRight2)
+      el2.addEventListener('scroll', handler2);
     }
 
-    return () => {
-      if (el1) el1.removeEventListener('scroll', handler1)
-      if (el2) el2.removeEventListener('scroll', handler2)
+    const resizeObserver = new ResizeObserver(updateScrollStates);
+    const mutationObserver = new MutationObserver(updateScrollStates);
+
+    if (el1) {
+      resizeObserver.observe(el1);
+      mutationObserver.observe(el1, { childList: true, subtree: true });
     }
-  }, [articles])
+    if (el2) {
+      resizeObserver.observe(el2);
+      mutationObserver.observe(el2, { childList: true, subtree: true });
+    }
+
+    updateScrollStates();
+
+    return () => {
+      if (el1) {
+        el1.removeEventListener('scroll', handler1);
+        resizeObserver.unobserve(el1);
+        mutationObserver.disconnect();
+      }
+      if (el2) {
+        el2.removeEventListener('scroll', handler2);
+        resizeObserver.unobserve(el2);
+        mutationObserver.disconnect();
+      }
+    };
+  }, [articles]);
+
 
   useEffect(() => {
     if (selectedArticle) {
@@ -153,6 +185,7 @@ const ArticlesPage = () => {
   }, [selectedArticle])
 
   useEffect(() => {
+    if (offset === 0) return
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !loading && hasMore) {
@@ -162,13 +195,19 @@ const ArticlesPage = () => {
       { threshold: 1 }
     )
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current)
+    if (loaderRef1.current) {
+      observer.observe(loaderRef1.current)
+    }
+    if (loaderRef2.current) {
+      observer.observe(loaderRef2.current)
     }
 
     return () => {
-      if (loaderRef.current) {
-        observer.unobserve(loaderRef.current)
+      if (loaderRef1.current) {
+        observer.unobserve(loaderRef1.current)
+      }
+      if (loaderRef2.current) {
+        observer.unobserve(loaderRef2.current)
       }
     }
   }, [articles, loading, hasMore])
@@ -212,17 +251,25 @@ const ArticlesPage = () => {
     }
   }
 
-  const openArticle = (article) => {
+  const openArticle = async (article) => {
     setSelectedArticle(article)
     setIsArticleClosed(false)
     setIsFadingOut(false)
+    try {
+      const res = await instance.post("/articles/updatetask", { email })
+      if (res.data.updated) {
+        toast.success("Task completed !")
+      }
+    } catch (err) {
+      toast.error("Failed to upload tasks.")
+    }
   }
 
 
   return (
-    <div className="mx-auto px-10 py-5 bg-gray-50 font-inter text-[#1e1e1e]">
+    <div className="mx-auto px-10 py-5 bg-gray-100 font-inter text-[#1e1e1e]">
 
-      <header className="flex justify-between items-center h-[63px] bg-gray-50 box-border">
+      <header className="flex justify-between items-center h-[63px] bg-gray-100 box-border">
 
         <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
@@ -310,9 +357,9 @@ const ArticlesPage = () => {
         </div>
         :
         <div>
-          <div className="flex py-10 gap-10">
+          <div className="flex py-10 gap-6">
 
-            <div onClick={() => openArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden shadow-md cursor-pointer">
+            <div onClick={() => openArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
               <div className="relative">
                 <img src={articles[0]?.image_url || "_"} alt="article_image_1" className="w-full h-96 object-cover" />
                 <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
@@ -326,13 +373,13 @@ const ArticlesPage = () => {
             </div>
 
 
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-6 min-w-1/2">
 
-              <div className="flex justify-end items-center space-x-2">
+              <div className="flex justify-end items-center space-x-2 mr-6">
                 <button
                   className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollLeft1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                   onClick={() => scrollLeft(carouselRef1)}
                   disabled={!canScrollLeft1}
                 >
@@ -341,18 +388,18 @@ const ArticlesPage = () => {
 
                 <button
                   className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollRight1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                   onClick={() => scrollRight(carouselRef1)}
                   disabled={!canScrollRight1}
                 >
                   ❯
                 </button>
               </div>
-              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="max-h-[60vh] columns-1 carousel-track-1 space-x-4 space-y-4" >
+              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="h-[500px] w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
                 {articles.slice(3).map((article, index) =>
-                  <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-6 cursor-pointer">
-                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 object-cover rounded-lg" />
+                  <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-6 cursor-pointer h-36 w-[690px]">
+                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-40 h-36 object-cover" />
                     <div>
                       <p className="text-xs text-gray-400 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
@@ -361,7 +408,7 @@ const ArticlesPage = () => {
                     </div>
                   </div>
                 )}
-                <div ref={loaderRef} className="h-1"></div>
+                <div ref={loaderRef1} className="h-1 w-20"></div>
                 {loading && (
                   <div className="text-center py-4 text-gray-500">Loading more articles...</div>
                 )}
@@ -372,53 +419,47 @@ const ArticlesPage = () => {
             </div>
           </div>
 
-          <div className="bg-gray-50 px-8 py-12">
-            <div className="flex gap-12">
+          <div className="flex gap-6 bg-gray-100 py-12">
 
+            <div onClick={() => openArticle(articles[1])} className='cursor-pointer min-w-1/2' >
+              <img src={articles[1]?.image_url || "_"} alt="article_image_2" className="rounded-2xl w-full h-72 object-cover mb-6" />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
+              <div className="flex items-center text-sm text-gray-500 mb-4">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+              </div>
+              <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
+              <p className='text-gray-600 text-sm' >[ . . . ]</p>
+            </div>
 
-              <div onClick={() => openArticle(articles[1])} className='cursor-pointer' >
-                <img src={articles[1]?.image_url || "_"} alt="article_image_2" className="rounded-2xl w-full h-72 object-cover mb-6" />
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
+            <div onClick={() => openArticle(articles[2])} className="flex flex-col gap-10 min-w-1/2 cursor-pointer">
+              <div className='mr-6' >
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
                 <div className="flex items-center text-sm text-gray-500 mb-4">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                  <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                 </div>
                 <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
                 <p className='text-gray-600 text-sm' >[ . . . ]</p>
               </div>
-
-
-              <div className="flex flex-col gap-10">
-
-                <div onClick={() => openArticle(articles[2])} className='cursor-pointer' >
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-                  </div>
-                  <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-                  <p className='text-gray-600 text-sm' >[ . . . ]</p>
-                </div>
-
-                <div>
-                  <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
-                </div>
+              <div className='mr-6' >
+                <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-50 px-8 py-12">
+          <div className="bg-gray-100 py-12">
             <div className="flex justify-between items-center mb-12">
               <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
               <div className="flex gap-3">
                 <button
                   className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer
-              ${canScrollLeft2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer
+              ${canScrollLeft2 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                   onClick={() => scrollLeft(carouselRef2)}
                   disabled={!canScrollLeft2}
                 >
@@ -427,8 +468,8 @@ const ArticlesPage = () => {
 
                 <button
                   className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer
-              ${canScrollRight2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer
+              ${canScrollRight2 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                   onClick={() => scrollRight(carouselRef2)}
                   disabled={!canScrollRight2}
                 >
@@ -449,7 +490,7 @@ const ArticlesPage = () => {
                   </div>
                 </div>
               )}
-              <div ref={loaderRef} className="h-1"></div>
+              <div ref={loaderRef2} className="h-1"></div>
               {loading && (
                 <div className="text-center py-4 text-gray-500">Loading more articles...</div>
               )}
@@ -462,7 +503,7 @@ const ArticlesPage = () => {
         </div>
       }
 
-      <footer className="bg-[#f7fafc] py-10 px-6 md:px-12 flex flex-wrap justify-between text-[#333] font-sans">
+      <footer className="bg-[#f7fafc] -mx-10 p-10 flex flex-wrap justify-between text-[#333] font-sans">
 
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
@@ -486,7 +527,7 @@ const ArticlesPage = () => {
           <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
           <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
         </div>
-        <div className="newsletter">
+        <div className="newsletter m-5">
           <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
           {isEnteredEmail ?
             <div>
@@ -504,17 +545,18 @@ const ArticlesPage = () => {
             </div>
           }
         </div>
-        <p className="text-center justify-center w-full mt-10 text-xs">
-          © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-        </p>
       </footer>
+
+      <p className="text-center justify-center w-full mt-10 mb-5 text-xs">
+        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
+      </p>
 
       {!isArticleClosed && (
         <div className={`fixed inset-0 z-50 bg-black/60 flex items-center justify-center px-4 ${isFadingOut ? "fade-out" : "fade-in"}`}>
           <div className="absolute top-1/2 left-1/7 transform -translate-y-1/2">
             <button
               className={`w-12 h-12 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer ${selectedIndex > 0 ? "bg-amber-400 text-white border-amber-400 hover:bg-amber-500" : 'bg-white text-amber-300 border-amber-200 cursor-not-allowed'}`}
+              transition-all duration-200 cursor-pointer ${selectedIndex > 0 ? "bg-amber-400 text-white hover:bg-amber-500" : 'bg-white text-amber-300 cursor-not-allowed'}`}
               onClick={() => selectedIndex > 0 && setSelectedArticle(articles[selectedIndex - 1])}
               disabled={selectedIndex <= 0}
             >
@@ -525,7 +567,7 @@ const ArticlesPage = () => {
           <div className="absolute top-1/2 right-1/7 transform -translate-y-1/2">
             <button
               className={`w-12 h-12 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer ${(selectedIndex < articles.length - 1 || hasMore) ? "bg-amber-400 text-white border-amber-400 hover:bg-amber-500" : 'bg-white text-amber-300 border-amber-200 cursor-not-allowed'}`}
+              transition-all duration-200 cursor-pointer ${(selectedIndex < articles.length - 1 || hasMore) ? "bg-amber-400 text-white hover:bg-amber-500" : 'bg-white text-amber-300 cursor-not-allowed'}`}
               onClick={() => {
                 const currentIndex = articles.findIndex(a => a.id === selectedArticle?.id)
                 const nextArticle = articles[currentIndex + 1]

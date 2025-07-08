@@ -1,18 +1,15 @@
-import { useAuth0 } from '@auth0/auth0-react';
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import fallbackProfile from "/profile.png?url.";
-import instance from '../lib/axios';
-
-const medalEmoji = ["🥇", "🥈", "🥉"]
+import { useAuth0 } from '@auth0/auth0-react'
+import React, { useEffect, useState, useRef } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import instance from '../lib/axios'
+import toast from 'react-hot-toast'
 
 const HomePage = () => {
 
-  const { user, isLoading, isAuthenticated, logout } = useAuth0();
+  const { user, isLoading, isAuthenticated, logout } = useAuth0()
   const [role, setrole] = useState("")
 
   const [email, setEmail] = useState("")
-  const [isGoogleImage, setIsGoogleImage] = useState(false)
   const [enteredEmail, setEnteredEmail] = useState("")
   const [isEnteredEmail, setIsEnteredEmail] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
@@ -23,6 +20,7 @@ const HomePage = () => {
   const [featuredArticle, setFeaturedArticle] = useState({})
   const [recommendedCourses, setRecommendedCourses] = useState([])
   const [ongoingCourse, setOngoingCourse] = useState({})
+  const [tasks, setTasks] = useState({})
   const carouselRef1 = useRef(null)
   const [canScrollLeft1, setCanScrollLeft1] = useState(false)
   const [canScrollRight1, setCanScrollRight1] = useState(false)
@@ -36,20 +34,19 @@ const HomePage = () => {
       navigate("/")
     } else if (!isLoading && isAuthenticated) {
       setEmail(user?.email)
-      const isImage = user?.picture?.includes("googleusercontent")
-      setIsGoogleImage(isImage)
       const roles = user?.["https://fined.com/roles"]
       setrole(roles?.[0] || "")
     }
   }, [isLoading, isAuthenticated])
 
   const checkScroll = (el, setLeft, setRight) => {
-    if (!el) return
-    const scrollLeft = el.scrollLeft
-    const maxScrollLeft = el.scrollWidth - el.clientWidth
-    setLeft(scrollLeft > 0)
-    setRight(scrollLeft < maxScrollLeft)
-  }
+    if (!el) return;
+    const scrollLeft = el.scrollLeft;
+    const maxScrollLeft = el.scrollWidth - el.clientWidth;
+
+    setLeft(scrollLeft > 0);
+    setRight(scrollLeft < maxScrollLeft - 2);
+  };
 
   const scrollLeft = (ref) => {
     const el = ref.current;
@@ -91,6 +88,7 @@ const HomePage = () => {
         setFeaturedArticle(res.data.featuredArticle)
         setRecommendedCourses(res.data.recommendedCourses)
         setOngoingCourse(res.data.ongoingCourseData)
+        setTasks(res.data.tasks)
         setLoading(false)
       }
     } catch (error) {
@@ -114,7 +112,7 @@ const HomePage = () => {
     } catch (error) {
       setEnteredEmail("")
       setIsEnteredEmail(false)
-      setError("Failed to fetch your subscription email.")
+      toast.error("Failed to fetch your subscription email.")
     }
   }
 
@@ -128,18 +126,18 @@ const HomePage = () => {
     setLoading(true)
     try {
       const res = await instance.get("/home/leaderboard")
-      console.log(res.data)
       setLeaderboard(res.data || [])
     } catch (err) {
-      console.error("Failed to load leaderboard", err)
+      toast.error("Failed to load leaderboard", err)
+      setShowLeaderBoard(false)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    if (showLeaderBoard) fetchLeaderboard();
-  }, [showLeaderBoard]);
+    if (showLeaderBoard) fetchLeaderboard()
+  }, [showLeaderBoard])
 
   const saveEmail = async () => {
     if (enteredEmail === "") return
@@ -174,9 +172,9 @@ const HomePage = () => {
 
 
   return (
-    <div className="mx-auto p-5 bg-gray-50 font-inter text-[#1e1e1e] px-10 py-5">
+    <div className="mx-auto p-5 bg-gray-100 font-inter text-[#1e1e1e] px-10 py-5">
 
-      <header className="flex justify-between items-center h-[63px] bg-gray-50 shadow-sm box-border">
+      <header className="flex justify-between items-center h-[63px] bg-gray-100 box-border">
 
         <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
           <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
@@ -229,37 +227,37 @@ const HomePage = () => {
         <div className="p-4 animate-pulse space-y-6">
           <div className="flex gap-5 items-start pt-6">
             <div className="flex-none space-y-6">
-              <div className="bg-gray-200 rounded-2xl w-[480px] h-[260px]" />
-              <div className="bg-gray-200 rounded-2xl w-[480px] h-[100px]" />
+              <div className="bg-gray-300 rounded-2xl w-[460px] h-[170px]" />
+              <div className="bg-gray-300 rounded-2xl w-[460px] h-[110px]" />
             </div>
-            <div className="flex-1 w-[419px] h-[390px] bg-gray-200 rounded-2xl" />
-            <div className="flex-1 w-[419px] h-[390px] bg-gray-200 rounded-2xl" />
+            <div className="w-[550px] h-[300px] bg-gray-300 rounded-2xl" />
+            <div className="w-[480px] h-[300px] bg-gray-300 rounded-2xl" />
           </div>
           <div className="flex gap-6 pt-8">
             <div className="flex-1 space-y-4">
               <div className="w-48 h-6 bg-gray-300 rounded" />
-              <div className="flex gap-4 overflow-hidden">
+              <div className="flex gap-4 overflow-hidden bg-gray-300 rounded-2xl">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-[310px] h-[270px] bg-gray-200 rounded-2xl" />
+                  <div key={i} className="w-[310px] h-[350px] bg-gray-300 rounded-2xl" />
                 ))}
               </div>
             </div>
-            <div className="w-[420px] h-[443px] bg-gray-200 rounded-2xl" />
+            <div className="w-[420px] h-[390px] bg-gray-300 rounded-2xl" />
           </div>
         </div>
         :
-        <div>
-          <main className="flex gap-5 items-start py-10 bg-gray-50">
+        <div className='pt-5' >
+          <main className="flex gap-5 items-start bg-gray-100 mb-5">
 
-            <div className="flex-none flex flex-col gap-5 h-96">
+            <div className="flex flex-col h-80 w-1/3 gap-4">
 
-              <section className="bg-[#4E00E3] p-[15px] rounded-2xl shadow-sm text-white text-center flex flex-col justify-center items-center gap-6 flex-1">
+              <section className="bg-[#4E00E3] p-4 h-[194px] rounded-2xl text-white text-center flex flex-col justify-center items-center gap-4 flex-1">
                 <div>
-                  <div className="relative w-[75px] h-[75px] mx-auto mt-[-6px]">
-                    <img src={!isGoogleImage ? "/profile.png" : user?.picture ?? "/profile.png"} alt="Profile" className="w-[75px] h-[75px] object-cover rounded-full border-2 border-gray-300" />
+                  <div className="relative w-[75px] h-[75px] mx-auto">
+                    <img src={user?.picture} onError={(e) => { e.currentTarget.src = "/profile.png" }} alt="Profile" className="w-[75px] h-[75px] object-cover rounded-full border-2 border-gray-300" />
                     <img src="edit.png" className="absolute bottom-0 right-0 w-5 h-5 rounded-full border-2 border-white bg-gray-200 p-1" alt="Edit" />
                   </div>
-                  <h3 className="mt-3 text-lg font-semibold text-white text-center">{user?.name}</h3>
+                  <h3 className="mt-1 text-lg font-semibold text-white text-center">{user?.name}</h3>
                 </div>
                 <div className="flex justify-center gap-10">
                   <div className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
@@ -278,37 +276,38 @@ const HomePage = () => {
               </section>
 
 
-              <section className="flex items-center bg-white rounded-2xl shadow-md px-4 w-[480px] h-[130px] mx-auto gap-[25px]">
+              <section className="flex items-center bg-white rounded-2xl p-2 gap-6 border border-gray-300">
                 <img src={ongoingCourse?.thumbnail_url || recommendedCourses[5]?.thumbnail_url} alt="Course" className="w-[140px] h-[90px] object-cover rounded-xl flex-shrink-0" />
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-lg font-semibold m-0">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-md font-semibold">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
                   <button onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[5]?.id}`)} className="bg-[#fbbf24] border-none px-4 py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-between shadow-md transition-colors hover:bg-[#c09e2b]">
-                    <p className='text-lg' >{ongoingCourse?.title ? "Continue Learning" : "Start Learning"}</p>
-                    <span className="text-3xl">→</span>
+                    <p>{ongoingCourse?.title ? "Continue Learning" : "Start Learning"}</p>
+                    <span className="text-2xl">→</span>
                   </button>
                 </div>
               </section>
             </div>
 
 
-            <section className="bg-white shadow-md p-5 rounded-2xl font-sans flex flex-col justify-between flex-1 w-[419px] h-96">
+            <section className="bg-white px-5 py-2 rounded-2xl font-sans flex flex-col justify-between w-1/3 h-80 border border-gray-300">
               <div className="flex justify-between items-center">
-                <h3 className="m-0 text-lg font-bold">Featured</h3>
-                <span onClick={() => navigate("/articles")} className="text-[15px] text-black cursor-pointer">View More →</span>
+                <h3 className="text-lg font-bold">Featured</h3>
+                <div onClick={() => navigate("/articles")} className='flex items-center gap-2 font-semibold cursor-pointer' >
+                  <span>View More</span>
+                  <span className="text-2xl">→</span>
+                </div>
               </div>
-              <div className="flex-grow flex flex-col items-center justify-center gap-5 p-6">
-                <img src={featuredArticle?.image_url} alt="Featured" className="w-[360px] h-60 object-cover rounded-2xl" />
-
-                <p className="text-lg font-semibold text-center leading-tight">{featuredArticle?.title}</p>
-
+              <div className="flex-grow flex flex-col items-center justify-center gap-2 px-6 py-3">
+                <img src={featuredArticle?.image_url} alt="Featured" className="w-[360px] h-56 object-cover rounded-2xl" />
+                <p className="text-lg font-semibold leading-tight">{featuredArticle?.title}</p>
               </div>
             </section>
 
 
-            <section className="bg-white rounded-2xl p-[18px] shadow-md text-center flex flex-col justify-between flex-1 w-[419px] h-96">
+            <section className="bg-white rounded-2xl px-5 py-2 text-center flex flex-col justify-between flex-1 w-1/3 h-80 border border-gray-300">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="m-0 text-lg font-bold">FinScore</h3>
-                <div className="w-[22px] h-[22px] -mt-[2px] rounded-full bg-transparent border-[1.5px] border-black text-black font-bold text-sm flex items-center justify-center cursor-default">
+                <div className="w-[22px] h-[22px] rounded-full bg-transparent border-[1.5px] border-black text-black font-bold text-sm flex items-center justify-center cursor-default">
                   i
                 </div>
               </div>
@@ -324,16 +323,16 @@ const HomePage = () => {
             </section>
           </main>
 
-          <div className="flex justify-between gap-6 pt-0 pb-8 items-start bg-gray-50">
+          <div className="flex justify-between gap-5 pb-8 items-start bg-gray-100">
 
-            <div className="flex flex-col flex-1 bg-transparent -mt-0 relative min-h-full">
-              <div className="relative flex justify-between items-center mb-4 w-[64vw]">
-                <h2 className="text-3xl font-bold">Recommended Courses</h2>
+            <div className="flex flex-col flex-1 bg-transparent relative min-h-full">
+              <div className="relative flex justify-between items-center mb-4 w-[60vw]">
+                <h2 className="text-3xl font-semibold">Recommended Courses</h2>
                 <div className="absolute top-0 right-0 flex gap-3">
                   <button
                     className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollLeft1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                     onClick={() => scrollLeft(carouselRef1)}
                     disabled={!canScrollLeft1}
                   >
@@ -342,8 +341,8 @@ const HomePage = () => {
 
                   <button
                     className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollRight1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                     onClick={() => scrollRight(carouselRef1)}
                     disabled={!canScrollRight1}
                   >
@@ -352,22 +351,22 @@ const HomePage = () => {
                 </div>
               </div>
 
-              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'hidden' }} className="carousel-track flex overflow-x-auto gap-5 pb-5 overflow-hidden w-[64vw]">
+              <div ref={carouselRef1} style={{ scrollbarWidth: 'none' }} className="carousel-track bg-white rounded-2xl flex overflow-x-auto overflow-hidden w-[60vw] border border-gray-300">
                 {recommendedCourses.length > 0 && recommendedCourses.map((course, index) => (
-                  <div onClick={() => navigate(`/courses/course/${course.id}`)} className="bg-white rounded-2xl p-4 w-[310px] shadow-md shrink-0 space-y-1 min-h-[270px] cursor-pointer" key={index}>
-                    <img src={course.thumbnail_url} alt="Course" className="w-full h-48 rounded-xl object-cover" />
-                    <div className="flex justify-between my-2.5 text-sm text-gray-600">
+                  <div onClick={() => navigate(`/courses/course/${course.id}`)} className="bg-white rounded-2xl px-4 py-8 w-[305px] shrink-0 space-y-1 h-96 cursor-pointer" key={index}>
+                    <img src={course.thumbnail_url} alt="Course" className="w-full h-44 rounded-xl object-cover" />
+                    <div className="flex justify-between my-2.5 px-2 text-sm text-gray-600">
                       <span className="bg-purple-300 text-black rounded-lg px-2 py-0.5 text-xs">Basic</span>
-                      <span>{course.modules_count} modules • {course.duration} mins</span>
+                      <span className='font-medium' >{course.modules_count} modules • {course.duration} mins</span>
                     </div>
-                    <h3 className='font-semibold' >{course.title}</h3>
-                    <p className='text-sm' >{course.description}</p>
+                    <h3 className='font-semibold px-2' >{course.title}</h3>
+                    <p className='text-sm px-2' >{course.description}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl px-8 py-4 shadow-md text-center flex flex-col justify-between w-full h-[443px]">
+            <div className="bg-white rounded-2xl px-5 py-2 text-center flex flex-col justify-between w-full h-[435px] border border-gray-300">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="m-0 text-lg font-bold">Tasks</h3>
                 <div className="w-[22px] h-[22px] -mt-[2px] rounded-full bg-transparent border-[1.5px] border-black text-black font-bold text-sm flex items-center justify-center cursor-default">
@@ -376,31 +375,40 @@ const HomePage = () => {
               </div>
               <div className="flex-grow flex flex-col justify-around">
                 <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" />
-                  Add Today’s Expenses
+                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.login} readOnly />
+                  <span className={tasks?.login ? "line-through text-gray-500" : ""}>
+                    Log in to your FinEd account
+                  </span>
                 </label>
 
                 <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" />
-                  Complete Your Daily Goal
+                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.module} readOnly />
+                  <span className={tasks?.module ? "line-through text-gray-500" : ""}>
+                    Complete any module today
+                  </span>
                 </label>
 
                 <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" />
-                  Read Today’s Featured Article
+                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.article} readOnly />
+                  <span className={tasks?.article ? "line-through text-gray-500" : ""}>
+                    Read any article today
+                  </span>
                 </label>
 
                 <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" />
-                  Add Today’s Expenses
+                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.transaction} readOnly />
+                  <span className={tasks?.transaction ? "line-through text-gray-500" : ""}>
+                    Add and save today’s expense details
+                  </span>
                 </label>
               </div>
+
             </div>
           </div>
         </div>
       }
 
-      <footer className="bg-[#f7fafc] py-10 px-6 md:px-12 flex flex-wrap justify-between text-[#333] font-sans">
+      <footer className="bg-[#f7fafc] -mx-10 p-10 flex flex-wrap justify-between text-[#333] font-sans">
 
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
@@ -424,7 +432,7 @@ const HomePage = () => {
           <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
           <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
         </div>
-        <div className="newsletter">
+        <div className="newsletter m-5">
           <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
           {isEnteredEmail ?
             <div>
@@ -442,10 +450,11 @@ const HomePage = () => {
             </div>
           }
         </div>
-        <p className="text-center justify-center w-full mt-10 text-xs">
-          © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-        </p>
       </footer>
+
+      <p className="text-center justify-center w-full mt-10 my-5 text-xs">
+        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
+      </p>
 
       {warning && (
         <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
@@ -468,12 +477,12 @@ const HomePage = () => {
 
       {error && (
         <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-2xl shadow-xl w-[500px] space-y-4">
+          <div className="bg-white p-4 rounded-2xl shadow-xl w-[500px] space-y-4">
             <p className="text-xl font-bold text-red-600">⚠️ Alert</p>
             <p className="text-md font-semibold text-gray-700">
               {error}
             </p>
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end pt-2">
               <button
                 onClick={() => { setError(""); setLoading(false); navigate("/home") }}
                 className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
@@ -558,8 +567,8 @@ const HomePage = () => {
                           <div
                             key={entry.user_sub || index}
                             className={`flex justify-between items-center px-4 py-3 text-lg transition-all duration-200 ${isCurrentUser
-                                ? "bg-yellow-100 font-semibold rounded-md"
-                                : ""
+                              ? "bg-yellow-100 font-semibold rounded-md"
+                              : ""
                               }`}
                           >
                             <div className="flex items-center gap-3">
