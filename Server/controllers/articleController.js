@@ -80,34 +80,148 @@ export const fetchEnteredEmail = async (req, res) => {
 export const updateTask = async (req, res) => {
   const { email } = req.body;
   const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
 
   try {
-    const { data: existing, error: fetchError } = await supabase
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("article_streak_count, article_score, last_article_read_date, consistency_score, expense_score")
+      .eq("email", email)
+      .single();
+
+    if (userError) throw userError;
+
+    let currentStreak = userData?.article_streak_count || 0;
+    let lastReadDate = userData?.last_article_read_date?.split("T")[0] || null;
+    let articleScore = userData?.article_score || 0;
+    let consistencyScore = userData?.consistency_score || 0;
+    let expenseScore = userData?.expense_score || 0;
+    let newStreak = currentStreak;
+    let bonus = 0;
+    let penalty = 0;
+    let shouldUpdateStreak = false;
+
+    const oldTotalScore = articleScore + consistencyScore + expenseScore;
+
+    const { data: existing, error: taskError } = await supabase
       .from("user_tasks")
-      .select("article")
+      .select("article, article_count")
       .eq("email", email)
       .eq("date", today)
       .maybeSingle();
 
-    if (fetchError) throw fetchError;
+    if (taskError) throw taskError;
 
-    if (!existing || !existing.article) {
-      const { error: updateError } = await supabase
-        .from("user_tasks")
-        .upsert(
-          { email, date: today, article: true },
-          { onConflict: ["email", "date"] }
-        );
+    let articleCount = existing?.article_count || 0;
 
-      if (updateError) throw updateError;
-
-      return res.json({ updated: true });
-    } else {
-      return res.json({ updated: false });
+    if (articleCount >= 3) {
+      return res.json({ updated: false, message: "Daily article limit (3) reached." });
     }
 
+    let todayScore = 2;
+
+    if (!existing?.article) {
+      shouldUpdateStreak = true;
+
+      if (lastReadDate === yesterdayStr) {
+        newStreak = currentStreak + 1;
+      } else if (lastReadDate === today) {
+        newStreak = currentStreak;
+      } else {
+        if (currentStreak > 3) penalty -= 5;
+        newStreak = 1;
+      }
+
+      if (newStreak % 3 === 0) bonus += 5;
+
+      todayScore += bonus + penalty;
+    }
+
+    const cappedTotal = Math.min(articleScore + todayScore, 150);
+    const actualScoreToAdd = cappedTotal - articleScore;
+
+    const { error: taskUpdateError } = await supabase
+      .from("user_tasks")
+      .upsert(
+        {
+          email,
+          date: today,
+          article: true,
+          article_count: articleCount + 1,
+        },
+        { onConflict: ["email", "date"] }
+      );
+
+    if (taskUpdateError) throw taskUpdateError;
+
+    if (shouldUpdateStreak || lastReadDate !== today) {
+      const { error: streakUpdateError } = await supabase
+        .from("users")
+        .update({
+          article_streak_count: newStreak,
+          last_article_read_date: today,
+          article_score: cappedTotal,
+        })
+        .eq("email", email);
+
+      if (streakUpdateError) throw streakUpdateError;
+    } else if (actualScoreToAdd > 0) {
+      const { error: scoreOnlyUpdateError } = await supabase
+        .from("users")
+        .update({
+          article_score: cappedTotal,
+        })
+        .eq("email", email);
+
+      if (scoreOnlyUpdateError) throw scoreOnlyUpdateError;
+    }
+
+    const { data: updatedUserData, error: newFetchError } = await supabase
+      .from("users")
+      .select("article_score, consistency_score, expense_score")
+      .eq("email", email)
+      .single();
+
+    if (newFetchError) throw newFetchError;
+
+    const newTotalScore = (updatedUserData.article_score || 0) + (updatedUserData.consistency_score || 0) + (updatedUserData.expense_score || 0);
+
+    const delta = newTotalScore - oldTotalScore;
+
+    let articlePart = `✅ Read article (${articleCount + 1}/3 today)`;
+    let bonusPart = bonus > 0 ? `🎉 Bonus: +${bonus} for ${newStreak % 3 === 0 ? "3-day streak" : "milestone"}` : "";
+    let penaltyPart = penalty < 0 ? `⚠️ Penalty: ${penalty} for breaking streak` : "";
+
+    let description = [articlePart, bonusPart, penaltyPart].filter(Boolean).join(" | ");
+
+    if (delta !== 0) {
+      const { error: logError } = await supabase
+        .from("finScoreLogs")
+        .insert({
+          email,
+          old_score: oldTotalScore,
+          new_score: newTotalScore,
+          change: delta,
+          description
+        });
+
+      if (logError) throw logError;
+    }
+
+    res.json({
+      updated: true,
+      articleCount: articleCount + 1,
+      pointsEarned: actualScoreToAdd,
+      streak: newStreak,
+      bonus,
+      penalty,
+      newScore: cappedTotal
+    });
+
   } catch (err) {
-    return res.status(500).json({ error: `Error updating task: ${err.message}` });
+    return res.status(500).json({ error: `Error updating article task: ${err.message}` });
   }
 };
 

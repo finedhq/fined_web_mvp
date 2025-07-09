@@ -23,9 +23,8 @@ export default function SpendVsBudgetGauge({ data, filterMonthforGaugeChart, set
   let totalLimit = 0
 
   if (isTotalBudget) {
-    totalSpent = data
-      .filter(item => item.category !== "Monthly")
-      .reduce((sum, item) => sum + Number(item.spent || 0), 0)
+    const monthlySpent = data.find(item => item.category === "Monthly")
+    totalSpent = Number(monthlySpent?.spent || 0)
 
     const monthlyBudget = data.find(item => item.category === "Monthly")
     totalLimit = Number(monthlyBudget?.limit || 0)
@@ -116,7 +115,7 @@ export default function SpendVsBudgetGauge({ data, filterMonthforGaugeChart, set
         <div className='flex flex-col' >
           <div className='flex items-center justify-between gap-1' >
             <p title='Displays the relationship between the monthly budget of the selected category and the amount spent in that category.' className='text-left text-base font-semibold pl-2 whitespace-nowrap'>Spend vs Budget</p>
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="border-2 border-gray-300 outline-none rounded-xl p-1 cursor-pointer" >
+            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="border-2 border-gray-300 outline-none rounded-xl p-1 cursor-pointer w-full" >
               {data
                 .filter(item => item.category !== "Monthly")
                 .map(item => (

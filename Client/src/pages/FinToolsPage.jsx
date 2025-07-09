@@ -90,7 +90,7 @@ export default function FinToolsPage() {
                     </button>
                 </nav>
 
-                <div className="bg-white rounded-full p-3 shadow-md">
+                <div onClick={() => navigate("/notifications")} className="bg-white rounded-full p-3 shadow-md cursor-pointer">
                     <img src="bell.png" alt="Bell Icon" width="24" />
                 </div>
             </header>

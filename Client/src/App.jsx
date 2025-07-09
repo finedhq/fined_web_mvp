@@ -22,6 +22,7 @@ import CoursesHomePage from './pages/CoursesPage.jsx';
 import FinToolsPage from './pages/FinToolsPage.jsx';
 
 import { Toaster } from 'react-hot-toast';
+import Notifications from './pages/Notifications.jsx';
 
 const App = () => {
   return (
@@ -49,6 +50,7 @@ const App = () => {
         <Route path="/articles" element={<ArticlesPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/fin-tools" element={<FinToolsPage />} />
         <Route path="/fin-tools/expensetracker" element={<ExpenseTracker />} />
 
