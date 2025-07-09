@@ -231,7 +231,7 @@ export const fetchExpenses = async (req, res) => {
       }
 
       let description = "";
-      const bodyText = body.replace(/\r?\n/g, " ").replace(/\s+/g, " "); // Flatten all line breaks
+      const bodyText = body.replace(/\r?\n/g, " ").replace(/\s+/g, " ");
       const amountPattern = match[1].replace(/[.,]/g, m => "\\" + m);
       const amountRegex = new RegExp(`(?:₹|Rs\\.?|INR)\\s*${amountPattern}`, "i");
 
@@ -457,6 +457,32 @@ export const transaction = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const { data: taskData, error: taskCheckError } = await supabase
+      .from("user_tasks")
+      .select("transaction")
+      .eq("email", transaction.email)
+      .eq("date", todayStr)
+      .maybeSingle();
+
+    if (taskCheckError) throw taskCheckError;
+
+    if (!taskData || !taskData.transaction) {
+      const { error: taskInsertError } = await supabase
+        .from("user_tasks")
+        .upsert(
+          {
+            email: transaction.email,
+            date: todayStr,
+            transaction: true,
+          },
+          { onConflict: ["email", "date"] }
+        );
+
+      if (taskInsertError) throw taskInsertError;
+    }
+
     if (transaction.type === 'expense') {
       const txnDate = new Date(transaction.date);
       const month = txnDate.toLocaleString('default', { month: 'long' });
@@ -498,9 +524,9 @@ export const transaction = async (req, res) => {
       .eq("email", transaction.email)
       .eq("month", month)
       .eq("year", year)
-      .single(); 
+      .single();
 
-    if (fetchSummaryError && fetchSummaryError.code !== "PGRST116") { 
+    if (fetchSummaryError && fetchSummaryError.code !== "PGRST116") {
       console.error("Error fetching existing summary:", fetchSummaryError);
       return res.status(400).json({ error: fetchSummaryError.message });
     }
@@ -516,7 +542,7 @@ export const transaction = async (req, res) => {
     };
 
     if (existingSummary) {
-      updatedSummary = { ...existingSummary }; 
+      updatedSummary = { ...existingSummary };
     }
 
     if (transaction.type === "expense") {
@@ -576,6 +602,41 @@ export const transactionsBulk = async (req, res) => {
       .from("transactions")
       .insert(transactions);
     if (error) throw error;
+
+    const uniqueUserDates = new Set();
+
+    for (let txn of transactions) {
+      const dateStr = new Date(txn.date).toISOString().split("T")[0];
+      uniqueUserDates.add(`${txn.email}_${dateStr}`);
+    }
+
+    for (let pair of uniqueUserDates) {
+      const [email, date] = pair.split("_");
+
+      const { data: existing, error: checkError } = await supabase
+        .from("user_tasks")
+        .select("transaction")
+        .eq("email", email)
+        .eq("date", date)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (!existing || !existing.transaction) {
+        const { error: upsertError } = await supabase
+          .from("user_tasks")
+          .upsert(
+            {
+              email,
+              date,
+              transaction: true,
+            },
+            { onConflict: ["email", "date"] }
+          );
+
+        if (upsertError) throw upsertError;
+      }
+    }
 
     const expenseTxns = transactions.filter(txn => txn.type === 'expense');
 

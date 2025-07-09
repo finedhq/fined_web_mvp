@@ -105,7 +105,7 @@ export default function CourseOverviewPage() {
 
   return (
 
-    <div className="min-h-screen px-10 py-5 bg-white" >
+    <div className="min-h-screen px-10 pt-5 bg-white" >
       <header className="flex justify-between items-center h-[63px] bg-white box-border">
 
         <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
@@ -233,7 +233,7 @@ export default function CourseOverviewPage() {
           ))}
         </div>
       }
-      <footer className="bg-[#f7fafc] py-10 px-6 md:px-12 flex flex-wrap justify-between text-[#333] font-sans">
+      <footer className="bg-[#f7fafc] py-10 -mx-10 px-10 flex flex-wrap justify-between text-[#333] font-sans">
 
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
@@ -257,7 +257,7 @@ export default function CourseOverviewPage() {
           <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
           <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
         </div>
-        <div className="newsletter">
+        <div className="newsletter m-5">
           <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
           {isEnteredEmail ?
             <div>
@@ -275,10 +275,10 @@ export default function CourseOverviewPage() {
             </div>
           }
         </div>
-        <p className="text-center justify-center w-full mt-10 text-xs">
-          © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-        </p>
       </footer>
+      <p className="text-center justify-center w-full my-10 text-xs">
+        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
+      </p>
       {warning && (
         <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-2xl shadow-xl w-[500px] space-y-4">
