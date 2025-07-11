@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
+import toast from "react-hot-toast"
 
 const imageAssets = {
   completed: "/FcomplitedModule.png",
@@ -25,6 +26,7 @@ export default function CourseOverviewPage() {
   const [warning, setWarning] = useState("")
   const [loading, setLoading] = useState(true)
 
+  const [hasUnseen, setHasUnseen] = useState(false)
   const [enteredEmail, setEnteredEmail] = useState("")
   const [isEnteredEmail, setIsEnteredEmail] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
@@ -57,6 +59,17 @@ export default function CourseOverviewPage() {
       fetchCourse()
   }, [email])
 
+  async function fetchHasUnseen() {
+    try {
+      const res = await instance.post("/home/hasunseen", { email })
+      if (res) {
+        setHasUnseen(res.data)
+      }
+    } catch (error) {
+      toast.error("Failed to fetch notifications status.")
+    }
+  }
+
   async function fetchEnteredEmail() {
     try {
       const res = await instance.post("/articles/getenteredemail", { email })
@@ -71,8 +84,9 @@ export default function CourseOverviewPage() {
   }
 
   useEffect(() => {
-    if (email)
-      fetchEnteredEmail()
+    if (!email) return
+    fetchEnteredEmail()
+    fetchHasUnseen()
   }, [email])
 
   const saveEmail = async () => {
@@ -80,7 +94,7 @@ export default function CourseOverviewPage() {
     setIsSaved(true)
     try {
       await instance.post("/articles/saveemail", { email, enteredEmail })
-      setWarning("Subscribed successfully.")
+      toast.success("🎉 Subscribed successfully.")
       setIsEnteredEmail(true)
     } catch (err) {
       setWarning("Failed to save email.")
@@ -93,7 +107,7 @@ export default function CourseOverviewPage() {
     setIsSaved(true)
     try {
       await instance.post("/articles/removeemail", { email, enteredEmail })
-      setWarning("Unsubscibed successfully.")
+      toast.success("Unsubscibed successfully.")
       setEnteredEmail("")
       setIsEnteredEmail(false)
     } catch (err) {
@@ -151,8 +165,11 @@ export default function CourseOverviewPage() {
           </button>
         </nav>
 
-        <div onClick={() => navigate("/notifications")} className="bg-white rounded-full p-3 shadow-md cursor-pointer">
+        <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
           <img src="/bell.png" alt="Bell Icon" width="24" />
+          {hasUnseen && (
+            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+          )}
         </div>
       </header>
 
@@ -190,7 +207,7 @@ export default function CourseOverviewPage() {
 
                   return (
                     <div key={i} className={`relative w-full flex ${i % 2 === 0 ? "justify-start pl-20" : "justify-end pr-20"}`}>
-                      <div className={`flex flex-col items-center w-28 ${i % 2 === 0 ? 'ml-[125px]' : 'mr-[120px] mt-4'}`}>
+                      <div className={`flex flex-col items-center w-28 ${i % 2 === 0 ? 'ml-[125px]' : 'mr-[120px]'}`}>
                         <button
                           onClick={() => {
                             if (isClickable) {
@@ -214,7 +231,7 @@ export default function CourseOverviewPage() {
                           />
                         </button>
                         <p className="text-center w-96 h-12 overflow-hidden text-ellipsis">
-                          {card.content_text}
+                          {card.title}
                         </p>
                       </div>
 
@@ -222,7 +239,7 @@ export default function CourseOverviewPage() {
                         <img
                           src={i % 2 === 0 ? imageAssets.pathLeftToRight : imageAssets.pathRightToLeft}
                           alt="path"
-                          className="absolute mt-16 top-12 left-1/2 transform -translate-x-1/2 w-64"
+                          className="absolute mt-12 top-12 left-1/2 transform -translate-x-1/2 w-64"
                         />
                       )}
                     </div>
@@ -239,21 +256,20 @@ export default function CourseOverviewPage() {
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
           <p className="text-base text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
           <div className="flex gap-4">
-            <a href="https://linkedin.com"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
-            <a href="https://instagram.com"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
+            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
+            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
           </div>
         </div>
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
           <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
           <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
           <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to="/tools" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
+          <Link to="/fin-tools" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
           <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
         </div>
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
           <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/leaderboard" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Leaderboard</Link>
-          <Link to="/rewards" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Rewards</Link>
+          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
           <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
           <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
         </div>
@@ -262,16 +278,36 @@ export default function CourseOverviewPage() {
           {isEnteredEmail ?
             <div>
               <p className="py-3 pl-3 pr-28 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" >{enteredEmail}</p>
-              <button onClick={removeEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                Unubscribe
-              </button>
+              {isSaved ?
+                <div className="flex items-center justify-center gap-2 text-[#fbbf24] font-semibold">
+                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Unsubscribing...
+                </div>
+                :
+                <button onClick={removeEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
+                  Unubscribe
+                </button>
+              }
             </div>
             :
             <div>
               <input value={enteredEmail} onChange={(e) => setEnteredEmail(e.target.value.trim())} type="email" placeholder="Enter your email address" className="p-3 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" />
-              <button onClick={saveEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                Subscribe Now
-              </button>
+              {isSaved ?
+                <button className="flex items-center justify-center gap-2 p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
+                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Subscribing...
+                </button>
+                :
+                <button onClick={saveEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
+                  Subscribe Now
+                </button>
+              }
             </div>
           }
         </div>

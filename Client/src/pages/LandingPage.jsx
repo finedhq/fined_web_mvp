@@ -1,14 +1,21 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
+import toast from "react-hot-toast"
+
+
 export default function LandingPage() {
-  const { user,isAuthenticated, isLoading } = useAuth0();
+
+  const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(isAuthenticated,user);
+  console.log(isAuthenticated, user);
   useEffect(() => {
-    if (!isLoading && isAuthenticated && location.pathname !== '/home') navigate('/home');
+    if (!isLoading && isAuthenticated && location.pathname === '/') {
+      navigate('/home');
+    }
   }, [isAuthenticated, isLoading, location.pathname]);
+
 
 
   return (
@@ -21,8 +28,7 @@ export default function LandingPage() {
           <Link to="/courses" className="ml-8 text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200">Courses</Link>
           <Link to="/articles" className="ml-8 text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200">Articles</Link>
           <Link to="/about" className="ml-8 text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200">About Us</Link>
-          <Link to="/signin" className="ml-8 text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200">Sign in</Link>
-          <Link to="/signup" className="ml-8 px-4 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200">Create free account</Link>
+          <button onClick={loginWithRedirect} className="ml-8 px-4 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200">Sign up / Login</button>
         </nav>
       </header>
 
@@ -212,34 +218,36 @@ export default function LandingPage() {
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
           <p className="text-base text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
           <div className="flex gap-4">
-            <a href="https://linkedin.com"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
-            <a href="https://instagram.com"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
+            <a href="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
+            <a href="https://instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
           </div>
         </div>
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] text-center md:text-left">
           <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
           <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
           <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to="/tools" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
+          <Link onClick={() => toast.error("Please sign in")} className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
           <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
         </div>
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] text-center md:text-left">
           <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/leaderboard" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Leaderboard</Link>
-          <Link to="/rewards" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Rewards</Link>
+          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
           <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
           <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
         </div>
         <div className="newsletter">
           <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
           <input type="email" placeholder="Enter your email address" className="p-3 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" />
-          <button className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
+          <button onClick={() => toast.error("Please sign in")} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
             Subscribe Now
           </button>
         </div>
       </footer>
 
-      <div className="text-center py-4 text-sm text-gray-500 bg-[#f9fafb] border-t border-gray-200">© 2025 FinEd. All Rights Reserved.</div>
+      <p className="text-center justify-center w-full my-10 text-xs">
+        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
+      </p>
+
     </div>
   );
 }

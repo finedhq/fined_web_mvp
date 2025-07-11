@@ -36,6 +36,9 @@ export default function ExpenseTracker() {
     limit: "",
     spent: null
   })
+
+  const [hasUnseen, setHasUnseen] = useState(false)
+
   const [userCategories, setUserCategories] = useState([])
   const [categoryExpenses, setCategoryExpenses] = useState([])
 
@@ -50,6 +53,7 @@ export default function ExpenseTracker() {
     amount: "",
     date: ""
   })
+  const [isSaving, setIsSaving] = useState(false)
 
   const [fetchedTransactions, setFetchedTransactions] = useState([])
   const [pieFetchedTransactions, setPieFetchedTransactions] = useState([])
@@ -127,11 +131,25 @@ export default function ExpenseTracker() {
     }
   }
 
+  async function fetchHasUnseen() {
+    try {
+      const res = await instance.post("/home/hasunseen", { email })
+      if (res) {
+        setHasUnseen(res.data)
+      }
+    } catch (error) {
+      toast.error("Failed to fetch notifications status.")
+    }
+  }
+
   useEffect(() => {
+    if (!email) return
     fetchUserCategories()
+    fetchHasUnseen()
   }, [email])
 
   async function fetchCategoryBudgets() {
+    if (!email) return
     try {
       const res = await instance.post("/fin-tools/expensetracker/fetchcategorybudgets", {
         email,
@@ -401,6 +419,7 @@ export default function ExpenseTracker() {
   }
 
   async function saveTransaction() {
+    setIsSaving(true)
     setIsCustomCategory(false)
 
     if (!transaction.title || !transaction.amount || !transaction.date) {
@@ -413,8 +432,6 @@ export default function ExpenseTracker() {
       email,
       messageId: null
     }
-
-    setIsAddingTransaction(false)
 
     try {
       const res = await instance.post("/fin-tools/expensetracker/transaction", {
@@ -444,6 +461,9 @@ export default function ExpenseTracker() {
       }
     } catch (err) {
       setWarning("Failed to save transaction.")
+    } finally {
+      setIsSaving(false)
+      setIsAddingTransaction(false)
     }
   }
 
@@ -452,6 +472,7 @@ export default function ExpenseTracker() {
       setWarning("No transactions to save.")
       return
     }
+    setIsSaving(true)
     const transactionsToSave = fetchedFromMails.map((t) => ({
       title: t.title || "",
       amount: t.amount || "",
@@ -461,11 +482,6 @@ export default function ExpenseTracker() {
       messageId: t.messageId || null,
       email
     }))
-
-    setIsAddingTransaction(false)
-    setFetchingFromMails(false)
-    setFetchedFromMails([])
-    setCustomFetchedCategoryIndex(null)
 
     try {
       const res = await instance.post("/fin-tools/expensetracker/transactions-bulk", {
@@ -492,8 +508,13 @@ export default function ExpenseTracker() {
         setWarning("Failed to save transactions.")
       }
     } catch (err) {
-      console.error(err)
       setWarning("Error saving transactions.")
+    } finally {
+      setIsSaving(false)
+      setIsAddingTransaction(false)
+      setFetchingFromMails(false)
+      setFetchedFromMails([])
+      setCustomFetchedCategoryIndex(null)
     }
   }
 
@@ -667,8 +688,11 @@ export default function ExpenseTracker() {
           </button>
         </nav>
 
-        <div onClick={() => navigate("/notifications")} className="bg-white rounded-full p-3 shadow-md cursor-pointer">
+        <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
           <img src="/bell.png" alt="Bell Icon" width="24" />
+          {hasUnseen && (
+            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+          )}
         </div>
       </header>
       {isDataLoading ?
@@ -896,7 +920,7 @@ export default function ExpenseTracker() {
                     <p className="text-lg font-semibold mb-6" >Month: {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</p>
                     <div>
                       <p className="text-md font-semibold mb-1">Limit</p>
-                      <input type="number" placeholder="Enter limit" value={monthlyBudget.limit ?? ""} onChange={(e) => handleMonthlyBudgetChange("limit", e.target.value)} onWheel={(e) => e.target.blur()} className="w-full border rounded-lg px-3 py-2 text-sm outline-violet-700" />
+                      <input autoFocus type="number" placeholder="Enter limit" value={monthlyBudget.limit ?? ""} onChange={(e) => handleMonthlyBudgetChange("limit", e.target.value)} onWheel={(e) => e.target.blur()} className="w-full border rounded-lg px-3 py-2 text-sm outline-violet-700" />
                     </div>
                     <button onClick={saveBudget} className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 text-white font-semibold px-4 py-2 rounded-lg cursor-pointer mt-6 self-center" >Save Budget</button>
                   </div>
@@ -1024,13 +1048,14 @@ export default function ExpenseTracker() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-md font-semibold mb-1">Title</p>
-                    <input type="text" value={transaction.title} onChange={(e) => setTransaction(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g., Netflix Monthly Subscription" className="w-full border rounded-lg px-3 py-2 text-sm outline-violet-700" />
+                    <input autoFocus type="text" value={transaction.title} onChange={(e) => setTransaction(prev => ({ ...prev, title: e.target.value }))} placeholder="e.g., Netflix Monthly Subscription" className="w-full border rounded-lg px-3 py-2 text-sm outline-violet-700" />
                   </div>
                   <div>
                     <p className="text-md font-semibold mb-1">Category</p>
                     {isCustomCategory ? (
                       <div className="flex gap-2 items-center">
                         <input
+                          autoFocus
                           type="text"
                           value={transaction.category}
                           onChange={(e) => setTransaction(prev => ({ ...prev, category: e.target.value }))}
@@ -1105,7 +1130,17 @@ export default function ExpenseTracker() {
                     <input type="date" value={transaction.date} onChange={(e) => setTransaction(prev => ({ ...prev, date: e.target.value }))} className="w-full border rounded-lg px-3 py-2 text-sm outline-violet-700" />
                   </div>
                   <div className="flex justify-center pt-4">
-                    <button onClick={saveTransaction} className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 text-white font-semibold px-4 py-2 rounded-lg cursor-pointer">Save Transaction</button>
+                    {isSaving ?
+                      <div className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg cursor-not-allowed text-white font-semibold">
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        Saving...
+                      </div>
+                      :
+                      <button onClick={saveTransaction} className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 text-white font-semibold px-4 py-2 rounded-lg cursor-pointer">Save Transaction</button>
+                    }
                   </div>
                 </div>
               </div>
@@ -1316,9 +1351,19 @@ export default function ExpenseTracker() {
                     </div>
                   </div>
                 )}
-                <button onClick={saveFetchedTransactions} className="w-full bg-blue-500 hover:bg-blue-600 transition-all duration-200 text-white font-medium py-2 rounded-xl mt-4 cursor-pointer">
-                  Save Transactions
-                </button>
+                {isSaving ?
+                  <div className="flex items-center justify-center w-full gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-2 mt-4 rounded-lg cursor-not-allowed text-white font-semibold">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    Saving...
+                  </div>
+                  :
+                  <button onClick={saveFetchedTransactions} className="w-full bg-blue-500 hover:bg-blue-600 transition-all duration-200 text-white font-medium py-2 rounded-xl mt-4 cursor-pointer">
+                    Save Transactions
+                  </button>
+                }
               </div>
             </div>
           )}

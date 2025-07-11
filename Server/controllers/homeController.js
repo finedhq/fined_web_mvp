@@ -78,6 +78,30 @@ export const fetchData = async (req, res) => {
         //     }
         // }
 
+        let showFeedback = false;
+
+        const { data: getData, error: getError } = await supabase
+            .from("user_tasks")
+            .select("*")
+            .eq("email", email)
+            .single();
+
+        if (getError && getError.code !== "PGRST116") throw getError;
+
+        if (getData.article || getData.module || getData.transaction) {
+            const { data: feedbackData, error: feedbackError } = await supabase
+                .from("user_feedbacks")
+                .select("*")
+                .eq("email", email)
+                .single();
+
+            if (feedbackError && feedbackError.code === "PGRST116") {
+                showFeedback = true;
+            } else if (feedbackError) {
+                throw feedbackError;
+            }
+        }
+
         const { data: userRecord, error: fetchError } = await supabase
             .from("users")
             .select("*")
@@ -227,13 +251,21 @@ export const fetchData = async (req, res) => {
             weekly_streak_count = 0,
             last_active_date,
             inactivity_days = 0,
-            consistency_score = 0
+            consistency_rewarded_this_week = false,
+            consistency_score = 0,
+            article_score = 0,
+            expense_score = 0
         } = userData;
+
+        const originalConsistency = consistency_score;
+        const oldTotalScore = article_score + expense_score + consistency_score;
+        let reasons = [];
 
         // 2. Reset active_days if week has changed
         if (week_start_date !== currentWeekStr) {
             active_days_this_week = 0;
             week_start_date = currentWeekStr;
+            consistency_rewarded_this_week = false;
         }
 
         // 3. Update active_days_this_week
@@ -248,9 +280,10 @@ export const fetchData = async (req, res) => {
         }
 
         // 4. Apply +10 for 5+ active days this week
-        if (active_days_this_week === 5) {
+        if (active_days_this_week === 5 && !userData.consistency_rewarded_this_week) {
             consistency_score += 10;
             weekly_streak_count += 1;
+            consistency_rewarded_this_week = true;
         }
 
         // 5. Apply +20 bonus for 4-week streak
@@ -277,9 +310,50 @@ export const fetchData = async (req, res) => {
                 weekly_streak_count,
                 last_active_date,
                 inactivity_days,
+                consistency_rewarded_this_week,
                 consistency_score
             })
             .eq("user_sub", userId);
+
+        const { data: userScoreData, error: userScoreError } = await supabase
+            .from("users")
+            .select("article_score, consistency_score, expense_score")
+            .eq("user_sub", userId)
+            .maybeSingle();
+
+        if (userScoreError) throw userScoreError
+
+        if (active_days_this_week === 5) {
+            reasons.push("+10 for 5 active days this week");
+        }
+
+        if (weekly_streak_count === 0 && originalConsistency < consistency_score) {
+            reasons.push("+20 for 4-week consistency streak");
+        }
+
+        if (originalConsistency > consistency_score) {
+            const diff = originalConsistency - consistency_score;
+            reasons.push(`-${diff} for inactivity`);
+        }
+
+        const reason = reasons.join(" | ")
+
+        const newTotalScore = (userScoreData.article_score || 0) + (userScoreData.consistency_score || 0) + (userScoreData.expense_score || 0);
+        const change = newTotalScore - oldTotalScore;
+
+        if (change !== 0) {
+            const { error: logError } = await supabase
+                .from("finScoreLogs")
+                .insert({
+                    email,
+                    old_score: oldTotalScore,
+                    new_score: newTotalScore,
+                    change,
+                    description: reason
+                });
+
+            if (logError) throw logError;
+        }
 
         const { data: allUsers, error: rankError } = await supabase
             .from("users")
@@ -336,6 +410,7 @@ export const fetchData = async (req, res) => {
         }
 
         res.json({
+            showFeedback,
             featuredArticle,
             recommendedCourses,
             userData: {
@@ -441,5 +516,27 @@ export const fetchFinScoreLogs = async (req, res) => {
         res.json(data);
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch fin score history." });
+    }
+};
+
+export const saveFeedback = async (req, res) => {
+    const { form } = req.body;
+
+    if (!form) {
+        return res.status(400).json({ error: "Missing feedback data." });
+    }
+
+    try {
+        const { error } = await supabase
+            .from("user_feedbacks")
+            .insert(form);
+
+        if (error) {
+            return res.status(500).json({ error: error.message });
+        }
+
+        res.status(200).json({ message: "Feedback saved successfully." });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to save feedback." });
     }
 };

@@ -115,7 +115,7 @@ export const getACourse = async (req, res) => {
 
     const { data: cards, error: cardError } = await supabase
       .from("cards")
-      .select("card_id, module_id, content_text, content_type, order_index, image_url")
+      .select("card_id, module_id, title, content_text, content_type, order_index, image_url")
       .in("module_id", moduleIds)
       .order("order_index");
 
