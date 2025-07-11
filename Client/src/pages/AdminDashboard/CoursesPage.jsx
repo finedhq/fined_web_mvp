@@ -12,8 +12,8 @@ const CoursesPage = () => {
   const fetchCourses = async () => {
     try {
       const res = await axios.get("/courses/getall");
-      setCourses(res?.data || []);
-      // console.log(res);
+      setCourses(res.data);
+      console.log(res.data);
     } catch (err) {
       console.error("Error fetching courses:", err);
     } finally {

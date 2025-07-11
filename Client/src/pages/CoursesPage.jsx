@@ -54,7 +54,7 @@ export default function CoursesHomePage() {
 
     async function fetchOngoingCourses() {
         try {
-            const res = await instance.post("/courses/getongoingcourse", {email})
+            const res = await instance.post("/courses/getongoingcourse", { email })
             console.log(res.data)
             if (res.data?.title) {
                 setOngoingCourse(res.data)
@@ -169,8 +169,8 @@ export default function CoursesHomePage() {
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen flex flex-col px-10 py-5">
-            <header className="flex justify-between items-center h-[63px] py-6 bg-gray-50 box-border">
+        <div className="bg-gray-100 min-h-screen flex flex-col px-10 pt-5">
+            <header className="flex justify-between items-center h-[63px] py-6 bg-gray-100 box-border">
 
                 <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
                     <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
@@ -283,8 +283,8 @@ export default function CoursesHomePage() {
                             <div className="flex space-x-2 justify-end">
                                 <button
                                     className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollLeft1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                                     onClick={() => scrollLeft(carouselRef1)}
                                     disabled={!canScrollLeft1}
                                 >
@@ -293,8 +293,8 @@ export default function CoursesHomePage() {
 
                                 <button
                                     className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollRight1 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                                     onClick={() => scrollRight(carouselRef1)}
                                     disabled={!canScrollRight1}
                                 >
@@ -302,37 +302,37 @@ export default function CoursesHomePage() {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex gap-5 w-full h-[400px] mb-4" >
-                                    <div className="bg-white rounded-xl shadow hover:shadow-md transition w-1/5 h-96 shrink-0 ml-1">
-                                        <img
-                                            src={ongoingCourse?.thumbnail_url || courses[5]?.thumbnail_url}
-                                            alt={ongoingCourse?.title || courses[5]?.title}
-                                            className="w-full h-40 object-cover rounded-md mb-2"
-                                        />
-                                        <div className="p-4 flex flex-col justify-between h-52" >
-                                            <div>
-                                                <div className="flex gap-1" >
-                                                    <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.modules_count || courses[5]?.modules_count}  Modules</p>
-                                                    <p className="text-xs text-gray-500 mb-1">&bull;</p>
-                                                    <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.duration || courses[5]?.duration} mins</p>
-                                                </div>
-                                                <h3 className="font-semibold text-cyan-800 text-base tracking-wide mb-2">
-                                                    {ongoingCourse?.title || courses[5]?.title}
-                                                </h3>
-                                                <p className="text-xs text-gray-600 mb-2">{ongoingCourse?.description || courses[5]?.description}</p>
-                                            </div>
-                                            <button onClick={() => navigate(`course/${ongoingCourse?.id || courses[5]?.id}`)} className="bg-amber-400 text-white px-6 py-2 rounded-full self-end mt-2 cursor-pointer" >{ongoingCourse?.id ? "Continue Learning" : "Start Now"}</button>
+                        <div className="flex gap-12 w-full h-[400px] mb-4" >
+                            <div className="bg-white rounded-xl hover:shadow-md transition w-1/4 h-96 shrink-0 ml-1 border border-gray-300">
+                                <img
+                                    src={ongoingCourse?.thumbnail_url || courses[5]?.thumbnail_url}
+                                    alt={ongoingCourse?.title || courses[5]?.title}
+                                    className="w-full h-44 object-cover rounded-md mb-2"
+                                />
+                                <div className="p-4 flex flex-col justify-between h-48" >
+                                    <div>
+                                        <div className="flex gap-1" >
+                                            <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.modules_count || courses[5]?.modules_count}  Modules</p>
+                                            <p className="text-xs text-gray-500 mb-1">&bull;</p>
+                                            <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.duration || courses[5]?.duration} mins</p>
                                         </div>
+                                        <h3 className="font-semibold text-cyan-800 text-base tracking-wide mb-2">
+                                            {ongoingCourse?.title || courses[5]?.title}
+                                        </h3>
+                                        <p className="text-xs text-gray-600 mb-2">{ongoingCourse?.description || courses[5]?.description}</p>
                                     </div>
-                            <div ref={carouselRef1} className="w-full flex overflow-hidden gap-[6px]" >
+                                    <button onClick={() => navigate(`course/${ongoingCourse?.id || courses[5]?.id}`)} className="bg-amber-400 text-white px-6 py-2 rounded-full self-end mt-2 cursor-pointer" >{ongoingCourse?.id ? "Continue Learning" : "Start Now"}</button>
+                                </div>
+                            </div>
+                            <div ref={carouselRef1} className="w-full flex overflow-hidden gap-[21px] px-1" >
                                 {courses.map((course, index) =>
-                                    <div key={index} className="bg-white rounded-xl shadow hover:shadow-md transition w-68 h-96 shrink-0 ml-1">
+                                    <div key={index} className="bg-white rounded-xl border border-gray-300 hover:shadow-md transition w-80 h-96 shrink-0">
                                         <img
                                             src={course.thumbnail_url}
                                             alt={course.title}
-                                            className="w-full h-40 object-cover rounded-md mb-2"
+                                            className="w-full h-44 object-cover rounded-md mb-2"
                                         />
-                                        <div className="p-4 flex flex-col justify-between h-52" >
+                                        <div className="p-4 flex flex-col justify-between h-48" >
                                             <div>
                                                 <div className="flex gap-1" >
                                                     <p className="text-xs text-gray-500 mb-1">{course.modules_count}  Modules</p>
@@ -351,8 +351,8 @@ export default function CoursesHomePage() {
                             </div>
                         </div>
 
-                        <section className="w-full flex gap-4">
-                            <div className="w-[50vw]" >
+                        <section className="w-full flex">
+                            <div className="w-[780px] px-2" >
                                 <h2 className="text-xl font-semibold mb-7">Recommended Courses</h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4">
                                     {courses.slice(0, 4).map((course) => (
@@ -366,8 +366,8 @@ export default function CoursesHomePage() {
                                     <div className="flex space-x-2">
                                         <button
                                             className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollLeft2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollLeft2 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                                             onClick={() => scrollLeft(carouselRef2)}
                                             disabled={!canScrollLeft2}
                                         >
@@ -376,8 +376,8 @@ export default function CoursesHomePage() {
 
                                         <button
                                             className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 border cursor-pointer 
-              ${canScrollRight2 ? 'bg-amber-400 text-white border-amber-400 hover:bg-amber-500' : 'bg-white text-amber-300 border-amber-200'}`}
+              transition-all duration-200 cursor-pointer 
+              ${canScrollRight2 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                                             onClick={() => scrollRight(carouselRef2)}
                                             disabled={!canScrollRight2}
                                         >
@@ -385,7 +385,7 @@ export default function CoursesHomePage() {
                                         </button>
                                     </div>
                                 </div>
-                                <div ref={carouselRef2} className="flex border border-gray-50 flex-col flex-wrap gap-4 h-[740px] overflow-hidden">
+                                <div ref={carouselRef2} className="flex border border-gray-50 flex-col flex-wrap gap-3 h-[740px] overflow-hidden">
                                     {courses.map((course) => (
                                         <CourseCard key={course.id} course={course} />
                                     ))}
@@ -396,7 +396,7 @@ export default function CoursesHomePage() {
                 }
             </main>
 
-            <footer className="bg-[#f7fafc] py-10 px-6 md:px-12 flex flex-wrap justify-between text-[#333] font-sans">
+            <footer className="bg-[#f7fafc] py-10 -mx-10 px-10 flex flex-wrap justify-between text-[#333] font-sans">
 
                 <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
                     <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
@@ -420,7 +420,7 @@ export default function CoursesHomePage() {
                     <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
                     <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
                 </div>
-                <div className="newsletter">
+                <div className="newsletter m-5">
                     <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
                     {isEnteredEmail ?
                         <div>
@@ -438,10 +438,11 @@ export default function CoursesHomePage() {
                         </div>
                     }
                 </div>
-                <p className="text-center justify-center w-full mt-10 text-xs">
-                    © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-                </p>
             </footer>
+
+            <p className="text-center justify-center w-full my-10 text-xs">
+                © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
+            </p>
 
             {warning && (
                 <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
@@ -488,7 +489,7 @@ export default function CoursesHomePage() {
 function CourseCard({ course }) {
     const navigate = useNavigate()
     return (
-        <div onClick={() => navigate(`course/${course.id}`)} className="bg-white rounded-xl shadow hover:shadow-md transition w-68 h-[360px] cursor-pointer">
+        <div onClick={() => navigate(`course/${course.id}`)} className="bg-white rounded-xl border border-gray-300 hover:shadow-md transition w-68 h-[360px] cursor-pointer">
             <img
                 src={course.thumbnail_url}
                 alt={course.title}

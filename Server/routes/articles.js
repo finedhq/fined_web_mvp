@@ -5,7 +5,8 @@ import {
   saveEmail,
   removeEmail,
   addArticle,
-  fetchEnteredEmail
+  fetchEnteredEmail,
+  updateTask
 } from "../controllers/articleController.js";
 
 const router = express.Router();
@@ -18,6 +19,8 @@ router.post("/saveemail", saveEmail);
 router.post("/removeemail", removeEmail);
 
 router.post("/getenteredemail", fetchEnteredEmail);
+
+router.post("/updatetask", updateTask);
 
 router.post("/add", upload.single("image"), addArticle);
 

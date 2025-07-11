@@ -77,6 +77,40 @@ export const fetchEnteredEmail = async (req, res) => {
   }
 };
 
+export const updateTask = async (req, res) => {
+  const { email } = req.body;
+  const today = new Date().toISOString().split("T")[0];
+
+  try {
+    const { data: existing, error: fetchError } = await supabase
+      .from("user_tasks")
+      .select("article")
+      .eq("email", email)
+      .eq("date", today)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+
+    if (!existing || !existing.article) {
+      const { error: updateError } = await supabase
+        .from("user_tasks")
+        .upsert(
+          { email, date: today, article: true },
+          { onConflict: ["email", "date"] }
+        );
+
+      if (updateError) throw updateError;
+
+      return res.json({ updated: true });
+    } else {
+      return res.json({ updated: false });
+    }
+
+  } catch (err) {
+    return res.status(500).json({ error: `Error updating task: ${err.message}` });
+  }
+};
+
 export const addArticle = async (req, res) => {
   try {
     const { title, content } = req.body;

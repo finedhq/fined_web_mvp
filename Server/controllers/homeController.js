@@ -67,10 +67,45 @@ export const fetchData = async (req, res) => {
                 if (updateError) throw updateError;
 
                 userData = updatedUser;
+
+                await supabase
+                    .from("user_tasks")
+                    .delete()
+                    .eq("email", email)
+                    .neq("date", today);
+
+                const { error: taskUpdateError } = await supabase
+                    .from("user_tasks")
+                    .upsert(
+                        {
+                            email,
+                            date: today,
+                            login: true,
+                        },
+                        { onConflict: ["email", "date"] }
+                    );
+
+                if (taskUpdateError) throw taskUpdateError;
             } else {
                 userData = candidate;
             }
         }
+
+        const { data: userTasks, error: taskFetchError } = await supabase
+            .from("user_tasks")
+            .select("login, module, article, transaction")
+            .eq("email", email)
+            .eq("date", today)
+            .single();
+
+        if (taskFetchError && taskFetchError.code !== "PGRST116") throw taskFetchError;
+
+        const tasks = userTasks || {
+            login: false,
+            module: false,
+            article: false,
+            transaction: false
+        };
 
         const { data: allUsers, error: rankError } = await supabase
             .from("users")
@@ -136,7 +171,8 @@ export const fetchData = async (req, res) => {
                 ongoing_module_id: userData.ongoing_course_id,
                 ongoing_module_id: userData.ongoing_module_id
             },
-            ongoingCourseData
+            ongoingCourseData,
+            tasks
         });
 
     } catch (err) {
@@ -146,18 +182,18 @@ export const fetchData = async (req, res) => {
 };
 
 export const fetchLeaderBoard = async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("user_sub, email, fin_stars")
-      .order("fin_stars", { ascending: false })
-      .limit(50);
+    try {
+        const { data, error } = await supabase
+            .from("users")
+            .select("user_sub, email, fin_stars")
+            .order("fin_stars", { ascending: false })
+            .limit(50);
 
-    if (error) throw error;
+        if (error) throw error;
 
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
-  }
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch leaderboard" });
+    }
 };
 

@@ -49,7 +49,7 @@ export const addCourse = async (req, res) => {
 
 export const getAllCourses = async (req, res) => {
   try {
-    const { data, error } = await supabase.from("courses").select("*");
+    const { data, error } = await supabase.from("courses").select("*").order("created_at", { ascending: false });
 
     if (error) throw error;
 
@@ -310,6 +310,23 @@ export const updateACard = async (req, res) => {
 
     const module_progress = moduleProgressData.filter(p => p.status === "completed").length;
     const module_total_cards = allCards.length;
+
+    if (module_progress === module_total_cards) {
+      const today = new Date().toISOString().split("T")[0];
+
+      const { error: moduleTaskUpdateError } = await supabase
+        .from("user_tasks")
+        .upsert(
+          {
+            email,
+            date: today,
+            module: true,
+          },
+          { onConflict: ["email", "date"] }
+        );
+
+      if (moduleTaskUpdateError) throw moduleTaskUpdateError;
+    }
 
     res.json({
       ...currentCard,
