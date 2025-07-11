@@ -3,6 +3,8 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import instance from '../lib/axios'
 import toast from 'react-hot-toast'
+import FinScoreChart from '../components/finScoreChart'
+import { IoIosInformationCircleOutline } from "react-icons/io"
 
 const HomePage = () => {
 
@@ -21,12 +23,16 @@ const HomePage = () => {
   const [recommendedCourses, setRecommendedCourses] = useState([])
   const [ongoingCourse, setOngoingCourse] = useState({})
   const [tasks, setTasks] = useState({})
+  const [hasUnseen, setHasUnseen] = useState(false)
   const carouselRef1 = useRef(null)
   const [canScrollLeft1, setCanScrollLeft1] = useState(false)
   const [canScrollRight1, setCanScrollRight1] = useState(false)
   const [userData, setUserData] = useState({})
   const [showLeaderBoard, setShowLeaderBoard] = useState(false)
   const [leaderboard, setLeaderboard] = useState([])
+  const [finScoreLog, setFinScoreLog] = useState([])
+  const [showFinScoreLog, setShowFinScoreLog] = useState(false)
+  const [isFetchingLog, setIsFechingLog] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -89,6 +95,7 @@ const HomePage = () => {
         setRecommendedCourses(res.data.recommendedCourses)
         setOngoingCourse(res.data.ongoingCourseData)
         setTasks(res.data.tasks)
+        setFinScoreLog(res.data.logData)
         setLoading(false)
       }
     } catch (error) {
@@ -96,10 +103,21 @@ const HomePage = () => {
     }
   }
 
-  useEffect(() => {
-    if (email) {
-      fetchData()
+  async function fetchHasUnseen() {
+    try {
+      const res = await instance.post("/home/hasunseen", { email })
+      if (res) {
+        setHasUnseen(res.data)
+      }
+    } catch (error) {
+      toast.error("Failed to fetch notifications status.")
     }
+  }
+
+  useEffect(() => {
+    if (!email) return
+    fetchData()
+    fetchHasUnseen()
   }, [email])
 
   async function fetchEnteredEmail() {
@@ -128,16 +146,30 @@ const HomePage = () => {
       const res = await instance.get("/home/leaderboard")
       setLeaderboard(res.data || [])
     } catch (err) {
-      toast.error("Failed to load leaderboard", err)
+      toast.error("Failed to load leaderboard.", err)
       setShowLeaderBoard(false)
     } finally {
       setLoading(false)
     }
   }
 
+  const fetchFinScoreLog = async () => {
+    setIsFechingLog(true)
+    try {
+      const res = await instance.post("/home/finscorelog", { email })
+      setFinScoreLog(res.data || [])
+    } catch (err) {
+      toast.error("Failed to load fin score history.", err)
+      setShowFinScoreLog(false)
+    } finally {
+      setIsFechingLog(false)
+    }
+  }
+
   useEffect(() => {
     if (showLeaderBoard) fetchLeaderboard()
-  }, [showLeaderBoard])
+    if (showFinScoreLog) fetchFinScoreLog()
+  }, [showLeaderBoard, showFinScoreLog])
 
   const saveEmail = async () => {
     if (enteredEmail === "") return
@@ -172,7 +204,7 @@ const HomePage = () => {
 
 
   return (
-    <div className="mx-auto p-5 bg-gray-100 font-inter text-[#1e1e1e] px-10 py-5">
+    <div className="mx-auto bg-gray-100 font-inter text-[#1e1e1e] px-10 py-5">
 
       <header className="flex justify-between items-center h-[63px] bg-gray-100 box-border">
 
@@ -219,8 +251,11 @@ const HomePage = () => {
           </button>
         </nav>
 
-        <div className="bg-white rounded-full p-3 shadow-md">
+        <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
           <img src="bell.png" alt="Bell Icon" width="24" />
+          {hasUnseen && (
+            <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+          )}
         </div>
       </header>
       {loading && !showLeaderBoard ?
@@ -278,7 +313,7 @@ const HomePage = () => {
 
               <section className="flex items-center bg-white rounded-2xl p-2 gap-6 border border-gray-300">
                 <img src={ongoingCourse?.thumbnail_url || recommendedCourses[5]?.thumbnail_url} alt="Course" className="w-[140px] h-[90px] object-cover rounded-xl flex-shrink-0" />
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col justify-between h-full w-full">
                   <h3 className="text-md font-semibold">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
                   <button onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[5]?.id}`)} className="bg-[#fbbf24] border-none px-4 py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-between shadow-md transition-colors hover:bg-[#c09e2b]">
                     <p>{ongoingCourse?.title ? "Continue Learning" : "Start Learning"}</p>
@@ -304,16 +339,13 @@ const HomePage = () => {
             </section>
 
 
-            <section className="bg-white rounded-2xl px-5 py-2 text-center flex flex-col justify-between flex-1 w-1/3 h-80 border border-gray-300">
+            <section onClick={() => setShowFinScoreLog(true)} className="bg-white rounded-2xl px-5 py-2 text-center flex flex-col flex-1 w-1/3 h-80 border border-gray-300 cursor-pointer">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="m-0 text-lg font-bold">FinScore</h3>
-                <div className="w-[22px] h-[22px] rounded-full bg-transparent border-[1.5px] border-black text-black font-bold text-sm flex items-center justify-center cursor-default">
-                  i
-                </div>
+                <IoIosInformationCircleOutline className='text-2xl' />
               </div>
-              <div className="w-[180px] h-[180px] rounded-full bg-[conic-gradient(from_0deg,_#4E00E3_0%_78%,_#e5e5f5_78%_100%)] mx-auto relative flex items-center justify-center
-            before:content-[''] before:absolute before:w-[120px] before:h-[120px] before:bg-white before:rounded-full">
-                <div className="relative text-3xl font-semibold text-black z-10">789</div>
+              <div className='flex justify-center items-center' >
+                <FinScoreChart score={userData.fin_score} />
               </div>
               <p className="text-[15px] text-gray-700 mt-4">
                 Every expert was once a <b className="font-bold">beginner</b>.
@@ -369,9 +401,7 @@ const HomePage = () => {
             <div className="bg-white rounded-2xl px-5 py-2 text-center flex flex-col justify-between w-full h-[435px] border border-gray-300">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="m-0 text-lg font-bold">Tasks</h3>
-                <div className="w-[22px] h-[22px] -mt-[2px] rounded-full bg-transparent border-[1.5px] border-black text-black font-bold text-sm flex items-center justify-center cursor-default">
-                  i
-                </div>
+                <IoIosInformationCircleOutline className='text-2xl' />
               </div>
               <div className="flex-grow flex flex-col justify-around">
                 <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
@@ -398,7 +428,7 @@ const HomePage = () => {
                 <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
                   <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.transaction} readOnly />
                   <span className={tasks?.transaction ? "line-through text-gray-500" : ""}>
-                    Add and save today’s expense details
+                    Add and save today’s transaction details
                   </span>
                 </label>
               </div>
@@ -597,6 +627,52 @@ const HomePage = () => {
                   );
                 })()}
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showFinScoreLog && (
+        <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
+          <div className="bg-white px-6 py-4 rounded-2xl shadow-xl w-[500px] max-h-[80vh] overflow-y-auto space-y-4">
+            <div className='flex justify-between'>
+              <p className="text-xl font-bold text-indigo-700">🕓 FinScore History</p>
+              <button
+                onClick={() => setShowFinScoreLog(false)}
+                className="text-2xl text-gray-500 hover:text-black cursor-pointer -mt-2"
+              >
+                &times;
+              </button>
+            </div>
+
+            {isFetchingLog ? (
+              <ul className="space-y-4">
+                {[...Array(4)].map((_, i) => (
+                  <li key={i} className="bg-gray-100 p-3 rounded-lg animate-pulse space-y-2">
+                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                    <div className="flex justify-between">
+                      <div className="h-3 w-16 bg-gray-300 rounded"></div>
+                      <div className="h-3 w-24 bg-gray-300 rounded"></div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : finScoreLog && finScoreLog.length > 0 ? (
+              <ul className="space-y-3">
+                {finScoreLog.map((log, index) => (
+                  <li key={index} className="bg-gray-100 p-3 rounded-lg">
+                    <p className="text-sm text-gray-800">
+                      {log.description}
+                    </p>
+                    <div className="text-xs text-gray-500 mt-1 flex justify-between">
+                      <span>{log.change > 0 ? `+${log.change}` : log.change} pts</span>
+                      <span>{new Date(log.created_at).toLocaleString()}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500">No recent FinScore changes logged.</p>
             )}
           </div>
         </div>

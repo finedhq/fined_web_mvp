@@ -257,7 +257,7 @@ const ArticlesPage = () => {
     setIsFadingOut(false)
     try {
       const res = await instance.post("/articles/updatetask", { email })
-      if (res.data.updated) {
+      if (res.data.articleCount === 1) {
         toast.success("Task completed !")
       }
     } catch (err) {
@@ -314,7 +314,7 @@ const ArticlesPage = () => {
           </button>
         </nav>
 
-        <div className="bg-white rounded-full p-3 shadow-md">
+        <div onClick={() => navigate("/notifications")} className="bg-white rounded-full p-3 shadow-md cursor-pointer">
           <img src="/bell.png" alt="Bell Icon" width="24" />
         </div>
       </header>
@@ -557,7 +557,13 @@ const ArticlesPage = () => {
             <button
               className={`w-12 h-12 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer ${selectedIndex > 0 ? "bg-amber-400 text-white hover:bg-amber-500" : 'bg-white text-amber-300 cursor-not-allowed'}`}
-              onClick={() => selectedIndex > 0 && setSelectedArticle(articles[selectedIndex - 1])}
+              onClick={() => {
+                if (selectedIndex > 0) {
+                  const newArticle = articles[selectedIndex - 1];
+                  setSelectedArticle(newArticle);
+                  openArticle(newArticle);
+                }
+              }}
               disabled={selectedIndex <= 0}
             >
               <FaArrowLeft />
@@ -574,6 +580,7 @@ const ArticlesPage = () => {
 
                 if (nextArticle) {
                   setSelectedArticle(nextArticle)
+                  openArticle(nextArticle)
                 } else if (prefetchingNext || loading) {
                   setPendingNextAfterFetch(true)
                 }
