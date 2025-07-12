@@ -21,6 +21,7 @@ const HomePage = () => {
   const [ongoingCourse, setOngoingCourse] = useState({})
   const [tasks, setTasks] = useState({})
   const [hasUnseen, setHasUnseen] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
   const carouselRef1 = useRef(null)
   const [canScrollLeft1, setCanScrollLeft1] = useState(false)
   const [canScrollRight1, setCanScrollRight1] = useState(false)
@@ -382,8 +383,8 @@ const HomePage = () => {
                     <img src="star.png" alt="Star" className="w-5 h-5" />
                     <p>{userData?.fin_stars}</p>
                   </div>
-                  <div className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
-                    <img src="flame.png" alt="Fire" className="w-5 h-5" />
+                  <div title={`🔥 Current Streak: You've been active for ${userData?.streak_count || 0} day${userData?.streak_count === 1 ? '' : 's'} in a row.`} className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
+                    <img src="flame.png" alt="streak" className="w-6 h-5" />
                     <p>{userData?.streak_count}</p>
                   </div>
                   <div
@@ -578,8 +579,8 @@ const HomePage = () => {
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
           <p className="text-sm sm:text-base text-gray-700 mb-4 text-center sm:text-left">Financial Education made Easy.</p>
           <div className="flex gap-4">
-            <a href="https://linkedin.com"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
-            <a href="https://instagram.com"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></a>
+            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
+            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
           </div>
         </div>
         <div className="flex-1 basis-full sm:basis-[200px] m-5 min-w-[200px] font-semibold text-center sm:text-left">

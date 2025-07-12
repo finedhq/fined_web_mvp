@@ -6,6 +6,7 @@ const CardForm = () => {
   const { moduleId } = useParams();
   const [cardType, setCardType] = useState('text');
   const [form, setForm] = useState({
+    title: '',
     content_text: '',
     question_type: '',
     options: '',
@@ -38,6 +39,7 @@ const CardForm = () => {
     const selectedType = e.target.value;
     setCardType(selectedType);
     setForm({
+      title: '',
       content_text: '',
       question_type: '',
       options: '',
@@ -56,6 +58,7 @@ const CardForm = () => {
     e.preventDefault();
     const data = new FormData();
 
+    data.append('title', form.title);
     data.append('content_type', cardType);
     data.append('content_text', form.content_text);
     data.append('question_type', form.question_type);
@@ -90,6 +93,7 @@ const CardForm = () => {
 
       // Reset form
       setForm({
+        title: '',
         content_text: '',
         question_type: '',
         options: '',
@@ -118,6 +122,19 @@ const CardForm = () => {
         <p className="text-gray-500 text-sm mb-5">Module ID: {moduleId}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block">
+              Title
+              <input
+                type="text"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                className="w-full mt-1 border rounded px-3 py-2"
+                required
+              />
+            </label>
+          </div>
           <div>
             <label className="block font-medium mb-1">Card Type</label>
             <select

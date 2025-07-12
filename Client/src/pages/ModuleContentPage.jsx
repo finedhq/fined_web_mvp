@@ -114,7 +114,7 @@ const ModuleContentPage = () => {
   }
 
   return (
-    <div className="max-w-3xl h-screen mx-auto bg-white p-8 rounded-lg shadow-md">
+    <div className="max-w-3xl min-h-screen mx-auto bg-white p-8 rounded-lg shadow-md">
       {loading ?
         <div className="flex flex-col gap-8 items-center mt-12">
           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
@@ -136,8 +136,17 @@ const ModuleContentPage = () => {
                 {card?.module_progress}/{card?.module_total_cards} cards
               </p>
             </div>
-            <h1 className="text-2xl font-bold mb-4">{card.content_title}</h1>
-            <p>{card.content_text}</p>
+            <div className="w-full">
+              {card.image_url &&
+                <img
+                  src={card.image_url}
+                  alt="image"
+                  className="float-left h-48 w-48 object-cover mr-8"
+                />
+              }
+              <h1 className="text-2xl font-bold mb-4">{card.title}</h1>
+              <p className='text-justify' >{card.content_text}</p>
+            </div>
             <div className="flex justify-between mt-8">
               {prevCardId ? (
                 <button

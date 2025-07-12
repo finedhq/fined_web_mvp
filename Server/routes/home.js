@@ -1,5 +1,5 @@
 import express from "express";
-import {fetchData, fetchLeaderBoard, fetchNotifications, hasUnseen, updateNotifications, fetchFinScoreLogs} from "../controllers/homeController.js"
+import {fetchData, fetchLeaderBoard, fetchNotifications, hasUnseen, updateNotifications, fetchFinScoreLogs, saveFeedback} from "../controllers/homeController.js"
 
 const router = express.Router();
 
@@ -14,5 +14,7 @@ router.post("/hasunseen", hasUnseen);
 router.post("/finscorelog", fetchFinScoreLogs);
 
 router.get("/leaderboard", fetchLeaderBoard);
+
+router.post("/feedback", saveFeedback);
 
 export default router;

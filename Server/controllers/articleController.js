@@ -225,6 +225,66 @@ export const updateTask = async (req, res) => {
   }
 };
 
+export const fetchRating = async (req, res) => {
+  const { email, articleId } = req.body;
+
+  if (!email || !articleId) {
+    return res.json({ error: "Missing data" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("article_ratings")
+      .select("rating")
+      .match({ email, article_id: articleId })
+      .maybeSingle();
+
+    if (error) throw error;
+
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Server error while saving rating" });
+  }
+};
+
+export const rate = async (req, res) => {
+  const { email, articleId, rating } = req.body;
+
+  if (!email || !articleId || !rating) {
+    return res.status(400).json({ error: "Missing data" });
+  }
+
+  try {
+    const { error: upsertError } = await supabase
+      .from("article_ratings")
+      .upsert([{ email, article_id: articleId, rating }], { onConflict: ['email', 'article_id'] });
+
+    if (upsertError) throw upsertError;
+
+    const { data: allRatings, error: fetchError } = await supabase
+      .from("article_ratings")
+      .select("rating")
+      .eq("article_id", articleId);
+
+    if (fetchError) throw fetchError;
+
+    const total = allRatings.reduce((sum, r) => sum + (Number(r.rating) || 0), 0);
+    const avg = allRatings.length ? total / allRatings.length : 0;
+    const roundedAvg = parseFloat(avg.toFixed(2));
+
+    const { error: updateError } = await supabase
+      .from("articles")
+      .update({ rating: roundedAvg })
+      .eq("id", articleId);
+
+    if (updateError) throw updateError;
+
+    res.status(200).json({ message: "Rating saved." });
+  } catch (err) {
+    res.status(500).json({ error: "Server error while saving rating" });
+  }
+};
+
 export const addArticle = async (req, res) => {
   try {
     const { title, content } = req.body;

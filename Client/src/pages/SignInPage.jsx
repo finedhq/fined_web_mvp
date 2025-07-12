@@ -91,7 +91,7 @@ const SignInPage = () => {
           Don't have an account?
         </div>
 
-        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 text-base font-bold rounded-full cursor-pointer mt-5 transition-colors duration-300 ease-in-out bg-white text-black border border-black hover:bg-gray-200 -mt-2.5" onClick={() => navigate('/signup')}>
+        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 text-base font-bold rounded-full cursor-pointer mt-5 transition-colors duration-300 ease-in-out bg-white text-black border border-black hover:bg-gray-200" onClick={() => navigate('/signup')}>
           Create an account
         </button>
       </div>

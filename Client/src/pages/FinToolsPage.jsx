@@ -2,6 +2,7 @@ import React from "react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth0 } from '@auth0/auth0-react'
+import instance from "../lib/axios"
 
 const tools = [
     {
@@ -32,6 +33,7 @@ export default function FinToolsPage() {
     const [role, setrole] = useState("")
 
     const [email, setEmail] = useState("")
+    const [hasUnseen, setHasUnseen] = useState(false)
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -42,6 +44,22 @@ export default function FinToolsPage() {
             setrole(roles?.[0] || "")
         }
     }, [isLoading, isAuthenticated])
+
+    async function fetchHasUnseen() {
+        try {
+            const res = await instance.post("/home/hasunseen", { email })
+            if (res) {
+                setHasUnseen(res.data)
+            }
+        } catch (error) {
+            toast.error("Failed to fetch notifications status.")
+        }
+    }
+
+    useEffect(() => {
+        if (!email) return
+        fetchHasUnseen()
+    }, [email])
 
     return (
         <div className="px-10 py-5 min-h-screen bg-gray-50">
@@ -90,8 +108,11 @@ export default function FinToolsPage() {
                     </button>
                 </nav>
 
-                <div onClick={() => navigate("/notifications")} className="bg-white rounded-full p-3 shadow-md cursor-pointer">
+                <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
                     <img src="bell.png" alt="Bell Icon" width="24" />
+                    {hasUnseen && (
+                        <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+                    )}
                 </div>
             </header>
             <div className="py-10" >

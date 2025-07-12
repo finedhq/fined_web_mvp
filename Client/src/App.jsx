@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import CoursesPage from './pages/AdminDashboard/CoursesPage.jsx';
 import CourseForm from './components/CourseForm.jsx'
 import ModulesPage from './pages/AdminDashboard/ModulesPage.jsx';
@@ -23,39 +24,55 @@ import FinToolsPage from './pages/FinToolsPage.jsx';
 
 import { Toaster } from 'react-hot-toast';
 import Notifications from './pages/Notifications.jsx';
+import NotFoundPage from './pages/NotFoundPage.jsx';
+import FeedbackPage from './pages/FeedbackPage.jsx';
+import AboutUs from './pages/AboutUsPage.jsx';
+
+function ScrollToTop() {
+  let { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 const App = () => {
+
   return (
     <>
       <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
-      <Routes>
+      <ScrollToTop/>
+        <Routes>
 
-        {/* ADMIN ROUTES!~! */}
-        <Route path='/admin' element={<AdminHome></AdminHome>}></Route>
-        <Route path='/admin/newsletters' element={<NewsLetter />} ></Route>
-        <Route path="/admin/courses" element={<CoursesPage></CoursesPage>} />
-        <Route path="/admin/courses/add" element={<CourseForm></CourseForm>} />
-        <Route path='/admin/courses/:courseId/modules' element={<ModulesPage></ModulesPage>}></Route>
-        <Route path='/admin/courses/:courseId/modules/add' element={<ModuleForm></ModuleForm>}></Route>
-        <Route path="/admin/modules/:moduleId/cards" element={<CardsPage></CardsPage>} />
-        <Route path="/admin/modules/:moduleId/cards/add" element={<CardForm></CardForm>} />
-        <Route path="/admin/articles/add" element={<ArticleForm></ArticleForm>}></Route>
-        <Route path="/admin/articles" element={<ArticleList></ArticleList>}></Route>
+          {/* ADMIN ROUTES!~! */}
+          <Route path='/admin' element={<AdminHome></AdminHome>}></Route>
+          <Route path='/admin/newsletters' element={<NewsLetter />} ></Route>
+          <Route path="/admin/courses" element={<CoursesPage></CoursesPage>} />
+          <Route path="/admin/courses/add" element={<CourseForm></CourseForm>} />
+          <Route path='/admin/courses/:courseId/modules' element={<ModulesPage></ModulesPage>}></Route>
+          <Route path='/admin/courses/:courseId/modules/add' element={<ModuleForm></ModuleForm>}></Route>
+          <Route path="/admin/modules/:moduleId/cards" element={<CardsPage></CardsPage>} />
+          <Route path="/admin/modules/:moduleId/cards/add" element={<CardForm></CardForm>} />
+          <Route path="/admin/articles/add" element={<ArticleForm></ArticleForm>}></Route>
+          <Route path="/admin/articles" element={<ArticleList></ArticleList>}></Route>
 
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/courses" element={<CoursesHomePage />} />
-        <Route path="/courses/course/:course_id" element={<CourseOverviewPage />} />
-        <Route path="/courses/course/:courseId/module/:moduleId/card/:cardId" element={<ModuleContentPage />} />
-        <Route path="/articles" element={<ArticlesPage />} />
-        <Route path="/signin" element={<SignInPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/fin-tools" element={<FinToolsPage />} />
-        <Route path="/fin-tools/expensetracker" element={<ExpenseTracker />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/courses" element={<CoursesHomePage />} />
+          <Route path="/courses/course/:course_id" element={<CourseOverviewPage />} />
+          <Route path="/courses/course/:courseId/module/:moduleId/card/:cardId" element={<ModuleContentPage />} />
+          <Route path="/articles" element={<ArticlesPage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/fin-tools" element={<FinToolsPage />} />
+          <Route path="/fin-tools/expensetracker" element={<ExpenseTracker />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
+          <Route path="/about" element={<AboutUs />} />
 
+          <Route path='*' element={<NotFoundPage />} />
 
-      </Routes>
+        </Routes>
     </>
   )
 }

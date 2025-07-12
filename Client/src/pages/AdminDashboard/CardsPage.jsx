@@ -70,6 +70,8 @@ const CardsPage = () => {
                   <p className="text-xs text-gray-500">Finstars: {card.allotted_finstars || 0}</p>
                 </div>
 
+                <p className='text-lg font-semibold text-indigo-800' >Title: {card.title}</p>
+
                 {card.content_text && (
                   <p className="text-gray-700">{card.content_text}</p>
                 )}

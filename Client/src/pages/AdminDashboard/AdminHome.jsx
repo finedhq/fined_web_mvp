@@ -9,8 +9,9 @@ const AdminHome = () => {
 useEffect(() => {
   if(!isLoading && isAuthenticated){
     const roles = user?.["https://fined.com/roles"];
-    setrole(roles)
-    if(role!=="Admin") navigate('/');
+    setrole(roles[0])
+    console.log(roles[0]);
+    if(roles[0]!=='Admin') navigate('/');
   }else if(!isLoading && !isAuthenticated) navigate('/')
 
 }, [user,isAuthenticated,isLoading])

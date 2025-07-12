@@ -34,8 +34,6 @@ const ArticlesList = () => {
           limit: articlesPerPage,
           offset,
         });
-        console.log("API Response:", res.data); // Debug: Log the full response
-        // Handle both response formats for backward compatibility
         const fetchedArticles = Array.isArray(res.data)
           ? res.data
           : res.data.articles || [];
@@ -97,6 +95,10 @@ const ArticlesList = () => {
                 {article.title}
               </h3>
 
+              <h3 className="text-xl font-semibold text-indigo-700">
+                Rating: {article.rating || 0}
+              </h3>
+
               {article.image_url && (
                 <img
                   src={article.image_url}
@@ -122,11 +124,10 @@ const ArticlesList = () => {
           <button
             onClick={handlePrevious}
             disabled={currentPage === 1}
-            className={`px-4 py-2 rounded text-white font-medium transition-colors duration-200 ${
-              currentPage === 1
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 rounded text-white font-medium transition-colors duration-200 ${currentPage === 1
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+              }`}
           >
             Previous
           </button>
@@ -136,11 +137,10 @@ const ArticlesList = () => {
           <button
             onClick={handleNext}
             disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded text-white font-medium transition-colors duration-200 ${
-              currentPage === totalPages
-                ? "bg-gray-300 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 rounded text-white font-medium transition-colors duration-200 ${currentPage === totalPages
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+              }`}
           >
             Next
           </button>

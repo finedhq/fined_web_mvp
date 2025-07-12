@@ -95,7 +95,7 @@ export default function SpendVsBudgetGauge({ data, filterMonthforGaugeChart, set
             </PieChart>
           </div>
           <p className="text-lg font-semibold -mt-12">
-            ₹{totalSpent} / ₹{totalLimit} Spent
+            ₹{totalSpent.toFixed(2)} / ₹{totalLimit} Spent
           </p>
           <p className="text-sm text-gray-500">
             {Math.round(percentage * 100)}% of Budget
@@ -150,7 +150,7 @@ export default function SpendVsBudgetGauge({ data, filterMonthforGaugeChart, set
             </PieChart>
           </div>
           <p className="text-lg font-semibold -mt-12">
-            ₹{totalSpent} / ₹{totalLimit} Spent
+            ₹{totalSpent.toFixed(2)} / ₹{totalLimit} Spent
           </p>
           <p className="text-sm text-gray-500">
             {Math.round(percentage * 100)}% of Budget

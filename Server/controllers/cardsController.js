@@ -55,6 +55,7 @@ export const addCard = async (req, res) => {
     }
 
     const {
+      title,
       content_type,
       content_text,
       question_type,
@@ -74,6 +75,7 @@ export const addCard = async (req, res) => {
       : [];
 
     const card_data = {
+      title,
       module_id: moduleId,
       content_type,
       content_text,
