@@ -544,7 +544,7 @@ const ArticlesPage = () => {
                 </div>
               </div>
 
-              <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="max-h-[80vh] columns-2 carousel-track-2 space-x-4" >
+              <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="max-h-[570px] columns-2 carousel-track-2 space-x-4" >
                 {articles.slice(3).map((article, index) =>
                   <div key={index + 4} onClick={() => openArticle(article)} className="flex gap-5 mb-6 p-4 cursor-pointer">
                     <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 rounded-md object-cover" />

@@ -83,6 +83,7 @@ const ModuleContentPage = () => {
         finStarsToAward = card.allotted_finstars || 0
       }
       const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}/updateCard`, { status: "completed", userAnswer, finStars: finStarsToAward, email, userIndex })
+      console.log(res.data)
       setCard(res?.data)
       if (res.data?.module_progress && res.data?.module_total_cards) {
         const percent = Math.round((res.data.module_progress / res.data.module_total_cards) * 100)

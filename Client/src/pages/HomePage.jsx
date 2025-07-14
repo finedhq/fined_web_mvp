@@ -84,6 +84,7 @@ const HomePage = () => {
     setLoading(true);
     try {
       const res = await instance.post("/home/getdata", { email, userId: user?.sub });
+      console.log(res.data)
       if (res.data?.userData) {
         setUserData(res.data.userData);
         setFeaturedArticle(res.data.featuredArticle);
@@ -91,6 +92,9 @@ const HomePage = () => {
         setOngoingCourse(res.data.ongoingCourseData);
         setTasks(res.data.tasks);
         setFinScoreLog(res.data.logData);
+        setTimeout(() => {
+          setShowFeedback(res.data.showFeedback)
+        }, 2000)
         setLoading(false);
       }
     } catch (error) {
@@ -131,7 +135,7 @@ const HomePage = () => {
 
   const fetchRecommendations = async () => {
     try {
-      const res = await instance.post("/home/recommendations", {email, course_id: "e756d478-e7f6-4e8d-b0f7-d05afee13a39"});
+      const res = await instance.post("/home/recommendations", { email, course_id: "e756d478-e7f6-4e8d-b0f7-d05afee13a39" });
       console.log(res.data)
     } catch (err) {
       toast.error("Failed to load recommended schemes.", err);
@@ -187,7 +191,7 @@ const HomePage = () => {
     setIsSaved(true);
     try {
       await instance.post("/articles/saveemail", { email, enteredEmail });
-      setWarning("Subscribed successfully.");
+      toast.success("🎉 Subscribed successfully.")
       setIsEnteredEmail(true);
     } catch (err) {
       setWarning("Failed to save email.");
@@ -200,7 +204,7 @@ const HomePage = () => {
     setIsSaved(true);
     try {
       await instance.post("/articles/removeemail", { email, enteredEmail });
-      setWarning("Unsubscribed successfully.");
+      toast.success("Unsubscribed successfully.");
       setEnteredEmail("");
       setIsEnteredEmail(false);
     } catch (err) {
@@ -286,7 +290,7 @@ const HomePage = () => {
           <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
             <img src="bell.png" alt="Bell Icon" width="24" />
             {hasUnseen && (
-              <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+              <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
             )}
           </div>
         </div>
@@ -397,8 +401,8 @@ const HomePage = () => {
                   <h3 className="mt-1 text-base sm:text-lg font-semibold text-white text-center">{user?.name}</h3>
                 </div>
                 <div className="flex justify-center gap-4 sm:gap-10">
-                  <div className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
-                    <img src="star.png" alt="Star" className="w-5 h-5" />
+                  <div title="FinStars are earned by completing tasks like reading articles, completing modules, and logging expenses." className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
+                    <img src="star.png" alt="fin-stars" className="w-5 h-5" />
                     <p>{userData?.fin_stars}</p>
                   </div>
                   <div title={`🔥 Current Streak: You've been active for ${userData?.streak_count || 0} day${userData?.streak_count === 1 ? '' : 's'} in a row.`} className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
@@ -406,10 +410,11 @@ const HomePage = () => {
                     <p>{userData?.streak_count}</p>
                   </div>
                   <div
+                    title={`🏅 Your Rank: You're currently ranked #${userData?.rank || 'N/A'} based on your FinStars.`}
                     onClick={() => setShowLeaderBoard(true)}
                     className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900 cursor-pointer"
                   >
-                    <img src="badge.png" alt="Rank" className="w-5 h-5" />
+                    <img src="badge.png" alt="leaderboard" className="w-5 h-5" />
                     <p>{userData?.rank}</p>
                   </div>
                 </div>
@@ -619,12 +624,19 @@ const HomePage = () => {
           {isEnteredEmail ? (
             <div>
               <p className="py-3 pl-3 pr-10 sm:pr-28 w-full mb-3 border border-gray-200 rounded-md text-xs sm:text-sm box-border">{enteredEmail}</p>
-              <button
-                onClick={removeEmail}
-                className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border text-sm sm:text-base"
-              >
-                Unsubscribe
-              </button>
+              {isSaved ?
+                <div className="flex items-center justify-center gap-2 text-[#fbbf24] font-semibold">
+                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Unsubscribing...
+                </div>
+                :
+                <button onClick={removeEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
+                  Unubscribe
+                </button>
+              }
             </div>
           ) : (
             <div>
@@ -635,12 +647,19 @@ const HomePage = () => {
                 placeholder="Enter your email address"
                 className="p-3 w-full mb-3 border border-gray-200 rounded-md text-xs sm:text-sm box-border"
               />
-              <button
-                onClick={saveEmail}
-                className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border text-sm sm:text-base"
-              >
-                Subscribe Now
-              </button>
+              {isSaved ?
+                <button className="flex items-center justify-center gap-2 p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
+                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Subscribing...
+                </button>
+                :
+                <button onClick={saveEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
+                  Subscribe Now
+                </button>
+              }
             </div>
           )}
         </div>
@@ -803,6 +822,31 @@ const HomePage = () => {
             ) : (
               <p className="text-xs sm:text-sm text-gray-500">No recent FinScore changes logged.</p>
             )}
+          </div>
+        </div>
+      )}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg space-y-4">
+            <h2 className="text-xl font-bold text-gray-800">We’d love your feedback!</h2>
+            <p className="text-gray-600">Please take a moment to tell us how we're doing.</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowFeedback(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-700 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowFeedback(false);
+                  navigate("/feedback");
+                }}
+                className="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-lg font-semibold cursor-pointer"
+              >
+                Give Feedback
+              </button>
+            </div>
           </div>
         </div>
       )}
