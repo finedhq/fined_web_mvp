@@ -98,12 +98,13 @@ export const updateTask = async (req, res) => {
     let articleScore = userData?.article_score || 0;
     let consistencyScore = userData?.consistency_score || 0;
     let expenseScore = userData?.expense_score || 0;
+    let courseScore = userData?.course_score || 0;
     let newStreak = currentStreak;
     let bonus = 0;
     let penalty = 0;
     let shouldUpdateStreak = false;
 
-    const oldTotalScore = articleScore + consistencyScore + expenseScore;
+    const oldTotalScore = articleScore + consistencyScore + expenseScore + courseScore;
 
     const { data: existing, error: taskError } = await supabase
       .from("user_tasks")
@@ -180,13 +181,13 @@ export const updateTask = async (req, res) => {
 
     const { data: updatedUserData, error: newFetchError } = await supabase
       .from("users")
-      .select("article_score, consistency_score, expense_score")
+      .select("article_score, consistency_score, expense_score, course_score")
       .eq("email", email)
       .single();
 
     if (newFetchError) throw newFetchError;
 
-    const newTotalScore = (updatedUserData.article_score || 0) + (updatedUserData.consistency_score || 0) + (updatedUserData.expense_score || 0);
+    const newTotalScore = (updatedUserData.article_score || 0) + (updatedUserData.consistency_score || 0) + (updatedUserData.expense_score || 0) + (updatedUserData.course_score || 0);
 
     const delta = newTotalScore - oldTotalScore;
 

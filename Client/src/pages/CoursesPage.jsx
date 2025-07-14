@@ -318,7 +318,7 @@ export default function CoursesHomePage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-white rounded-xl hover:shadow-md transition px-4 py-3 w-1/4 h-52 space-y-3 shrink-0 border border-gray-300">
+                                    <div className="bg-white rounded-xl hover:shadow-md transition px-4 py-3 w-1/4 h-fit space-y-3 shrink-0 border border-gray-300">
                                         <div>
                                             <h3 className="font-semibold text-cyan-800 text-base tracking-wide mb-2">
                                                 {ongoingCourse?.title || courses[5]?.title}

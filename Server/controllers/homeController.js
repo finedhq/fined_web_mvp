@@ -88,7 +88,7 @@ export const fetchData = async (req, res) => {
 
         if (getError && getError.code !== "PGRST116") throw getError;
 
-        if (getData.article || getData.module || getData.transaction) {
+        if (getData?.article || getData?.module || getData?.transaction) {
             const { data: feedbackData, error: feedbackError } = await supabase
                 .from("user_feedbacks")
                 .select("*")
@@ -254,11 +254,12 @@ export const fetchData = async (req, res) => {
             consistency_rewarded_this_week = false,
             consistency_score = 0,
             article_score = 0,
-            expense_score = 0
+            expense_score = 0,
+            course_score = 0
         } = userData;
 
         const originalConsistency = consistency_score;
-        const oldTotalScore = article_score + expense_score + consistency_score;
+        const oldTotalScore = article_score + expense_score + consistency_score + course_score;
         let reasons = [];
 
         // 2. Reset active_days if week has changed
@@ -317,7 +318,7 @@ export const fetchData = async (req, res) => {
 
         const { data: userScoreData, error: userScoreError } = await supabase
             .from("users")
-            .select("article_score, consistency_score, expense_score")
+            .select("article_score, consistency_score, expense_score, course_score")
             .eq("user_sub", userId)
             .maybeSingle();
 
@@ -338,7 +339,7 @@ export const fetchData = async (req, res) => {
 
         const reason = reasons.join(" | ")
 
-        const newTotalScore = (userScoreData.article_score || 0) + (userScoreData.consistency_score || 0) + (userScoreData.expense_score || 0);
+        const newTotalScore = (userScoreData.article_score || 0) + (userScoreData.consistency_score || 0) + (userScoreData.expense_score || 0) + (userScoreData.course_score || 0);
         const change = newTotalScore - oldTotalScore;
 
         if (change !== 0) {
@@ -419,7 +420,7 @@ export const fetchData = async (req, res) => {
                 rank,
                 ongoing_module_id: userData.ongoing_course_id,
                 ongoing_module_id: userData.ongoing_module_id,
-                fin_score: (userData.article_score || 0) + (userData.consistency_score || 0) + (userData.expense_score || 0)
+                fin_score: (userData.article_score || 0) + (userData.consistency_score || 0) + (userData.expense_score || 0) + (userData.course_score || 0)
             },
             ongoingCourseData,
             tasks
@@ -538,5 +539,140 @@ export const saveFeedback = async (req, res) => {
         res.status(200).json({ message: "Feedback saved successfully." });
     } catch (err) {
         res.status(500).json({ error: "Failed to save feedback." });
+    }
+};
+
+const getCombinations = (arr, k) => {
+    const result = [];
+    const helper = (start, path) => {
+        if (path.length === k) {
+            result.push([...path]);
+            return;
+        }
+        for (let i = start; i < arr.length; i++) {
+            path.push(arr[i]);
+            helper(i + 1, path);
+            path.pop();
+        }
+    };
+    helper(0, []);
+    return result;
+};
+
+export const getRecommendations = async (req, res) => {
+    const { email, course_id } = req.body;
+
+    try {
+        const { data: userProgress, error: progressError } = await supabase
+            .from("userCourses")
+            .select("answer_tags")
+            .match({
+                email,
+                course_id,
+                progress_type: "card",
+                status: "completed",
+            });
+
+        if (progressError) throw progressError;
+
+        const userTagFrequency = new Map();
+        const normalizeTag = (tag) =>
+            tag.toLowerCase().replace(/\s*:\s*/g, ":").replace(/\s+/g, "").trim();
+
+        for (const row of userProgress) {
+            const tags = row.answer_tags;
+
+            const addTag = (tag) => {
+                const norm = normalizeTag(tag);
+                if (norm) {
+                    userTagFrequency.set(norm, (userTagFrequency.get(norm) || 0) + 1);
+                }
+            };
+
+            if (Array.isArray(tags)) {
+                tags.forEach(addTag);
+            } else if (typeof tags === 'string') {
+                tags.split(";").forEach(addTag);
+            }
+        }
+
+        const sortedUserTags = Array.from(userTagFrequency.entries())
+            .sort((a, b) => b[1] - a[1]);
+
+        const importantUserTags = sortedUserTags.filter(([tag, freq], index) => {
+            return freq >= 2 || index < 8;
+        });
+
+        const { data: schemes, error: schemeError } = await supabase
+            .from("schemes")
+            .select("scheme_name, tags, description, type, eligibility");
+
+        if (schemeError) throw schemeError;
+
+        const parsedSchemes = schemes.map(scheme => {
+            let schemeTags = [];
+
+            if (typeof scheme.tags === "string") {
+                try {
+                    schemeTags = JSON.parse(scheme.tags);
+                } catch {
+                    schemeTags = scheme.tags.split(/[;,]/).map(tag => tag.trim());
+                }
+            } else if (Array.isArray(scheme.tags)) {
+                schemeTags = scheme.tags;
+            }
+
+            const normalizedTags = new Set(
+                schemeTags.map(tag => normalizeTag(tag))
+            );
+
+            return { ...scheme, normalizedTags };
+        });
+
+        const allImportantTags = importantUserTags.map(([tag]) => tag);
+        
+        let matchedSchemesSet = new Set();
+
+        for (let size = 5; size >= 1; size--) {
+            const combos = getCombinations(allImportantTags, size);
+            for (const combo of combos) {
+                parsedSchemes.forEach(scheme => {
+                    if (combo.every(tag => scheme.normalizedTags.has(tag))) {
+                        matchedSchemesSet.add(scheme);
+                    }
+                });
+            }
+        }
+
+        let finalSchemes = Array.from(matchedSchemesSet);
+
+        if (finalSchemes.length === 0) {
+            finalSchemes = parsedSchemes;
+        }
+
+        const scoredSchemes = finalSchemes.map(scheme => {
+            let score = 0;
+            const matchedTags = [];
+
+            importantUserTags.forEach(([tag, freq], index) => {
+                const weight = Math.pow((importantUserTags.length - index), 2);
+                if (scheme.normalizedTags.has(tag)) {
+                    score += freq * weight;
+                    matchedTags.push(tag);
+                }
+            });
+
+            return { ...scheme, matchCount: score, matchedTags };
+        });
+
+        const topSchemes = scoredSchemes
+            .filter(s => s.matchCount > 0)
+            .sort((a, b) => b.matchCount - a.matchCount)
+            .slice(0, 5);
+
+        return res.status(200).json({ recommendations: topSchemes });
+
+    } catch (err) {
+        return res.status(500).json({ error: "Failed to fetch recommendations" });
     }
 };

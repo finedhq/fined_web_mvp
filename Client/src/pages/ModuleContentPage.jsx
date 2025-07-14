@@ -71,7 +71,7 @@ const ModuleContentPage = () => {
     fetchCard()
   }, [cardId, email])
 
-  async function markCompleted(userAnswer = null) {
+  async function markCompleted(userAnswer = null, userIndex = null) {
     try {
       let finStarsToAward = 0
       if (card.content_type === "question") {
@@ -82,7 +82,7 @@ const ModuleContentPage = () => {
       } else {
         finStarsToAward = card.allotted_finstars || 0
       }
-      const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}/updateCard`, { status: "completed", userAnswer, finStars: finStarsToAward, email })
+      const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}/updateCard`, { status: "completed", userAnswer, finStars: finStarsToAward, email, userIndex })
       setCard(res?.data)
       if (res.data?.module_progress && res.data?.module_total_cards) {
         const percent = Math.round((res.data.module_progress / res.data.module_total_cards) * 100)
@@ -110,7 +110,7 @@ const ModuleContentPage = () => {
     setSelectedIndex(index)
     const selectedOption = card.options[index]
     setDisabled(true)
-    await markCompleted(selectedOption)
+    await markCompleted(selectedOption, index)
   }
 
   return (
@@ -122,7 +122,7 @@ const ModuleContentPage = () => {
           ))}
         </div>
         :
-        card?.content_type === "text" ? (
+        card?.content_type === "text" || card?.content_type === "image" ? (
           <div>
             <div className='flex items-center gap-4 mb-6' >
               <RxCross2 onClick={() => navigate(`/courses/course/${courseId}`)} className='text-2xl cursor-pointer' />
@@ -136,7 +136,7 @@ const ModuleContentPage = () => {
                 {card?.module_progress}/{card?.module_total_cards} cards
               </p>
             </div>
-            <div className="w-full">
+            <div className="w-full min-h-[75vh]">
               {card.image_url &&
                 <img
                   src={card.image_url}
