@@ -70,8 +70,16 @@ export const addCard = async (req, res) => {
       ? typeof body.options === "string"
         ? [body.options]
         : Array.isArray(body.options)
-        ? body.options
-        : []
+          ? body.options
+          : []
+      : [];
+
+    const options_tags = body.options_tags
+      ? typeof body.options_tags === "string"
+        ? [body.options_tags]
+        : Array.isArray(body.options_tags)
+          ? body.options_tags
+          : []
       : [];
 
     const card_data = {
@@ -88,6 +96,7 @@ export const addCard = async (req, res) => {
       Object.assign(card_data, {
         question_type,
         options,
+        options_tags,
         correct_answer,
         answer_compulsory: answer_compulsory === "true" || answer_compulsory === true,
         feedback_type,
@@ -98,6 +107,7 @@ export const addCard = async (req, res) => {
       Object.assign(card_data, {
         question_type: null,
         options: null,
+        options_tags: null,
         correct_answer: null,
         answer_compulsory: null,
         feedback_type: null,

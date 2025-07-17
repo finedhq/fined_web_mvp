@@ -4,18 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 const AdminHome = () => {
   const navigate = useNavigate();
-  const { user,isLoading,isAuthenticated } = useAuth0();
-  const [role, setrole] = useState("")
-useEffect(() => {
-  if(!isLoading && isAuthenticated){
-    const roles = user?.["https://fined.com/roles"];
-    setrole(roles[0])
-    console.log(roles[0]);
-    if(roles[0]!=='Admin') navigate('/');
-  }else if(!isLoading && !isAuthenticated) navigate('/')
-
-}, [user,isAuthenticated,isLoading])
-
+  const { user } = useAuth0();
 
   const cards = [
     {
@@ -83,8 +72,8 @@ useEffect(() => {
               onClick={card.onClick}
               disabled={card.disabled}
               className={`flex flex-col items-center justify-center p-6 rounded-xl shadow-md text-white font-semibold text-lg text-center transition ${card.disabled
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700"
                 }`}
             >
               <span className="text-4xl mb-3">{card.icon}</span>

@@ -541,7 +541,7 @@ export default function ExpenseTracker() {
         if (err.response?.status === 401) {
           const state = JSON.stringify({ email, status: isAutoFetch })
           const encodedState = encodeURIComponent(state)
-          window.location.href = `http://localhost:8000/api/fin-tools/expensetracker/bank-auth?state=${encodedState}`
+          window.location.href = `https://finedwebmvp-production.up.railway.app/api/fin-tools/expensetracker/bank-auth?state=${encodedState}`
         } else {
           setWarning("Error fetching Gmail transactions. Try again.")
         }

@@ -5,7 +5,7 @@ import { sendNotification } from "../notifications.js"
 const oauth2 = new google.auth.OAuth2(
   process.env.CLIENT_ID || "822410915737-7ljn7nvcdp97nqdd1a26t1mohure0iua.apps.googleusercontent.com",
   process.env.CLIENT_SECRET || "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",
-  process.env.REDIRECT_URI || "http://localhost:8000/api/fin-tools/expensetracker/bank-callback"
+  process.env.REDIRECT_URI || "https://fined-web.vercel.app/api/fin-tools/expensetracker/bank-callback"
 );
 
 export const bankAuth = (req, res) => {
@@ -47,7 +47,7 @@ export const bankCallback = async (req, res) => {
       { onConflict: ['email'] }
     )
 
-  res.redirect(`http://localhost:5173/fin-tools/expensetracker?email=${userEmail}`);
+  res.redirect(`https://fined-web.vercel.app/fin-tools/expensetracker?email=${userEmail}`);
 };
 
 export const fetchExpenses = async (req, res) => {
@@ -355,14 +355,14 @@ export const budgets = async (req, res) => {
 
     const { data: userData, error: fetchUserErr } = await supabase
       .from("users")
-      .select("article_score, consistency_score, expense_score")
+      .select("article_score, consistency_score, expense_score, course_score")
       .eq("email", userEmail)
       .single();
 
     if (fetchUserErr) throw fetchUserErr;
 
-    const { article_score = 0, consistency_score = 0, expense_score = 0 } = userData || {};
-    const oldTotalScore = article_score + consistency_score + expense_score;
+    const { article_score = 0, consistency_score = 0, expense_score = 0, course_score = 0 } = userData || {};
+    const oldTotalScore = article_score + consistency_score + expense_score + course_score;
 
     const updatedExpenseScore = Math.max(0, Math.min(150, expense_score + score));
 
@@ -414,14 +414,14 @@ export const budgets = async (req, res) => {
 
     const { data: newUserData, error: newUserError } = await supabase
       .from("users")
-      .select("article_score, consistency_score, expense_score")
+      .select("article_score, consistency_score, expense_score, course_score")
       .eq("email", userEmail)
       .single();
 
     if (newUserError) throw newUserError;
 
-    const { article_score: newArticle = 0, consistency_score: newConsistency = 0, expense_score: newExpense = 0 } = newUserData;
-    const newTotalScore = newArticle + newConsistency + newExpense;
+    const { article_score: newArticle = 0, consistency_score: newConsistency = 0, expense_score: newExpense = 0, course_score: newCourse = 0 } = newUserData;
+    const newTotalScore = newArticle + newConsistency + newExpense + newCourse;
     const delta = newTotalScore - oldTotalScore;
 
     if (delta !== 0) {
@@ -612,7 +612,7 @@ export const transaction = async (req, res) => {
     if (shouldScoreToday) {
       const { data: userData, error: userFetchErr } = await supabase
         .from("users")
-        .select("transaction_streak_count, last_transaction_date, article_score, consistency_score, expense_score")
+        .select("transaction_streak_count, last_transaction_date, article_score, consistency_score, expense_score, course_score")
         .eq("email", transaction.email)
         .single();
 
@@ -650,7 +650,7 @@ export const transaction = async (req, res) => {
         streak = 1;
       }
 
-      oldTotalScore = (userData.expense_score || 0) + (userData.article_score || 0) + (userData.consistency_score || 0);
+      oldTotalScore = (userData.expense_score || 0) + (userData.article_score || 0) + (userData.consistency_score || 0) + userData.course_score || 0;
 
       const updatedExpense = Math.max(0, Math.min(150, (userData.expense_score || 0) + scoreDelta));
 
@@ -669,13 +669,13 @@ export const transaction = async (req, res) => {
 
       const { data: updatedUser, error: fetchUpdatedErr } = await supabase
         .from("users")
-        .select("expense_score, article_score, consistency_score")
+        .select("expense_score, article_score, consistency_score, course_score")
         .eq("email", transaction.email)
         .single();
 
       if (fetchUpdatedErr) throw fetchUpdatedErr;
 
-      const newTotalScore = (updatedUser.expense_score || 0) + (updatedUser.article_score || 0) + (updatedUser.consistency_score || 0);
+      const newTotalScore = (updatedUser.expense_score || 0) + (updatedUser.article_score || 0) + (updatedUser.consistency_score || 0) + (updatedUser.course_score || 0);
       const delta = newTotalScore - oldTotalScore;
 
       if (delta !== 0) {
@@ -886,7 +886,7 @@ export const transactionsBulk = async (req, res) => {
 
         const { data: userData, error: userFetchErr } = await supabase
           .from("users")
-          .select("transaction_streak_count, last_transaction_date, article_score, consistency_score, expense_score")
+          .select("transaction_streak_count, last_transaction_date, article_score, consistency_score, expense_score, course_score")
           .eq("email", email)
           .single();
 
@@ -922,7 +922,7 @@ export const transactionsBulk = async (req, res) => {
           streak = 1;
         }
 
-        const oldTotalScore = (userData.expense_score || 0) + (userData.article_score || 0) + (userData.consistency_score || 0);
+        const oldTotalScore = (userData.expense_score || 0) + (userData.article_score || 0) + (userData.consistency_score || 0) + (userData.course_score || 0);
         const updatedExpense = Math.max(0, Math.min(150, (userData.expense_score || 0) + scoreDelta));
 
         const { error: userUpdateErr } = await supabase
@@ -938,13 +938,13 @@ export const transactionsBulk = async (req, res) => {
 
         const { data: updatedUser, error: fetchUpdatedErr } = await supabase
           .from("users")
-          .select("expense_score, article_score, consistency_score")
+          .select("expense_score, article_score, consistency_score, course_score")
           .eq("email", email)
           .single();
 
         if (fetchUpdatedErr) throw fetchUpdatedErr;
 
-        const newTotalScore = (updatedUser.expense_score || 0) + (updatedUser.article_score || 0) + (updatedUser.consistency_score || 0);
+        const newTotalScore = (updatedUser.expense_score || 0) + (updatedUser.article_score || 0) + (updatedUser.consistency_score || 0) + (updatedUser.course_score || 0);
         const delta = newTotalScore - oldTotalScore;
 
         if (delta !== 0) {

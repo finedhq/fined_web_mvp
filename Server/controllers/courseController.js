@@ -205,131 +205,178 @@ export const getACard = async (req, res) => {
 export const updateACard = async (req, res) => {
   try {
     const { course_id, module_id, card_id } = req.params;
-    const { status, userAnswer, email, finStars } = req.body;
+    const { status, userAnswer, email, finStars, userIndex } = req.body;
+    const today = new Date().toISOString().split("T")[0];
 
+    // Fetch card info
+    const { data: cardData, error: cardError } = await supabase
+      .from("cards")
+      .select("*")
+      .eq("card_id", card_id)
+      .single();
+    if (cardError) throw cardError;
+
+    let optionsTags = [];
+    if (typeof cardData?.options_tags === "string") {
+      try {
+        optionsTags = JSON.parse(cardData.options_tags);
+      } catch {}
+    } else if (Array.isArray(cardData?.options_tags)) {
+      optionsTags = cardData.options_tags;
+    }
+    const answer_tags = userIndex != null ? optionsTags[userIndex] : null;
+
+    // Check for existing card progress
     const { data: existingProgress, error: checkError } = await supabase
       .from("userCourses")
-      .select("*")
-      .match({
-        email,
-        module_id,
-        card_id,
-        progress_type: "card",
-      })
+      .select("id")
+      .match({ email, module_id, card_id, progress_type: "card" })
       .maybeSingle();
-
-    if (checkError && checkError.code !== 'PGRST116') throw checkError;
+    if (checkError) throw checkError;
 
     const payload = {
       status,
       user_answer: userAnswer || null,
+      answer_tags,
       completion_date: status === "completed" ? new Date().toISOString() : null,
     };
 
-    let progressUpdate;
     if (existingProgress) {
-      const { data, error } = await supabase
-        .from("userCourses")
-        .update(payload)
-        .eq("id", existingProgress.id)
-        .select()
-        .single();
-      if (error) throw error;
-      progressUpdate = data;
+      await supabase.from("userCourses").update(payload).eq("id", existingProgress.id);
     } else {
-      const { data, error } = await supabase
-        .from("userCourses")
-        .insert([
-          {
-            email,
-            course_id,
-            module_id,
-            card_id,
-            status,
-            user_answer: userAnswer || null,
-            completion_date: status === "completed" ? new Date().toISOString() : null,
-            progress_type: "card",
-          },
-        ])
-        .select()
-        .single();
-      if (error) throw error;
-      progressUpdate = data;
+      await supabase.from("userCourses").insert([{ email, course_id, module_id, card_id, progress_type: "card", ...payload }]);
     }
 
-    const { data: userData, error: userError } = await supabase
+    // Fetch user info
+    const { data: user, error: userError } = await supabase
       .from("users")
-      .select("fin_stars")
+      .select("fin_stars, course_count, course_score, consistency_score, article_score, expense_score")
       .eq("email", email)
       .maybeSingle();
-
     if (userError) throw userError;
 
-    const currentStars = userData?.fin_stars || 0;
-    const newStars = currentStars + (finStars || 0);
-
-    if (!userData) {
-      const { error: insertError } = await supabase
-        .from("users")
-        .insert([
-          { email, fin_stars: newStars }
-        ]);
-
-      if (insertError) throw insertError;
-    } else {
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({ fin_stars: newStars })
-        .eq("email", email);
-
-      if (updateError) throw updateError;
+    // Update FinStars
+    if (finStars) {
+      await supabase.from("users").update({ fin_stars: (user?.fin_stars || 0) + finStars }).eq("email", email);
     }
-    const { data: allCards, error: allCardsError } = await supabase
+
+    // Fetch all cards in module
+    const { data: allCards, error: cardsError } = await supabase
       .from("cards")
-      .select("*")
+      .select("card_id")
       .eq("module_id", module_id)
       .order("order_index");
+    if (cardsError) throw cardsError;
 
-    if (allCardsError) throw allCardsError;
+    const currentIndex = allCards.findIndex(c => c.card_id === card_id);
+    const prevCardId = allCards[currentIndex - 1]?.card_id || null;
+    const nextCardId = allCards[currentIndex + 1]?.card_id || null;
 
-    const currentCard = allCards.find((card) => card.card_id === card_id);
-    const currentIndex = allCards.findIndex((card) => card.card_id === card_id);
-    const prevCardId = currentIndex > 0 ? allCards[currentIndex - 1].card_id : null;
-    const nextCardId = currentIndex < allCards.length - 1 ? allCards[currentIndex + 1].card_id : null;
-
-    const { data: moduleProgressData, error: progressError } = await supabase
+    // Count completed cards in this module
+    const { data: moduleProgress, error: progressError } = await supabase
       .from("userCourses")
-      .select("status")
-      .match({
-        email,
-        module_id,
-        progress_type: "card",
-      });
-
+      .select("card_id")
+      .match({ email, module_id, progress_type: "card", status: "completed" });
     if (progressError) throw progressError;
 
-    const module_progress = moduleProgressData.filter(p => p.status === "completed").length;
+    const module_progress = moduleProgress.length;
     const module_total_cards = allCards.length;
 
-    if (module_progress === module_total_cards) {
-      const today = new Date().toISOString().split("T")[0];
+    // ✅ Module completion bonus
+    if (module_progress === module_total_cards && user.course_count < 5) {
+      await supabase.from("user_tasks").upsert({ email, date: today, module: true }, { onConflict: ["email", "date"] });
 
-      const { error: moduleTaskUpdateError } = await supabase
-        .from("user_tasks")
-        .upsert(
-          {
-            email,
-            date: today,
-            module: true,
-          },
-          { onConflict: ["email", "date"] }
-        );
+      const oldScore = user.course_score + user.consistency_score + user.article_score + user.expense_score;
+      const newCourseScore = Math.min(user.course_score + 20, 500);
+      const newTotal = newCourseScore + user.consistency_score + user.article_score + user.expense_score;
+      const delta = newTotal - oldScore;
 
-      if (moduleTaskUpdateError) throw moduleTaskUpdateError;
+      await supabase.from("users").update({ course_score: newCourseScore }).eq("email", email);
+
+      if (delta !== 0) {
+        await supabase.from("finScoreLogs").insert({
+          email,
+          old_score: oldScore,
+          new_score: newTotal,
+          change: delta,
+          description: "+20 for completing module",
+        });
+      }
     }
 
+    // ✅ Course completion + Quiz bonus
+    const { data: modules, error: modulesError } = await supabase
+      .from("modules")
+      .select("id")
+      .eq("course_id", course_id);
+    if (modulesError) throw modulesError;
+
+    const moduleIds = modules.map(m => m.id);
+
+    const [{ data: allCourseCards, error: allCourseError }, { data: completedCards, error: completedError }] = await Promise.all([
+      supabase.from("cards").select("card_id").in("module_id", moduleIds),
+      supabase.from("userCourses").select("card_id").match({ email, course_id, progress_type: "card", status: "completed" })
+    ]);
+    if (allCourseError) throw allCourseError;
+    if (completedError) throw completedError;
+
+    if (allCourseCards.length === completedCards.length && user.course_count < 5) {
+      const { data: courseAnswers, error: courseAnsError } = await supabase
+        .from("userCourses")
+        .select("user_answer, card_id")
+        .match({ email, course_id, progress_type: "card" });
+      if (courseAnsError) throw courseAnsError;
+
+      const { data: answerKeys, error: keyError } = await supabase
+        .from("cards")
+        .select("card_id, correct_answer")
+        .in("module_id", moduleIds);
+      if (keyError) throw keyError;
+
+      const correctMap = Object.fromEntries(answerKeys.map(c => [c.card_id, c.correct_answer?.trim().toLowerCase()]));
+      let correct = 0, total = 0;
+
+      for (const { card_id, user_answer } of courseAnswers) {
+        if (user_answer && correctMap[card_id] && user_answer.trim().toLowerCase() === correctMap[card_id]) {
+          correct++;
+        }
+        if (correctMap[card_id]) total++;
+      }
+
+      const percent = (correct / total) * 100;
+      let quizBonus = 0, reason = "";
+
+      if (percent >= 80) {
+        quizBonus = 10; reason = "+10 for ≥80% in course quiz";
+      } else if (percent >= 60) {
+        quizBonus = 5; reason = "+5 for 60–79% in course quiz";
+      } else {
+        quizBonus = -5; reason = "-5 for <60% in course quiz";
+      }
+
+      const updatedScore = Math.max(0, Math.min(user.course_score + quizBonus, 500));
+      const newTotal = updatedScore + user.consistency_score + user.article_score + user.expense_score;
+      const delta = newTotal - (user.course_score + user.consistency_score + user.article_score + user.expense_score);
+
+      await supabase.from("users").update({
+        course_score: updatedScore,
+        course_count: user.course_count + 1
+      }).eq("email", email);
+
+      if (delta !== 0) {
+        await supabase.from("finScoreLogs").insert({
+          email,
+          old_score: user.course_score + user.consistency_score + user.article_score + user.expense_score,
+          new_score: newTotal,
+          change: delta,
+          description: reason,
+        });
+      }
+    }
+
+    // Final response
     res.json({
-      ...currentCard,
+      ...cardData,
       status: "completed",
       userAnswer,
       prevCardId,
@@ -339,7 +386,7 @@ export const updateACard = async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("updateACard error:", err);
     res.status(500).json({ error: `Failed to update progress or FinStars: ${err.message}` });
   }
 };

@@ -10,6 +10,7 @@ const CardForm = () => {
     content_text: '',
     question_type: '',
     options: '',
+    options_tags: '',
     correct_answer: '',
     allotted_finstars: 0,
     order_index: 0,
@@ -43,6 +44,7 @@ const CardForm = () => {
       content_text: '',
       question_type: '',
       options: '',
+      options_tags: '',
       correct_answer: '',
       allotted_finstars: 0,
       order_index: 0,
@@ -77,6 +79,15 @@ const CardForm = () => {
       });
     }
 
+    if (
+      form.options_tags &&
+      (form.question_type === 'mcq_single' || form.question_type === 'mcq_multiple')
+    ) {
+      form.options_tags.split(',').forEach((tag, index) => {
+        data.append(`options_tags[${index}]`, tag.trim());
+      });
+    }
+
     if (form.image_file) data.append('image_file', form.image_file);
     if (form.audio_file) data.append('audio_file', form.audio_file);
     if (form.video_file) data.append('video_file', form.video_file);
@@ -97,6 +108,7 @@ const CardForm = () => {
         content_text: '',
         question_type: '',
         options: '',
+        options_tags: '',
         correct_answer: '',
         allotted_finstars: 0,
         order_index: 0,
@@ -230,6 +242,15 @@ const CardForm = () => {
                     <textarea
                       name="options"
                       value={form.options}
+                      onChange={handleChange}
+                      className="w-full mt-1 border rounded px-3 py-2"
+                    />
+                  </label>
+                  <label className="block">
+                    Option Tags (comma-separated)
+                    <textarea
+                      name="options_tags"
+                      value={form.options_tags || ''}
                       onChange={handleChange}
                       className="w-full mt-1 border rounded px-3 py-2"
                     />
