@@ -55,16 +55,16 @@ const HomePage = () => {
   const scrollLeft = (ref) => {
     const el = ref.current;
     if (el) {
-      const width = el.getBoundingClientRect().width;
-      el.scrollBy({ left: -width, behavior: 'smooth' });
+      const scrollAmount = window.innerWidth <= 768 ? 310 : 620;
+      el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     }
   };
 
   const scrollRight = (ref) => {
     const el = ref.current;
     if (el) {
-      const width = el.getBoundingClientRect().width;
-      el.scrollBy({ left: width, behavior: 'smooth' });
+      const scrollAmount = window.innerWidth <= 768 ? 310 : 620;
+      el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 
@@ -83,18 +83,19 @@ const HomePage = () => {
   async function fetchData() {
     setLoading(true);
     try {
-      const res = await instance.post("/home/getdata", { email, userId: user?.sub })
+      const res = await instance.post("/home/getdata", { email, userId: user?.sub });
+      console.log(res.data)
       if (res.data?.userData) {
-        setUserData(res.data.userData)
-        setFeaturedArticle(res.data.featuredArticle)
-        setRecommendedCourses(res.data.recommendedCourses)
-        setOngoingCourse(res.data.ongoingCourseData)
-        setTasks(res.data.tasks)
-        setFinScoreLog(res.data.logData)
+        setUserData(res.data.userData);
+        setFeaturedArticle(res.data.featuredArticle);
+        setRecommendedCourses(res.data.recommendedCourses);
+        setOngoingCourse(res.data.ongoingCourseData);
+        setTasks(res.data.tasks);
+        setFinScoreLog(res.data.logData);
         setTimeout(() => {
           setShowFeedback(res.data.showFeedback)
         }, 2000)
-        setLoading(false)
+        setLoading(false);
       }
     } catch (error) {
       setError("Failed to fetch your data.");
@@ -144,9 +145,15 @@ const HomePage = () => {
 
   useEffect(() => {
     if (email) {
-      fetchEnteredEmail()
+      fetchRecommendations()
     }
   }, [email])
+
+  useEffect(() => {
+    if (email) {
+      fetchEnteredEmail();
+    }
+  }, [email]);
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -183,9 +190,9 @@ const HomePage = () => {
     if (enteredEmail === "") return;
     setIsSaved(true);
     try {
-      await instance.post("/articles/saveemail", { email, enteredEmail })
+      await instance.post("/articles/saveemail", { email, enteredEmail });
       toast.success("🎉 Subscribed successfully.")
-      setIsEnteredEmail(true)
+      setIsEnteredEmail(true);
     } catch (err) {
       setWarning("Failed to save email.");
     } finally {
@@ -196,10 +203,10 @@ const HomePage = () => {
   const removeEmail = async () => {
     setIsSaved(true);
     try {
-      await instance.post("/articles/removeemail", { email, enteredEmail })
-      toast.success("Unsubscibed successfully.")
-      setEnteredEmail("")
-      setIsEnteredEmail(false)
+      await instance.post("/articles/removeemail", { email, enteredEmail });
+      toast.success("Unsubscribed successfully.");
+      setEnteredEmail("");
+      setIsEnteredEmail(false);
     } catch (err) {
       setWarning("Failed to remove email.");
     } finally {
@@ -235,59 +242,127 @@ const HomePage = () => {
           </div>
         </div>
 
-        <nav className="flex gap-5">
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/home')}
-          >
-            Home
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/courses')}
-          >
-            Courses
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/articles')}
-          >
-            Articles
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/fin-tools')}
-          >
-            FinTools
-          </button>
-
-          {role === "Admin" ? <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/admin')}
-          >Admin DashBoard</button> : ""}
-
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-          >
-            LogOut
-          </button>
-        </nav>
-
-        <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-          <img src="bell.png" alt="Bell Icon" width="24" />
-          {hasUnseen && (
-            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-          )}
+        {/* Desktop Header */}
+        <div className="hidden xl:flex xl:flex-row xl:items-center w-full justify-between">
+          <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
+            <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
+          </div>
+          <nav className="flex flex-wrap justify-center gap-5">
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/home')}
+            >
+              Home
+            </button>
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/courses')}
+            >
+              Courses
+            </button>
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/articles')}
+            >
+              Articles
+            </button>
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/fin-tools')}
+            >
+              FinTools
+            </button>
+            {role === "Admin" && (
+              <button
+                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => navigate('/admin')}
+              >
+                Admin Dashboard
+              </button>
+            )}
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
+              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            >
+              LogOut
+            </button>
+          </nav>
+          <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
+            <img src="bell.png" alt="Bell Icon" width="24" />
+            {hasUnseen && (
+              <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+            )}
+          </div>
         </div>
+
+        {/* Sidebar for mobile and tablet */}
+        <div
+          className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:hidden`}
+        >
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            <h2 className="text-lg font-bold">Menu</h2>
+            <button onClick={toggleSidebar} className="text-2xl">
+              <FiX />
+            </button>
+          </div>
+          <nav className="flex flex-col p-4 gap-2">
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/home'); setIsSidebarOpen(false); }}
+            >
+              Home
+            </button>
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/courses'); setIsSidebarOpen(false); }}
+            >
+              Courses
+            </button>
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/articles'); setIsSidebarOpen(false); }}
+            >
+              Articles
+            </button>
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/fin-tools'); setIsSidebarOpen(false); }}
+            >
+              FinTools
+            </button>
+            {role === "Admin" && (
+              <button
+                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { navigate('/admin'); setIsSidebarOpen(false); }}
+              >
+                Admin Dashboard
+              </button>
+            )}
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left bg-white text-gray-700 hover:bg-gray-200`}
+              onClick={() => {
+                logout({ logoutParams: { returnTo: window.location.origin } });
+                setIsSidebarOpen(false);
+              }}
+            >
+              LogOut
+            </button>
+          </nav>
+        </div>
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={toggleSidebar}
+          ></div>
+        )}
       </header>
 
       {loading && !showLeaderBoard ? (
         <div className="p-4 animate-pulse space-y-6">
-          <div className="flex gap-5 items-start pt-6">
-            <div className="flex-none space-y-6">
-              <div className="bg-gray-300 rounded-2xl w-[460px] h-[170px]" />
-              <div className="bg-gray-300 rounded-2xl w-[460px] h-[110px]" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start pt-6">
+            <div className="space-y-4 w-full">
+              <div className="bg-gray-300 rounded-2xl w-full h-[174px]" />
+              <div className="bg-gray-300 rounded-2xl w-full h-[110px]" />
             </div>
             <div className="w-full h-[300px] bg-gray-300 rounded-2xl" />
             <div className="w-full h-[300px] bg-gray-300 rounded-2xl" />
@@ -325,7 +400,7 @@ const HomePage = () => {
                   </div>
                   <h3 className="mt-1 text-base sm:text-lg font-semibold text-white text-center">{user?.name}</h3>
                 </div>
-                <div className="flex justify-center gap-10">
+                <div className="flex justify-center gap-4 sm:gap-10">
                   <div title="FinStars are earned by completing tasks like reading articles, completing modules, and logging expenses." className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
                     <img src="star.png" alt="fin-stars" className="w-5 h-5" />
                     <p>{userData?.fin_stars}</p>
@@ -334,21 +409,31 @@ const HomePage = () => {
                     <img src="flame.png" alt="streak" className="w-6 h-5" />
                     <p>{userData?.streak_count}</p>
                   </div>
-                  <div title={`🏅 Your Rank: You're currently ranked #${userData?.rank || 'N/A'} based on your FinStars.`} onClick={() => setShowLeaderBoard(true)} className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900 cursor-pointer">
+                  <div
+                    title={`🏅 Your Rank: You're currently ranked #${userData?.rank || 'N/A'} based on your FinStars.`}
+                    onClick={() => setShowLeaderBoard(true)}
+                    className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900 cursor-pointer"
+                  >
                     <img src="badge.png" alt="leaderboard" className="w-5 h-5" />
                     <p>{userData?.rank}</p>
                   </div>
                 </div>
               </section>
 
-
-              <section className="flex items-center bg-white rounded-2xl p-2 gap-6 border border-gray-300">
-                <img src={ongoingCourse?.thumbnail_url || recommendedCourses[5]?.thumbnail_url} alt="Course" className="w-[140px] h-[90px] object-cover rounded-xl flex-shrink-0" />
-                <div className="flex flex-col justify-between h-full w-full">
-                  <h3 className="text-md font-semibold">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
-                  <button onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[5]?.id}`)} className="bg-[#fbbf24] border-none px-4 py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-between shadow-md transition-colors hover:bg-[#c09e2b]">
-                    <p>{ongoingCourse?.title ? "Continue Learning" : "Start Learning"}</p>
-                    <span className="text-2xl">→</span>
+              <section className="flex items-center bg-white rounded-2xl p-2 gap-4 border border-gray-300 mt-4">
+                <img
+                  src={ongoingCourse?.thumbnail_url || recommendedCourses[5]?.thumbnail_url}
+                  alt="Course"
+                  className="w-[120px] sm:w-[140px] h-[80px] sm:h-[94px] object-cover rounded-xl flex-shrink-0"
+                />
+                <div className="flex flex-col justify-center items-center flex-grow gap-1 sm:gap-2">
+                  <h3 className="text-sm sm:text-base font-semibold line-clamp-2">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
+                  <button
+                    onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[5]?.id}`)}
+                    className="bg-[#fbbf24] border-none px-4 py-2 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-center shadow-md transition-colors hover:bg-[#c09e2b] text-sm sm:text-base w-full max-w-[180px]"
+                  >
+                    <span className="flex-1 truncate">{ongoingCourse?.title ? "Continue.." : "Start.."}</span>
+                    <span className="text-md sm:text-2xl">→</span>
                   </button>
                 </div>
               </section>
@@ -368,7 +453,7 @@ const HomePage = () => {
                   alt="Featured"
                   className="w-full max-w-[360px] h-48 sm:h-56 object-cover rounded-2xl"
                 />
-                <p className="text-base sm:text-lg font-semibold leading-tight">{featuredArticle?.title}</p>
+                <p className="text-base sm:text-md font-semibold leading-tight">{featuredArticle?.title}</p>
               </div>
             </section>
 
@@ -389,6 +474,40 @@ const HomePage = () => {
                 Keep Going!
               </p>
             </section>
+
+            {/* Tasks Section for the tabs!! */}
+            <section className="bg-white rounded-2xl px-3 md:p-4 text-center flex flex-col justify-between w-full h-auto min-h-[390px] border border-gray-300 col-span-1 md:col-span-1 xl:col-span-1 hidden md:flex xl:hidden">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="m-2 mt-3 ml-3 text-base sm:text-lg font-bold">Tasks</h3>
+                <IoIosInformationCircleOutline className="text-xl sm:text-2xl" />
+              </div>
+              <div className="flex-grow flex flex-col justify-around">
+                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
+                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.login} readOnly />
+                  <span className={tasks?.login ? "line-through text-gray-500" : ""}>
+                    Log in to your FinEd account
+                  </span>
+                </label>
+                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
+                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.module} readOnly />
+                  <span className={tasks?.module ? "line-through text-gray-500" : ""}>
+                    Complete any module today
+                  </span>
+                </label>
+                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
+                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.article} readOnly />
+                  <span className={tasks?.article ? "line-through text-gray-500" : ""}>
+                    Read any article today
+                  </span>
+                </label>
+                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
+                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.transaction} readOnly />
+                  <span className={tasks?.transaction ? "line-through text-gray-500" : ""}>
+                    Add and save today’s transaction details
+                  </span>
+                </label>
+              </div>
+            </section>
           </main>
 
           <div className="flex flex-col xl:flex-row gap-5 pb-8 items-start bg-gray-100">
@@ -397,18 +516,14 @@ const HomePage = () => {
                 <h2 className="text-2xl sm:text-3xl font-semibold">Recommended Courses</h2>
                 <div className="flex gap-3 md:gap-4">
                   <button
-                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 cursor-pointer 
-              ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
+                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                     onClick={() => scrollLeft(carouselRef1)}
                     disabled={!canScrollLeft1}
                   >
                     ❮
                   </button>
                   <button
-                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
-              transition-all duration-200 cursor-pointer 
-              ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
+                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                     onClick={() => scrollRight(carouselRef1)}
                     disabled={!canScrollRight1}
                   >
@@ -416,8 +531,11 @@ const HomePage = () => {
                   </button>
                 </div>
               </div>
-
-              <div ref={carouselRef1} style={{ scrollbarWidth: 'none' }} className="carousel-track bg-white rounded-2xl flex overflow-x-auto overflow-hidden w-[60vw] border border-gray-300">
+              <div
+                ref={carouselRef1}
+                style={{ scrollbarWidth: 'none' }}
+                className="carousel-track bg-white rounded-2xl flex overflow-x-auto max-w-[310px] sm:max-w-[620px] md:max-w-[930px] xl:max-w-[927px] mx-auto border border-gray-300 snap-x snap-mandatory gap-4 sm:gap-3 px-4 sm:px-0"
+              >
                 {recommendedCourses.length > 0 && recommendedCourses.map((course, index) => (
                   <div
                     onClick={() => navigate(`/courses/course/${course.id}`)}
@@ -440,49 +558,47 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl px-5 py-2 text-center flex flex-col justify-between w-full h-[435px] border border-gray-300">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="m-0 text-lg font-bold">Tasks</h3>
-                <IoIosInformationCircleOutline className='text-2xl' />
-              </div>
-              <div className="flex-grow flex flex-col justify-around">
-                <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.login} readOnly />
-                  <span className={tasks?.login ? "line-through text-gray-500" : ""}>
-                    Log in to your FinEd account
-                  </span>
-                </label>
-
-                <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.module} readOnly />
-                  <span className={tasks?.module ? "line-through text-gray-500" : ""}>
-                    Complete any module today
-                  </span>
-                </label>
-
-                <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.article} readOnly />
-                  <span className={tasks?.article ? "line-through text-gray-500" : ""}>
-                    Read any article today
-                  </span>
-                </label>
-
-                <label className="flex items-center px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.transaction} readOnly />
-                  <span className={tasks?.transaction ? "line-through text-gray-500" : ""}>
-                    Add and save today’s transaction details
-                  </span>
-                </label>
-              </div>
-
+            {/* Tasks Section for the Mobiles and Laptops */}
+            <div className="w-full xl:w-1/3">
+              <section className="bg-white rounded-2xl px-2 md:px-3 text-center flex flex-col justify-between w-full h-auto min-h-[300px] border border-gray-300 mt-4 xl:mt-0 block md:hidden xl:block">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="m-2 ml-3 mt-3 text-base sm:text-lg font-bold">Tasks</h3>
+                  <IoIosInformationCircleOutline className="text-xl sm:text-2xl" />
+                </div>
+                <div className="flex-grow flex gap-2 flex-col justify-around">
+                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
+                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.login} readOnly />
+                    <span className={tasks?.login ? "line-through text-gray-500" : ""}>
+                      Log in to your FinEd account
+                    </span>
+                  </label>
+                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
+                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.module} readOnly />
+                    <span className={tasks?.module ? "line-through text-gray-500" : ""}>
+                      Complete any module today
+                    </span>
+                  </label>
+                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
+                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.article} readOnly />
+                    <span className={tasks?.article ? "line-through text-gray-500" : ""}>
+                      Read any article today
+                    </span>
+                  </label>
+                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
+                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.transaction} readOnly />
+                    <span className={tasks?.transaction ? "line-through text-gray-500" : ""}>
+                      Add and save today’s transaction details
+                    </span>
+                  </label>
+                </div>
+              </section>
             </div>
           </div>
         </div>
       )}
 
-      <footer className="bg-[#f7fafc] -mx-10 p-10 flex flex-wrap justify-between text-[#333] font-sans">
-
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
+      <footer className="bg-[#f7fafc] -mx-4 sm:-mx-6 xl:-mx-10 p-6 sm:p-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans">
+        <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] flex flex-col items-center sm:items-start">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
           <p className="text-sm sm:text-base text-gray-700 mb-4 text-center sm:text-left">Financial Education made Easy.</p>
           <div className="flex gap-4">
@@ -490,24 +606,24 @@ const HomePage = () => {
             <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
           </div>
         </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
-          <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
-          <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to="/fin-tools" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
-          <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
+        <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] font-semibold text-center sm:text-left">
+          <h4 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
+          <Link to="/courses" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
+          <Link to="/articles" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
+          <Link to="/fin-tools" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
+          <Link to="/about" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
         </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
-          <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
-          <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
+        <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] font-semibold text-center sm:text-left">
+          <h4 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
+          <Link to="/help" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
+          <Link to="/contact" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
+          <Link to="/feedback" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
         </div>
-        <div className="newsletter m-5">
-          <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
-          {isEnteredEmail ?
+        <div className="newsletter my-5 sm:m-5 w-full sm:w-auto">
+          <h4 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
+          {isEnteredEmail ? (
             <div>
-              <p className="py-3 pl-3 pr-28 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" >{enteredEmail}</p>
+              <p className="py-3 pl-3 pr-10 sm:pr-28 w-full mb-3 border border-gray-200 rounded-md text-xs sm:text-sm box-border">{enteredEmail}</p>
               {isSaved ?
                 <div className="flex items-center justify-center gap-2 text-[#fbbf24] font-semibold">
                   <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -524,7 +640,13 @@ const HomePage = () => {
             </div>
           ) : (
             <div>
-              <input value={enteredEmail} onChange={(e) => setEnteredEmail(e.target.value.trim())} type="email" placeholder="Enter your email address" className="p-3 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" />
+              <input
+                value={enteredEmail}
+                onChange={(e) => setEnteredEmail(e.target.value.trim())}
+                type="email"
+                placeholder="Enter your email address"
+                className="p-3 w-full mb-3 border border-gray-200 rounded-md text-xs sm:text-sm box-border"
+              />
               {isSaved ?
                 <button className="flex items-center justify-center gap-2 p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
                   <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -728,7 +850,6 @@ const HomePage = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
