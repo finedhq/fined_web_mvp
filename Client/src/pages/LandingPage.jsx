@@ -58,7 +58,7 @@ export default function LandingPage() {
     const el = ref.current;
     if (el) {
       const cardWidth = el.querySelector('.card-content')?.offsetWidth || 260;
-      el.scrollBy({ left: -(cardWidth + 24), behavior: 'smooth' }); // Include gap
+      el.scrollBy({ left: -(cardWidth + 24), behavior: 'smooth' });
     }
   };
 
@@ -66,7 +66,7 @@ export default function LandingPage() {
     const el = ref.current;
     if (el) {
       const cardWidth = el.querySelector('.card-content')?.offsetWidth || 260;
-      el.scrollBy({ left: cardWidth + 24, behavior: 'smooth' }); // Include gap
+      el.scrollBy({ left: cardWidth + 24, behavior: 'smooth' });
     }
   };
 
