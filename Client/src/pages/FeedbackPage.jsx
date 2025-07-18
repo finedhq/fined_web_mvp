@@ -12,14 +12,14 @@ export default function FeedbackPage() {
     const [form, setForm] = useState({
         name: "",
         email: "",
-        q1_helpfulness: 5,
+        q1_helpfulness: 0,
         q2_difficulty: "",
-        q3_navigation: 5,
+        q3_navigation: 0,
         q4_design: "",
         q5_confusing: "",
         q5_details: "",
         q6_favFeature: "",
-        q7_returnLikelihood: 5,
+        q7_returnLikelihood: 0,
         additionalFeedback: ""
     })
     const [submitting, setSubmitting] = useState(false)
@@ -49,22 +49,26 @@ export default function FeedbackPage() {
             }
         }
 
+        if (form.q1_helpfulness < 1 || form.q3_navigation < 1 || form.q7_returnLikelihood < 1) {
+            return toast.error("Please rate all star-based questions (Q1, Q3, Q7).")
+        }
+
         setSubmitting(true)
         try {
-            const res = await instance.post("/home/feedback", { form } )
+            const res = await instance.post("/home/feedback", { form })
             if (res.status === 200) {
                 toast.success("Thank you for your feedback!")
                 setForm({
                     name: user?.name || "",
                     email: user?.email || "",
-                    q1_helpfulness: 5,
+                    q1_helpfulness: 0,
                     q2_difficulty: "",
-                    q3_navigation: 5,
+                    q3_navigation: 0,
                     q4_design: "",
                     q5_confusing: "",
                     q5_details: "",
                     q6_favFeature: "",
-                    q7_returnLikelihood: 5,
+                    q7_returnLikelihood: 0,
                     additionalFeedback: ""
                 })
             }

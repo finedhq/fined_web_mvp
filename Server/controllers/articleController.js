@@ -85,7 +85,7 @@ export const updateTask = async (req, res) => {
   try {
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .select("article_streak_count, article_score, last_article_read_date, consistency_score, expense_score, course_score")
+      .select("article_streak_count, article_score, last_article_read_date, article_count_today, consistency_score, expense_score, course_score")
       .eq("email", email)
       .single();
 
@@ -95,6 +95,7 @@ export const updateTask = async (req, res) => {
       article_streak_count: currentStreak = 0,
       last_article_read_date: lastReadDateRaw,
       article_score: articleScore = 0,
+      article_count_today = 0,
       consistency_score = 0,
       expense_score = 0,
       course_score = 0
@@ -103,34 +104,21 @@ export const updateTask = async (req, res) => {
     const lastReadDate = lastReadDateRaw?.split("T")[0] || null;
     const oldTotalScore = articleScore + consistency_score + expense_score + course_score;
 
-    const { data: existing, error: taskError } = await supabase
-      .from("user_tasks")
-      .select("article, article_count")
-      .eq("email", email)
-      .eq("date", today)
-      .maybeSingle();
-
-    if (taskError) throw taskError;
-
-    const articleCount = existing?.article_count || 0;
-    if (articleCount >= 3) {
+    // If already read 3 articles today
+    if (lastReadDate === today && article_count_today >= 3) {
       return res.json({ updated: false, message: "Daily article limit (3) reached." });
     }
 
     let bonus = 0;
     let penalty = 0;
     let newStreak = currentStreak;
-    let shouldUpdateStreak = false;
     let todayScore = 2;
+    let newCountToday = lastReadDate === today ? article_count_today + 1 : 1;
 
-    // --- Streak Handling ---
-    if (!existing?.article) {
-      shouldUpdateStreak = true;
-
+    if (lastReadDate !== today) {
+      // New day logic
       if (lastReadDate === yesterday) {
         newStreak++;
-      } else if (lastReadDate === today) {
-        newStreak = currentStreak;
       } else {
         if (currentStreak > 3) penalty = -5;
         newStreak = 1;
@@ -143,46 +131,29 @@ export const updateTask = async (req, res) => {
     const cappedTotal = Math.min(articleScore + todayScore, 150);
     const actualScoreToAdd = cappedTotal - articleScore;
 
-    // --- Upsert task ---
-    const { error: taskUpdateError } = await supabase
-      .from("user_tasks")
-      .upsert(
-        {
-          email,
-          date: today,
-          article: true,
-          article_count: articleCount + 1
-        },
-        { onConflict: ["email", "date"] }
-      );
+    const updates = {
+      article_score: cappedTotal,
+      last_article_read_date: today,
+      article_count_today: newCountToday,
+    };
 
-    if (taskUpdateError) throw taskUpdateError;
-
-    // --- Update score/streak ---
-    const updates = {};
-    if (shouldUpdateStreak || lastReadDate !== today) {
+    if (lastReadDate !== today) {
       updates.article_streak_count = newStreak;
-      updates.last_article_read_date = today;
-      updates.article_score = cappedTotal;
-    } else if (actualScoreToAdd > 0) {
-      updates.article_score = cappedTotal;
     }
 
-    if (Object.keys(updates).length > 0) {
-      const { error: updateError } = await supabase
-        .from("users")
-        .update(updates)
-        .eq("email", email);
-      if (updateError) throw updateError;
-    }
+    const { error: updateError } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("email", email);
 
-    // --- Log FinScore change ---
+    if (updateError) throw updateError;
+
     const newTotalScore = cappedTotal + consistency_score + expense_score + course_score;
     const delta = newTotalScore - oldTotalScore;
 
     if (delta !== 0) {
       const parts = [
-        `✅ Read article (${articleCount + 1}/3 today)`,
+        `✅ Read article (${newCountToday}/3 today)`,
         bonus > 0 ? `🎉 Bonus: +${bonus} for 3-day streak` : "",
         penalty < 0 ? `⚠️ Penalty: ${penalty} for breaking streak` : ""
       ];
@@ -203,7 +174,7 @@ export const updateTask = async (req, res) => {
 
     res.json({
       updated: true,
-      articleCount: articleCount + 1,
+      articleCount: newCountToday,
       pointsEarned: actualScoreToAdd,
       streak: newStreak,
       bonus,

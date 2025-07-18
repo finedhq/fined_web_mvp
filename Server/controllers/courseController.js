@@ -96,54 +96,56 @@ export const getACourse = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const { data: courseData, error: courseError } = await supabase
-      .from("courses")
-      .select("title")
-      .eq("id", course_id)
-      .single();
+    // Fetch course, modules, cards, and progress in parallel
+    const [courseRes, moduleRes, cardRes, progressRes] = await Promise.all([
+      supabase.from("courses").select("title").eq("id", course_id).single(),
+      supabase.from("modules").select("id, title").eq("course_id", course_id),
+      supabase
+        .from("cards")
+        .select("card_id, module_id, title, content_text, content_type, order_index, image_url"),
+      supabase
+        .from("userCourses")
+        .select("card_id, status")
+        .eq("email", email)
+        .eq("progress_type", "card")
+    ]);
 
-    if (courseError) throw courseError;
+    // Check for errors
+    if (courseRes.error) throw courseRes.error;
+    if (moduleRes.error) throw moduleRes.error;
+    if (cardRes.error) throw cardRes.error;
+    if (progressRes.error) throw progressRes.error;
 
-    const { data: modules, error: moduleError } = await supabase
-      .from("modules")
-      .select("*")
-      .eq("course_id", course_id);
+    const modules = moduleRes.data;
+    const moduleIds = new Set(modules.map(m => m.id));
+    const cards = cardRes.data.filter(card => moduleIds.has(card.module_id));
 
-    if (moduleError) throw moduleError;
+    // Create card progress map for O(1) access
+    const progressMap = Object.fromEntries(
+      progressRes.data.map(item => [item.card_id, item.status])
+    );
 
-    const moduleIds = modules.map(m => m.id);
-
-    const { data: cards, error: cardError } = await supabase
-      .from("cards")
-      .select("card_id, module_id, title, content_text, content_type, order_index, image_url")
-      .in("module_id", moduleIds)
-      .order("order_index");
-
-    if (cardError) throw cardError;
-    const { data: progressData, error: progressError } = await supabase
-      .from("userCourses")
-      .select("card_id, status")
-      .eq("email", email)
-      .eq("progress_type", "card");
-
-    if (progressError) throw progressError;
-    const progressMap = {}
-    for (const item of progressData) {
-      progressMap[item.card_id] = item.status;
+    // Group cards by module
+    const cardsByModule = {};
+    for (const card of cards) {
+      if (!cardsByModule[card.module_id]) {
+        cardsByModule[card.module_id] = [];
+      }
+      cardsByModule[card.module_id].push({
+        ...card,
+        status: progressMap[card.card_id] || "incompleted"
+      });
     }
 
+    // Combine modules and their cards
     const data = modules.map(module => ({
       moduleTitle: module.title,
       moduleId: module.id,
-      cards: cards
-        .filter(card => card.module_id === module.id)
-        .map(card => ({
-          ...card,
-          status: progressMap[card.card_id] || "incompleted"
-        }))
+      cards: (cardsByModule[module.id] || []).sort((a, b) => a.order_index - b.order_index)
     }));
 
-    res.json({ title: courseData.title, data });
+    res.json({ title: courseRes.data.title, data });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: `Error fetching course: ${err.message}` });
@@ -155,49 +157,42 @@ export const getACard = async (req, res) => {
     const { course_id, module_id, card_id } = req.params;
     const { email } = req.body;
 
-    const { data: allCards, error: allCardsError } = await supabase
-      .from("cards")
-      .select("*")
-      .eq("module_id", module_id)
-      .order("order_index");
+    // Fetch cards and user progress in parallel
+    const [cardsResult, progressResult, updateUserResult] = await Promise.all([
+      supabase.from("cards").select("*").eq("module_id", module_id).order("order_index"),
+      supabase.from("userCourses").select("status, user_answer").match({
+        email,
+        module_id,
+        card_id,
+        progress_type: "card"
+      }).single(),
+      supabase.from("users").update({
+        ongoing_module_id: module_id,
+        ongoing_course_id: course_id
+      }).eq("email", email)
+    ]);
 
+    if (cardsResult.error) throw cardsResult.error;
+    if (updateUserResult.error) throw updateUserResult.error;
+
+    const allCards = cardsResult.data;
     const currentIndex = allCards.findIndex((card) => card.card_id === card_id);
     if (currentIndex === -1) throw new Error("Card not found");
 
     const currentCard = allCards[currentIndex];
-
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ ongoing_module_id: module_id, ongoing_course_id: course_id })
-      .eq("email", email);
-
-    if (updateError) throw updateError;
-
-    const { data: userProgress } = await supabase
-      .from("userCourses")
-      .select("status, user_answer")
-      .match({
-        email,
-        module_id,
-        card_id,
-        progress_type: "card",
-      })
-      .single();
-
-    const prevCardId = currentIndex > 0 ? allCards[currentIndex - 1].card_id : null;
-    const nextCardId = currentIndex < allCards.length - 1 ? allCards[currentIndex + 1].card_id : null;
+    const userProgress = progressResult.data;
 
     res.json({
       ...currentCard,
       status: userProgress?.status || "incompleted",
       userAnswer: userProgress?.user_answer || null,
-      prevCardId,
-      nextCardId,
+      prevCardId: currentIndex > 0 ? allCards[currentIndex - 1].card_id : null,
+      nextCardId: currentIndex < allCards.length - 1 ? allCards[currentIndex + 1].card_id : null,
       module_total_cards: allCards.length,
       module_progress: currentCard.order_index + 1
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(500).json({ error: `Failed to fetch card: ${err.message}` });
   }
 };
@@ -284,7 +279,6 @@ export const updateACard = async (req, res) => {
 
     // ✅ Module completion bonus
     if (module_progress === module_total_cards && user.course_count < 5) {
-      await supabase.from("user_tasks").upsert({ email, date: today, module: true }, { onConflict: ["email", "date"] });
 
       const oldScore = user.course_score + user.consistency_score + user.article_score + user.expense_score;
       const newCourseScore = Math.min(user.course_score + 20, 500);
@@ -386,7 +380,6 @@ export const updateACard = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("updateACard error:", err);
     res.status(500).json({ error: `Failed to update progress or FinStars: ${err.message}` });
   }
 };

@@ -19,7 +19,7 @@ const HomePage = () => {
   const [featuredArticle, setFeaturedArticle] = useState({})
   const [recommendedCourses, setRecommendedCourses] = useState([])
   const [ongoingCourse, setOngoingCourse] = useState({})
-  const [tasks, setTasks] = useState({})
+  const [recommendedSchemes, setRecommendedSchemes] = useState([])
   const [hasUnseen, setHasUnseen] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
   const carouselRef1 = useRef(null)
@@ -90,7 +90,6 @@ const HomePage = () => {
         setFeaturedArticle(res.data.featuredArticle);
         setRecommendedCourses(res.data.recommendedCourses);
         setOngoingCourse(res.data.ongoingCourseData);
-        setTasks(res.data.tasks);
         setFinScoreLog(res.data.logData);
         setTimeout(() => {
           setShowFeedback(res.data.showFeedback)
@@ -136,7 +135,7 @@ const HomePage = () => {
   const fetchRecommendations = async () => {
     try {
       const res = await instance.post("/home/recommendations", { email, course_id: "e756d478-e7f6-4e8d-b0f7-d05afee13a39" });
-      console.log(res.data)
+      setRecommendedSchemes(res.data.recommendations);
     } catch (err) {
       toast.error("Failed to load recommended schemes.", err);
       setShowLeaderBoard(false);
@@ -446,9 +445,9 @@ const HomePage = () => {
                   <h3 className="text-sm sm:text-base font-semibold line-clamp-2">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
                   <button
                     onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[5]?.id}`)}
-                    className="bg-[#fbbf24] border-none px-4 py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-center shadow-md transition-colors hover:bg-[#c09e2b] text-sm sm:text-base w-full max-w-[180px]"
+                    className="bg-[#fbbf24] border-none p-1 sm:px-4 sm:py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-center gap-6 shadow-md transition-colors hover:bg-[#c09e2b] text-sm sm:text-base w-full"
                   >
-                    <span className="flex-1 truncate">{ongoingCourse?.title ? "Continue.." : "Start.."}</span>
+                    <span>{ongoingCourse?.title ? "Continue Learning" : "Start Learning"}</span>
                     <span className="text-md sm:text-2xl">→</span>
                   </button>
                 </div>
@@ -491,39 +490,6 @@ const HomePage = () => {
               </p>
             </section>
 
-            {/* Tasks Section for the tabs!! */}
-            <section className="bg-white rounded-2xl px-3 md:p-4 text-center flex flex-col justify-between w-full h-auto min-h-[390px] border border-gray-300 col-span-1 md:col-span-1 xl:col-span-1 hidden md:flex xl:hidden">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="m-2 mt-3 ml-3 text-base sm:text-lg font-bold">Tasks</h3>
-                <IoIosInformationCircleOutline className="text-xl sm:text-2xl" />
-              </div>
-              <div className="flex-grow flex flex-col justify-around">
-                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.login} readOnly />
-                  <span className={tasks?.login ? "line-through text-gray-500" : ""}>
-                    Log in to your FinEd account
-                  </span>
-                </label>
-                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.module} readOnly />
-                  <span className={tasks?.module ? "line-through text-gray-500" : ""}>
-                    Complete any module today
-                  </span>
-                </label>
-                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.article} readOnly />
-                  <span className={tasks?.article ? "line-through text-gray-500" : ""}>
-                    Read any article today
-                  </span>
-                </label>
-                <label className="flex items-center px-4 sm:px-6 py-3 border-2 border-gray-300 rounded-full mb-3 text-sm sm:text-lg gap-4 cursor-pointer">
-                  <input type="checkbox" className="h-5 w-5 cursor-pointer" checked={tasks?.transaction} readOnly />
-                  <span className={tasks?.transaction ? "line-through text-gray-500" : ""}>
-                    Add and save today’s transaction details
-                  </span>
-                </label>
-              </div>
-            </section>
           </main>
 
           <div className="flex flex-col xl:flex-row gap-5 pb-8 items-start bg-gray-100">
@@ -573,39 +539,20 @@ const HomePage = () => {
                 ))}
               </div>
             </div>
-
-            {/* Tasks Section for the Mobiles and Laptops */}
             <div className="w-full xl:w-1/3">
-              <section className="bg-white rounded-2xl px-2 md:px-3 text-center flex flex-col justify-between w-full h-auto min-h-[300px] border border-gray-300 mt-4 xl:mt-0 block md:hidden xl:block">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="m-2 ml-3 mt-3 text-base sm:text-lg font-bold">Tasks</h3>
+              <section className="bg-white rounded-2xl px-2 md:px-3 text-center flex flex-col justify-between w-full h-auto min-h-[300px] sm:h-[440px] border border-gray-300 mt-4 xl:mt-0 md:hidden xl:block">
+                <div className="flex justify-between items-center mb-2 sm:mb-5">
+                  <h3 className="m-2 ml-3 mt-3 text-base sm:text-lg font-bold">Recommended Schemes</h3>
                   <IoIosInformationCircleOutline className="text-xl sm:text-2xl" />
                 </div>
-                <div className="flex-grow flex gap-2 flex-col justify-around">
-                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
-                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.login} readOnly />
-                    <span className={tasks?.login ? "line-through text-gray-500" : ""}>
-                      Log in to your FinEd account
-                    </span>
-                  </label>
-                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
-                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.module} readOnly />
-                    <span className={tasks?.module ? "line-through text-gray-500" : ""}>
-                      Complete any module today
-                    </span>
-                  </label>
-                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
-                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.article} readOnly />
-                    <span className={tasks?.article ? "line-through text-gray-500" : ""}>
-                      Read any article today
-                    </span>
-                  </label>
-                  <label className="flex items-center px-2 sm:px-4 py-2 border-2 border-gray-300 rounded-full mb-2 text-sm sm:text-base gap-3 cursor-pointer">
-                    <input type="checkbox" className="h-4 w-4 cursor-pointer" checked={tasks?.transaction} readOnly />
-                    <span className={tasks?.transaction ? "line-through text-gray-500" : ""}>
-                      Add and save today’s transaction details
-                    </span>
-                  </label>
+                <div className='space-y-3 max-h-[340px] overflow-y-auto px-3' >
+                  {recommendedSchemes?.length > 0 && recommendedSchemes?.map((scheme, index) =>
+                    <div key={index} className='max-h-40 truncate text-start' >
+                      <p>Scheme Name: {scheme.scheme_name}</p>
+                      <p>Eligibility: {scheme.eligibility.slice(0, 40)}...</p>
+                      <p>Description: {scheme.description.slice(0, 40)}...</p>
+                    </div>
+                  )}
                 </div>
               </section>
             </div>
@@ -751,7 +698,7 @@ const HomePage = () => {
                   </div>
                 </div>
               ) : (
-                <div className="overflow-y-auto max-h-[400px] divide-y divide-gray-200">
+                <div className="divide-y divide-gray-200">
                   {(() => {
                     const leaderboardWithRanks = [];
                     let rank = 1;
@@ -770,32 +717,34 @@ const HomePage = () => {
                       leaderboardWithRanks.push({ ...current, rank });
                     }
                     return (
-                      <>
-                        {leaderboardWithRanks.map((entry, index) => {
-                          const isCurrentUser = user?.email === entry.email;
-                          const name = entry.email?.split("@")[0] || "User";
-                          const rankEmoji =
-                            entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : `#${entry.rank}`;
-                          return (
-                            <div
-                              key={entry.user_sub || index}
-                              className={`flex justify-between items-center px-4 py-3 text-base sm:text-lg transition-all duration-200 ${isCurrentUser ? "bg-yellow-100 font-semibold rounded-md" : ""}`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <span className="text-lg sm:text-xl">{rankEmoji}</span>
-                                <span>{name}</span>
+                      <div>
+                        <div className='overflow-y-auto max-h-[400px]' >
+                          {leaderboardWithRanks.map((entry, index) => {
+                            const isCurrentUser = user?.email === entry.email;
+                            const name = entry.email?.split("@")[0] || "User";
+                            const rankEmoji =
+                              entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : `#${entry.rank}`;
+                            return (
+                              <div
+                                key={entry.user_sub || index}
+                                className={`flex justify-between items-center px-4 py-3 text-base sm:text-lg transition-all duration-200 ${isCurrentUser ? "bg-yellow-100 font-semibold rounded-md" : ""}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-lg sm:text-xl">{rankEmoji}</span>
+                                  <span>{name}</span>
+                                </div>
+                                <span className="font-bold text-indigo-600">
+                                  {entry.fin_stars} ⭐
+                                </span>
                               </div>
-                              <span className="font-bold text-indigo-600">
-                                {entry.fin_stars} ⭐
-                              </span>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                         <div className="flex justify-between items-center px-4 sm:px-12 pt-5 text-base sm:text-lg font-semibold">
                           <p>Your rank: {leaderboardWithRanks.find((entry) => entry.email === user?.email)?.rank ?? "N/A"}</p>
                           <p>Your finstars: {userData?.fin_stars}</p>
                         </div>
-                      </>
+                      </div>
                     );
                   })()}
                 </div>
@@ -808,7 +757,7 @@ const HomePage = () => {
       {
         showFinScoreLog && (
           <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
-            <div className="bg-white px-4 sm:px-6 py-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] max-h-[80vh] overflow-y-auto space-y-4">
+            <div className="bg-white px-4 sm:px-6 py-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] space-y-4">
               <div className="flex justify-between">
                 <p className="text-lg sm:text-xl font-bold text-indigo-700">🕓 FinScore History</p>
                 <button
@@ -819,7 +768,7 @@ const HomePage = () => {
                 </button>
               </div>
               {isFetchingLog ? (
-                <ul className="space-y-4">
+                <ul className="space-y-4 max-h-[80vh] overflow-y-auto">
                   {[...Array(4)].map((_, i) => (
                     <li key={i} className="bg-gray-100 p-3 rounded-lg animate-pulse space-y-2">
                       <div className="h-4 bg-gray-300 rounded w-3/4"></div>
@@ -831,7 +780,7 @@ const HomePage = () => {
                   ))}
                 </ul>
               ) : finScoreLog && finScoreLog.length > 0 ? (
-                <ul className="space-y-3">
+                <ul className="space-y-3 max-h-[60vh] overflow-y-auto p-2">
                   {finScoreLog.map((log, index) => (
                     <li key={index} className="bg-gray-100 p-3 rounded-lg">
                       <p className="text-xs sm:text-sm text-gray-800">{log.description}</p>

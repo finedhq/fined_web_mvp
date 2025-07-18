@@ -8,7 +8,7 @@ export default function CoursesHomePage() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    const { user, isLoading, isAuthenticated, logout } = useAuth0()
+    const { user, isLoading, isAuthenticated, logout, loginWithRedirect } = useAuth0()
     const [role, setrole] = useState("")
 
     const [email, setEmail] = useState("")
@@ -27,6 +27,7 @@ export default function CoursesHomePage() {
     const [enteredEmail, setEnteredEmail] = useState("")
     const [isEnteredEmail, setIsEnteredEmail] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
     useEffect(() => {
         if (!isLoading && isAuthenticated) {
@@ -173,72 +174,109 @@ export default function CoursesHomePage() {
         }
     }
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') setIsSidebarOpen(false);
+        };
+        if (isSidebarOpen) {
+            window.addEventListener('keydown', handleKeyDown);
+            return () => window.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [isSidebarOpen]);
+
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     return (
-        <div className="bg-gray-100 min-h-screen flex flex-col px-10 pt-5">
-            <header className="flex justify-between items-center h-[63px] py-6 bg-gray-100 box-border">
+        <div className="bg-gray-100 min-h-screen flex flex-col">
+            {isAuthenticated ?
+                <header className="flex justify-between items-center h-[63px] px-10 py-12 bg-gray-100 box-border">
 
-                <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
-                    <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
-                </div>
+                    <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
+                        <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
+                    </div>
 
-                <nav className="flex gap-5">
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => {
-                            if (isAuthenticated) navigate('/home')
-                            else toast.error("Please sign in .");
-                        }
-                        }
-                    >
-                        Home
-                    </button>
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/courses')}
-                    >
-                        Courses
-                    </button>
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/articles')}
-                    >
-                        Articles
-                    </button>
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => {
-                            if (isAuthenticated) navigate('/fin-tools')
-                            else toast.error("Please sign in ");
-                        }
-                        }
-                    >
-                        FinTools
-                    </button>
+                    <nav className="flex gap-5">
+                        <button
+                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                            onClick={() => navigate('/home')}
+                        >
+                            Home
+                        </button>
+                        <button
+                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                            onClick={() => navigate('/courses')}
+                        >
+                            Courses
+                        </button>
+                        <button
+                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                            onClick={() => navigate('/articles')}
+                        >
+                            Articles
+                        </button>
+                        <button
+                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                            onClick={() => navigate('/fin-tools')}
+                        >
+                            FinTools
+                        </button>
 
-                    {role === "Admin" ? <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/admin')}
-                    >Admin DashBoard</button> : ""}
+                        {role === "Admin" ? <button
+                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                            onClick={() => navigate('/admin')}
+                        >Admin DashBoard</button> : ""}
 
-                    {isAuthenticated && <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-                        onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                    >
-                        LogOut
-                    </button>}
-                </nav>
+                        {isAuthenticated && <button
+                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
+                            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+                        >
+                            LogOut
+                        </button>}
+                    </nav>
 
-                <div onClick={() => { isAuthenticated ? navigate("/notifications") : toast.error("Please sign in") }} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-                    <img src="bell.png" alt="Bell Icon" width="24" />
-                    {hasUnseen && (
-                        <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-                    )}
-                </div>
-            </header>
-
+                    <div onClick={() => { isAuthenticated ? navigate("/notifications") : toast.error("Please sign in") }} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
+                        <img src="bell.png" alt="Bell Icon" width="24" />
+                        {hasUnseen && (
+                            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+                        )}
+                    </div>
+                </header>
+                :
+                <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-gray-100">
+                    <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
+                        <div className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap">
+                            <img
+                                src="/logo.jpg"
+                                srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
+                                sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
+                                alt="FinEd logo"
+                                loading="lazy"
+                                className="h-12 sm:h-14 w-auto object-contain"
+                            />
+                        </div>
+                        <button
+                            className="sm:hidden text-gray-800 focus:outline-none p-2"
+                            onClick={toggleSidebar}
+                            aria-label="Toggle menu"
+                        >
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <nav role="navigation" aria-label="Main navigation" className="hidden sm:flex flex-wrap items-center justify-center sm:justify-end gap-6 sm:gap-10">
+                        <Link to="/courses" aria-label="View courses" className={`px-6 py-2 rounded-full font-medium transition-colors duration-200 text-base sm:text-lg ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>Courses</Link>
+                        <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Articles</Link>
+                        <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
+                        <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
+                    </nav>
+                </header>
+            }
             {isAuthenticated ?
 
-                <main className="flex-grow py-10">
+                <main className="flex-grow px-10 pt-5">
                     {loading ?
                         <div className="min-h-screen w-full p-10 bg-gray-50 space-y-10 animate-pulse">
                             <div className="flex gap-6 overflow-hidden">
@@ -381,7 +419,7 @@ export default function CoursesHomePage() {
                     }
                 </main>
                 :
-                <div className="w-full mt-5 mb-10">
+                <div className="w-full px-10 py-5">
                     <div className="flex justify-between" >
                         <h2 className="text-xl font-semibold">Recommended Courses</h2>
                         <div className="flex space-x-2 mr-2 mb-2">
@@ -414,7 +452,7 @@ export default function CoursesHomePage() {
                 </div>
             }
 
-            <footer className="bg-[#f7fafc] py-10 -mx-10 px-10 flex flex-wrap justify-between text-[#333] font-sans">
+            <footer className="bg-[#f7fafc] py-10 px-20 flex flex-wrap justify-between text-[#333] font-sans">
 
                 <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
                     <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />

@@ -3,116 +3,61 @@ import { sendNotification } from "../notifications.js";
 
 export const fetchData = async (req, res) => {
     const { email, userId } = req.body;
-
     if (!userId) return res.status(400).json({ error: "User ID is required" });
 
     try {
         const now = new Date();
         const todayStr = now.toISOString().split("T")[0];
-        const yesterdayStr = new Date(now.setDate(now.getDate() - 1)).toISOString().split("T")[0];
-        const currentMonth = new Date().toLocaleString("default", { month: "long" });
-        const year = new Date().getFullYear();
-        const lastDayOfMonth = new Date(year, new Date().getMonth() + 1, 0).toISOString().split("T")[0];
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-        let showFeedback = false;
+        const currentMonth = now.toLocaleString("default", { month: "long" });
+        const year = now.getFullYear();
+        const lastDayOfMonth = new Date(year, now.getMonth() + 1, 0).toISOString().split("T")[0];
 
-        // Get user_tasks
-        const { data: getTasks, error: taskError } = await supabase
-            .from("user_tasks")
-            .select("*")
-            .eq("email", email)
-            .single();
+        const currentWeekStart = new Date(now);
+        currentWeekStart.setDate(now.getDate() - now.getDay());
+        const currentWeekStr = currentWeekStart.toISOString().split("T")[0];
 
-        if (taskError && taskError.code !== "PGRST116") throw taskError;
+        // Parallel fetch: feedback + user
+        const [feedbackRes, userRes] = await Promise.all([
+            supabase.from("user_feedbacks").select("id").eq("email", email).maybeSingle(),
+            supabase.from("users").select("*").eq("user_sub", userId).maybeSingle()
+        ]);
 
-        if (getTasks?.article || getTasks?.module || getTasks?.transaction) {
-            const { data: feedback, error: feedbackError } = await supabase
-                .from("user_feedbacks")
-                .select("id")
-                .eq("email", email)
-                .maybeSingle();
+        if (feedbackRes.error && feedbackRes.error.code !== "PGRST116") throw feedbackRes.error;
 
-            if (!feedback) showFeedback = true;
-            else if (feedbackError && feedbackError.code !== "PGRST116") throw feedbackError;
-        }
+        let showFeedback = !feedbackRes.data && userRes.data;
 
-        // Fetch user
-        let { data: userData, error: userFetchError } = await supabase
-            .from("users")
-            .select("*")
-            .eq("user_sub", userId)
-            .maybeSingle();
-
-        let isNewUser = false;
+        let userData = userRes.data;
         if (!userData) {
-            isNewUser = true;
-            const { data, error } = await supabase
-                .from("users")
-                .insert([{
-                    user_sub: userId,
-                    email,
-                    streak_count: 1,
-                    last_date: todayStr,
-                    fin_stars: 0
-                }])
-                .select()
-                .single();
+            const { data, error } = await supabase.from("users").insert([{
+                user_sub: userId,
+                email,
+                streak_count: 1,
+                last_date: todayStr,
+                fin_stars: 0
+            }]).select().single();
             if (error) throw error;
             userData = data;
-
-            await supabase.from("user_tasks").insert({ email, date: todayStr, login: true });
         }
 
-        // STREAK MANAGEMENT
+        // Streak Management
         let newStreak = userData.streak_count || 1;
         const lastVisit = userData.last_date?.split("T")[0];
 
         if (lastVisit === yesterdayStr) {
             newStreak++;
-            if (newStreak === 3) await sendNotification(email, "🔥 You're on a 3-day streak!");
+            if (newStreak === 3) sendNotification(email, "🔥 You're on a 3-day streak!");
         } else if (lastVisit !== todayStr) {
             newStreak = 1;
-            await sendNotification(email, "⚠️ Streak reset. Try to be more consistent.");
+            sendNotification(email, "⚠️ Streak reset. Try to be more consistent.");
         }
 
-        if (lastVisit !== todayStr) {
-            await Promise.all([
-                supabase.from("users").update({ streak_count: newStreak, last_date: todayStr }).eq("user_sub", userId),
-                supabase.from("user_tasks").delete().eq("email", email).neq("date", todayStr),
-                supabase.from("user_tasks").upsert({ email, date: todayStr, login: true }, { onConflict: ["email", "date"] })
-            ]);
-        }
+        const updateFields = { streak_count: newStreak, last_date: todayStr };
 
-        // DAILY TASKS
-        const { data: userTasksRaw } = await supabase
-            .from("user_tasks")
-            .select("login, module, article, transaction")
-            .eq("email", email)
-            .eq("date", todayStr)
-            .maybeSingle();
-
-        const userTasks = userTasksRaw || {};
-        const allTasksDone = userTasks.login && userTasks.module && userTasks.article && userTasks.transaction;
-
-        if (allTasksDone) {
-            const message = "✅ You completed all your daily tasks today! Keep it up! 💪";
-            const { data: existingNotif } = await supabase
-                .from("notifications")
-                .select("id")
-                .eq("email", email)
-                .eq("content", message)
-                .gte("created_at", todayStr)
-                .maybeSingle();
-
-            if (!existingNotif) await sendNotification(email, message);
-        }
-
-        // WEEKLY STREAK / INACTIVITY SCORING
-        const todayDate = new Date(todayStr);
-        const currentWeekStart = new Date(todayDate);
-        currentWeekStart.setDate(todayDate.getDate() - todayDate.getDay());
-        const currentWeekStr = currentWeekStart.toISOString().split("T")[0];
-
+        // Weekly Logic
         let {
             active_days_this_week = 0,
             week_start_date,
@@ -126,10 +71,8 @@ export const fetchData = async (req, res) => {
             course_score = 0
         } = userData;
 
-        const originalConsistency = consistency_score;
         const oldTotal = article_score + expense_score + consistency_score + course_score;
-        const isActiveToday = userTasks.module || userTasks.article || userTasks.transaction;
-        let reasons = [];
+        const reasons = [];
 
         if (week_start_date !== currentWeekStr) {
             active_days_this_week = 0;
@@ -137,12 +80,11 @@ export const fetchData = async (req, res) => {
             consistency_rewarded_this_week = false;
         }
 
-        if (isActiveToday && last_active_date !== todayStr) {
+        if (last_active_date !== todayStr) {
+            const lastActive = new Date(last_active_date || todayStr);
+            const diff = Math.floor((now - lastActive) / (1000 * 60 * 60 * 24));
             active_days_this_week++;
             last_active_date = todayStr;
-            inactivity_days = 0;
-        } else if (!isActiveToday && last_active_date !== todayStr) {
-            const diff = Math.floor((todayDate - new Date(last_active_date || todayStr)) / (1000 * 60 * 60 * 24));
             inactivity_days += diff;
         }
 
@@ -169,19 +111,11 @@ export const fetchData = async (req, res) => {
         consistency_score = Math.max(0, Math.min(200, consistency_score));
         const newTotal = article_score + expense_score + consistency_score + course_score;
 
-        if (newTotal !== oldTotal) {
-            await supabase.from("finScoreLogs").insert({
-                email,
-                old_score: oldTotal,
-                new_score: newTotal,
-                change: newTotal - oldTotal,
-                description: reasons.join(" | ")
-            });
-        }
-
-        await supabase
+        // Score Log
+        const updateUser = supabase
             .from("users")
             .update({
+                ...updateFields,
                 active_days_this_week,
                 week_start_date,
                 weekly_streak_count,
@@ -192,12 +126,27 @@ export const fetchData = async (req, res) => {
             })
             .eq("user_sub", userId);
 
-        // Rank
-        const { data: allUsers } = await supabase
-            .from("users")
-            .select("user_sub, fin_stars")
-            .order("fin_stars", { ascending: false });
+        const insertLog = newTotal !== oldTotal
+            ? supabase.from("finScoreLogs").insert({
+                email,
+                old_score: oldTotal,
+                new_score: newTotal,
+                change: newTotal - oldTotal,
+                description: reasons.join(" | ")
+            })
+            : null;
 
+        // Parallel: Rank + Content + Ongoing course (if any)
+        const [allUsersRes, articleRes, courseRes, ongoingCourseRes] = await Promise.all([
+            supabase.from("users").select("user_sub, fin_stars").order("fin_stars", { ascending: false }),
+            supabase.from("articles").select("*").order("created_at", { ascending: false }).limit(1).single(),
+            supabase.from("courses").select("*").order("created_at", { ascending: false }).limit(8),
+            userData.ongoing_course_id
+                ? supabase.from("courses").select("*").eq("id", userData.ongoing_course_id).single()
+                : Promise.resolve({ data: null })
+        ]);
+
+        const allUsers = allUsersRes.data || [];
         let rank = 1, userRank = null, lastStars = null;
         for (let i = 0; i < allUsers.length; i++) {
             const currentStars = allUsers[i].fin_stars;
@@ -211,25 +160,8 @@ export const fetchData = async (req, res) => {
             }
         }
 
-        // Fetch content
-        const [articleRes, courseRes] = await Promise.all([
-            supabase.from("articles").select("*").order("created_at", { ascending: false }).limit(1).single(),
-            supabase.from("courses").select("*").order("created_at", { ascending: false }).limit(8)
-        ]);
-
-        if (articleRes.error) throw articleRes.error;
-        if (courseRes.error) throw courseRes.error;
-
-        let ongoingCourseData = null;
-        if (userData.ongoing_course_id) {
-            const { data: courseInfo, error } = await supabase
-                .from("courses")
-                .select("*")
-                .eq("id", userData.ongoing_course_id)
-                .single();
-            if (error) throw error;
-            ongoingCourseData = courseInfo;
-        }
+        // Await pending updates
+        await Promise.all([updateUser, insertLog]);
 
         res.json({
             showFeedback,
@@ -243,13 +175,7 @@ export const fetchData = async (req, res) => {
                 ongoing_module_id: userData.ongoing_module_id,
                 fin_score: newTotal
             },
-            ongoingCourseData,
-            tasks: {
-                login: userTasks.login || false,
-                module: userTasks.module || false,
-                article: userTasks.article || false,
-                transaction: userTasks.transaction || false
-            }
+            ongoingCourseData: ongoingCourseRes.data
         });
 
     } catch (err) {
@@ -368,114 +294,91 @@ export const saveFeedback = async (req, res) => {
     }
 };
 
-const getCombinations = (arr, k) => {
+const getCombinations = (arr, size) => {
     const result = [];
-    const helper = (start, path) => {
-        if (path.length === k) {
-            result.push([...path]);
-            return;
-        }
-        for (let i = start; i < arr.length; i++) {
-            path.push(arr[i]);
-            helper(i + 1, path);
-            path.pop();
-        }
+    const combine = (start, path) => {
+        if (path.length === size) return result.push([...path]);
+        for (let i = start; i < arr.length; i++) combine(i + 1, [...path, arr[i]]);
     };
-    helper(0, []);
+    combine(0, []);
     return result;
 };
+
+const normalizeTag = (tag) =>
+    tag.toLowerCase().replace(/\s*:\s*/g, ":").replace(/\s+/g, "").trim();
 
 export const getRecommendations = async (req, res) => {
     const { email, course_id } = req.body;
 
     try {
-        const { data: userProgress, error: progressError } = await supabase
-            .from("userCourses")
-            .select("answer_tags")
-            .match({
-                email,
-                course_id,
-                progress_type: "card",
-                status: "completed",
-            });
+        // Parallel fetch user progress and schemes
+        const [progressRes, schemesRes] = await Promise.all([
+            supabase
+                .from("userCourses")
+                .select("answer_tags")
+                .match({ email, course_id, progress_type: "card", status: "completed" }),
+            supabase.from("schemes").select("scheme_name, tags, description, type, eligibility")
+        ]);
 
-        if (progressError) throw progressError;
+        if (progressRes.error) throw progressRes.error;
+        if (schemesRes.error) throw schemesRes.error;
 
         const userTagFrequency = new Map();
-        const normalizeTag = (tag) =>
-            tag.toLowerCase().replace(/\s*:\s*/g, ":").replace(/\s+/g, "").trim();
 
-        for (const row of userProgress) {
-            const tags = row.answer_tags;
-
-            const addTag = (tag) => {
-                const norm = normalizeTag(tag);
-                if (norm) {
-                    userTagFrequency.set(norm, (userTagFrequency.get(norm) || 0) + 1);
-                }
-            };
-
+        for (const row of progressRes.data) {
+            let tags = row.answer_tags;
             if (Array.isArray(tags)) {
-                tags.forEach(addTag);
+                tags.forEach(tag => {
+                    const norm = normalizeTag(tag);
+                    if (norm) userTagFrequency.set(norm, (userTagFrequency.get(norm) || 0) + 1);
+                });
             } else if (typeof tags === 'string') {
-                tags.split(";").forEach(addTag);
-            }
-        }
-
-        const sortedUserTags = Array.from(userTagFrequency.entries())
-            .sort((a, b) => b[1] - a[1]);
-
-        const importantUserTags = sortedUserTags.filter(([tag, freq], index) => {
-            return freq >= 2 || index < 8;
-        });
-
-        const { data: schemes, error: schemeError } = await supabase
-            .from("schemes")
-            .select("scheme_name, tags, description, type, eligibility");
-
-        if (schemeError) throw schemeError;
-
-        const parsedSchemes = schemes.map(scheme => {
-            let schemeTags = [];
-
-            if (typeof scheme.tags === "string") {
-                try {
-                    schemeTags = JSON.parse(scheme.tags);
-                } catch {
-                    schemeTags = scheme.tags.split(/[;,]/).map(tag => tag.trim());
-                }
-            } else if (Array.isArray(scheme.tags)) {
-                schemeTags = scheme.tags;
-            }
-
-            const normalizedTags = new Set(
-                schemeTags.map(tag => normalizeTag(tag))
-            );
-
-            return { ...scheme, normalizedTags };
-        });
-
-        const allImportantTags = importantUserTags.map(([tag]) => tag);
-
-        let matchedSchemesSet = new Set();
-
-        for (let size = 5; size >= 1; size--) {
-            const combos = getCombinations(allImportantTags, size);
-            for (const combo of combos) {
-                parsedSchemes.forEach(scheme => {
-                    if (combo.every(tag => scheme.normalizedTags.has(tag))) {
-                        matchedSchemesSet.add(scheme);
-                    }
+                tags.split(";").forEach(tag => {
+                    const norm = normalizeTag(tag);
+                    if (norm) userTagFrequency.set(norm, (userTagFrequency.get(norm) || 0) + 1);
                 });
             }
         }
 
-        let finalSchemes = Array.from(matchedSchemesSet);
+        const sortedUserTags = Array.from(userTagFrequency.entries()).sort((a, b) => b[1] - a[1]);
+        const importantUserTags = sortedUserTags.filter(([tag, freq], index) => freq >= 2 || index < 8);
+        const allImportantTags = importantUserTags.map(([tag]) => tag);
 
-        if (finalSchemes.length === 0) {
-            finalSchemes = parsedSchemes;
+        // Preprocess schemes and normalize tags
+        const parsedSchemes = schemesRes.data.map(scheme => {
+            let rawTags = [];
+            if (Array.isArray(scheme.tags)) rawTags = scheme.tags;
+            else if (typeof scheme.tags === "string") {
+                try {
+                    rawTags = JSON.parse(scheme.tags);
+                } catch {
+                    rawTags = scheme.tags.split(/[;,]/);
+                }
+            }
+
+            const normalizedTags = new Set(rawTags.map(tag => normalizeTag(tag)).filter(Boolean));
+            return { ...scheme, normalizedTags };
+        });
+
+        // Matching phase (fast set-based lookup)
+        const matchedSchemesSet = new Set();
+        for (let size = Math.min(5, allImportantTags.length); size >= 1; size--) {
+            const combos = getCombinations(allImportantTags, size);
+            for (const combo of combos) {
+                for (const scheme of parsedSchemes) {
+                    if (combo.every(tag => scheme.normalizedTags.has(tag))) {
+                        matchedSchemesSet.add(scheme);
+                    }
+                }
+            }
+            if (matchedSchemesSet.size > 0) break; // break early if matches found
         }
 
+        let finalSchemes = matchedSchemesSet.size > 0
+            ? Array.from(matchedSchemesSet)
+            : parsedSchemes;
+
+        // Scoring phase
         const scoredSchemes = finalSchemes.map(scheme => {
             let score = 0;
             const matchedTags = [];
@@ -499,6 +402,7 @@ export const getRecommendations = async (req, res) => {
         return res.status(200).json({ recommendations: topSchemes });
 
     } catch (err) {
+        console.error("Recommendation Error:", err.message);
         return res.status(500).json({ error: "Failed to fetch recommendations" });
     }
 };
