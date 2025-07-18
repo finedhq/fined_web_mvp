@@ -55,7 +55,7 @@ const HomePage = () => {
   const scrollLeft = (ref) => {
     const el = ref.current;
     if (el) {
-      const scrollAmount = window.innerWidth <= 768 ? 310 : 620;
+      const scrollAmount = window.innerWidth <= 768 ? 310 : window.innerWidth >= 1400 ? 930 : 620;
       el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     }
   };
@@ -63,7 +63,7 @@ const HomePage = () => {
   const scrollRight = (ref) => {
     const el = ref.current;
     if (el) {
-      const scrollAmount = window.innerWidth <= 768 ? 310 : 620;
+      const scrollAmount = window.innerWidth <= 768 ? 310 : window.innerWidth >= 1400 ? 930 : 620;
       el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -155,7 +155,6 @@ const HomePage = () => {
     }
   }, [email]);
 
-
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
@@ -221,6 +220,7 @@ const HomePage = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -232,12 +232,11 @@ const HomePage = () => {
     );
   }
 
-
   return (
-    <div className="mx-auto bg-gray-100 font-inter text-[#1e1e1e] px-4 sm:px-6 xl:px-10 py-5">
-      <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4">
+    <div className="mx-auto bg-gray-100 font-inter text-[#1e1e1e] px-4 sm:px-6 xl:px-10 2xl:max-w-[2000px]  2xl:mx-auto">
+      <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
         {/* Mobile and Tablet Header */}
-        <div className="flex justify-between items-center w-full xl:hidden">
+        <div className="flex justify-between items-center w-full mt-8 xl:hidden">
           <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
             <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
           </div>
@@ -255,7 +254,7 @@ const HomePage = () => {
         </div>
 
         {/* Desktop Header */}
-        <div className="hidden xl:flex xl:flex-row xl:items-center w-full justify-between">
+        <div className="hidden xl:flex xl:flex-row xl:items-center w-full mt-8 justify-between">
           <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
             <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
           </div>
@@ -372,10 +371,10 @@ const HomePage = () => {
             ></div>
           )
         }
-      </header >
+      </header>
 
       {loading && !showLeaderBoard ? (
-        <div className="p-4 animate-pulse space-y-6">
+        <div className="p-4 animate-pulse space-y-6 2xl:max-w-[1400px] 2xl:mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start pt-6">
             <div className="space-y-4 w-full">
               <div className="bg-gray-300 rounded-2xl w-full h-[174px]" />
@@ -397,7 +396,7 @@ const HomePage = () => {
           </div>
         </div>
       ) : (
-        <div className="pt-5">
+        <div className="pt-5 2xl:max-w-[1400px] 2xl:mx-auto">
           <main className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start bg-gray-100 mb-5">
             <div className="col-span-1 md:col-span-1 xl:col-span-1">
               <section className="bg-[#4E00E3] p-4 h-[194px] rounded-2xl text-white text-center flex flex-col justify-center items-center gap-4">
@@ -551,7 +550,7 @@ const HomePage = () => {
               <div
                 ref={carouselRef1}
                 style={{ scrollbarWidth: 'none' }}
-                className="carousel-track bg-white rounded-2xl flex overflow-x-auto max-w-[310px] sm:max-w-[620px] md:max-w-[930px] xl:max-w-[927px] mx-auto border border-gray-300 snap-x snap-mandatory gap-4 sm:gap-3 px-4 sm:px-0"
+                className="carousel-track bg-white rounded-2xl flex overflow-x-auto max-w-[310px] sm:max-w-[620px] md:max-w-[930px] xl:max-w-[927px] 2xl:max-w-[1400px] mx-auto border border-gray-300 snap-x snap-mandatory gap-4 sm:gap-3 px-4 sm:px-0"
               >
                 {recommendedCourses.length > 0 && recommendedCourses.map((course, index) => (
                   <div
@@ -614,7 +613,7 @@ const HomePage = () => {
         </div>
       )}
 
-      <footer className="bg-[#f7fafc] -mx-4 sm:-mx-6 xl:-mx-10 p-6 sm:p-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans">
+      <footer className="bg-[#f7fafc] -mx-4 sm:-mx-6 xl:-mx-10 p-6 sm:p-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans 2xl:max-w-[1400px] 2xl:mx-auto">
         <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] flex flex-col items-center sm:items-start">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
           <p className="text-sm sm:text-base text-gray-700 mb-4 text-center sm:text-left">Financial Education made Easy.</p>
@@ -651,7 +650,7 @@ const HomePage = () => {
                 </div>
                 :
                 <button onClick={removeEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Unubscribe
+                  Unsubscribe
                 </button>
               }
             </div>
@@ -682,7 +681,7 @@ const HomePage = () => {
         </div>
       </footer>
 
-      <p className="text-center justify-center w-full mt-10 my-5 text-xs">
+      <p className="text-center justify-center w-full mt-10 my-5 text-xs 2xl:max-w-[1400px] 2xl:mx-auto">
         © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
       </p>
 
@@ -877,7 +876,7 @@ const HomePage = () => {
           </div>
         )
       }
-    </div >
+    </div>
   );
 };
 
