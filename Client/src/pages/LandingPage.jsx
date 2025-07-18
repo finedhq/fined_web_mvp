@@ -21,6 +21,18 @@ export default function LandingPage() {
     }
   }, [isLoading, isAuthenticated, location.pathname, navigate]);
 
+  // Enhanced loading UI
+  if (isAuthenticated && isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg text-gray-800 font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') setIsSidebarOpen(false);
