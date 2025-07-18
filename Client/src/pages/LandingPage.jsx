@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
@@ -12,26 +13,29 @@ export default function LandingPage() {
   const [canScrollRightCourses, setCanScrollRightCourses] = useState(true);
   const [canScrollLeftArticles, setCanScrollLeftArticles] = useState(false);
   const [canScrollRightArticles, setCanScrollRightArticles] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   const courseCarouselRef = useRef(null);
   const articleCarouselRef = useRef(null);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && location.pathname === '/') {
-      navigate('/home', { replace: true });
+      navigate(`/home?ts=${Date.now()}`, { replace: true });
     }
   }, [isLoading, isAuthenticated, location.pathname, navigate]);
 
-  // Enhanced loading UI
-  if (isAuthenticated && isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-lg text-gray-800 font-semibold">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    // Force viewport re-evaluation on mount
+    const handleInitialResize = () => {
+      window.dispatchEvent(new Event('resize'));
+    };
+    handleInitialResize();
+    window.addEventListener('resize', handleInitialResize);
+    return () => window.removeEventListener('resize', handleInitialResize);
+  }, []);
+
+  useEffect(() => {
+    setIsClient(true); // Ensure client-side render
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -50,8 +54,9 @@ export default function LandingPage() {
   const checkScroll = (ref, setLeft, setRight) => {
     const el = ref.current;
     if (!el) return;
+    const hasScrollableContent = el.scrollWidth > el.clientWidth;
     setLeft(el.scrollLeft > 0);
-    setRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+    setRight(hasScrollableContent && el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
   };
 
   const scrollLeft = (ref) => {
@@ -85,11 +90,17 @@ export default function LandingPage() {
       checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles);
     }
 
+    // Re-check scroll on hydration
+    if (isClient) {
+      checkScroll(courseEl, setCanScrollLeftCourses, setCanScrollRightCourses);
+      checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles);
+    }
+
     return () => {
       if (courseEl) courseEl.removeEventListener('scroll', handleCourseScroll);
       if (articleEl) articleEl.removeEventListener('scroll', handleArticleScroll);
     };
-  }, []);
+  }, [isClient]);
 
   const courses = [
     { title: 'Stock Market Basics', modules: 5, duration: 25 },
@@ -104,6 +115,17 @@ export default function LandingPage() {
     { title: 'Invest Smart', modules: 6, duration: 30 },
     { title: 'Crypto Crash Course', modules: 4, duration: 20 },
   ];
+
+  if (!isClient || isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg text-gray-800 font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-800 font-inter">
@@ -121,7 +143,7 @@ export default function LandingPage() {
             overflow: hidden;
             background: #431FCE;
           }
-          @media (min-width: 1024px) and (max-width: 1366px) {
+          @media (min-width: 1024px) and (max-width: 1366px) and (min-height: 1000px) {
             .ipad-pro-fix {
               display: grid;
               grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -138,6 +160,22 @@ export default function LandingPage() {
               min-width: 0;
               width: 100%;
               padding: 1rem;
+            }
+          }
+          @media (max-width: 639px) {
+            .mobile-fix {
+              display: flex;
+              overflow-x: auto;
+              grid-template-columns: none;
+            }
+            .mobile-fix .card-content {
+              min-width: 260px;
+            }
+            .carousel-nav {
+              min-width: 40px;
+              height: 40px;
+              z-index: 10;
+              display: flex !important;
             }
           }
         `}
@@ -298,7 +336,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Explore Courses</h2>
           <div className="flex gap-3">
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollLeftCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollLeftCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollLeft(courseCarouselRef)}
               disabled={!canScrollLeftCourses}
               aria-label="Scroll courses left"
@@ -306,7 +344,7 @@ export default function LandingPage() {
               ❮
             </button>
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollRightCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollRightCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollRight(courseCarouselRef)}
               disabled={!canScrollRightCourses}
               aria-label="Scroll courses right"
@@ -316,7 +354,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix">
+        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix mobile-fix">
           {courses.length > 0 ? (
             courses.map((course, index) => (
               <div key={index} className="bg-white text-gray-900 rounded-xl p-8 shadow-md flex flex-col justify-between h-48 transition-transform duration-200 hover:-translate-y-1 min-w-[260px] sm:min-w-0 snap-start card-content">
@@ -354,7 +392,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Articles</h2>
           <div className="flex gap-3">
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollLeftArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollLeftArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollLeft(articleCarouselRef)}
               disabled={!canScrollLeftArticles}
               aria-label="Scroll articles left"
@@ -362,7 +400,7 @@ export default function LandingPage() {
               ❮
             </button>
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollRightArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollRightArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollRight(articleCarouselRef)}
               disabled={!canScrollRightArticles}
               aria-label="Scroll articles right"
@@ -372,7 +410,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={articleCarouselRef} role="region" aria-label="Articles carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix">
+        <div ref={articleCarouselRef} role="region" aria-label="Articles carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix mobile-fix">
           {articles.length > 0 ? (
             articles.map((article, index) => (
               <div key={index} className="bg-white text-gray-900 rounded-xl p-8 shadow-md flex flex-col justify-between h-48 transition-transform duration-200 hover:-translate-y-1 min-w-[260px] sm:min-w-0 snap-start card-content">
