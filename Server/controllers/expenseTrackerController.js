@@ -5,7 +5,7 @@ import { sendNotification } from "../notifications.js"
 const oauth2 = new google.auth.OAuth2(
   process.env.CLIENT_ID || "822410915737-7ljn7nvcdp97nqdd1a26t1mohure0iua.apps.googleusercontent.com",
   process.env.CLIENT_SECRET || "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",
-  process.env.REDIRECT_URI || "https://fined-web.vercel.app/api/fin-tools/expensetracker/bank-callback"
+  process.env.REDIRECT_URI || "https://finedwebmvp-production.up.railway.app/api/fin-tools/expensetracker/bank-callback"
 );
 
 export const bankAuth = (req, res) => {
