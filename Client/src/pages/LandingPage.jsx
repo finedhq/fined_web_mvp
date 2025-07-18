@@ -14,24 +14,47 @@ export default function LandingPage() {
   const [canScrollLeftArticles, setCanScrollLeftArticles] = useState(false);
   const [canScrollRightArticles, setCanScrollRightArticles] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 639);
   const courseCarouselRef = useRef(null);
   const articleCarouselRef = useRef(null);
+
+  const courses = [
+    { title: 'Stock Market Basics', modules: 5, duration: 25 },
+    { title: 'Investing 101', modules: 6, duration: 30 },
+    { title: 'Mutual Funds', modules: 4, duration: 20 },
+    { title: 'Crypto Explained', modules: 5, duration: 22 },
+  ];
+
+  const articles = [
+    { title: 'Stock Market Basics', modules: 5, duration: 25 },
+    { title: 'Finance Tips', modules: 3, duration: 15 },
+    { title: 'Invest Smart', modules: 6, duration: 30 },
+    { title: 'Crypto Crash Course', modules: 4, duration: 20 },
+  ];
+
+  useEffect(() => {
+    // Set initial window width and mobile state
+    const updateWindowSize = () => {
+      const mobile = typeof window !== 'undefined' && window.innerWidth <= 639;
+      setIsMobile(mobile);
+      // Trigger scroll check on resize
+      if (courseCarouselRef.current) {
+        checkScroll(courseCarouselRef.current, setCanScrollLeftCourses, setCanScrollRightCourses);
+      }
+      if (articleCarouselRef.current) {
+        checkScroll(articleCarouselRef.current, setCanScrollLeftArticles, setCanScrollRightArticles);
+      }
+    };
+    updateWindowSize();
+    window.addEventListener('resize', updateWindowSize);
+    return () => window.removeEventListener('resize', updateWindowSize);
+  }, []);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && location.pathname === '/') {
       navigate(`/home?ts=${Date.now()}`, { replace: true });
     }
   }, [isLoading, isAuthenticated, location.pathname, navigate]);
-
-  useEffect(() => {
-    // Force viewport re-evaluation on mount
-    const handleInitialResize = () => {
-      window.dispatchEvent(new Event('resize'));
-    };
-    handleInitialResize();
-    window.addEventListener('resize', handleInitialResize);
-    return () => window.removeEventListener('resize', handleInitialResize);
-  }, []);
 
   useEffect(() => {
     setIsClient(true); // Ensure client-side render
@@ -51,12 +74,13 @@ export default function LandingPage() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const checkScroll = (ref, setLeft, setRight) => {
-    const el = ref.current;
+  const checkScroll = (el, setLeft, setRight) => {
     if (!el) return;
     const hasScrollableContent = el.scrollWidth > el.clientWidth;
     setLeft(el.scrollLeft > 0);
     setRight(hasScrollableContent && el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+    // Optional: Debug logging (remove in production)
+    // console.log(`Scroll check: scrollLeft=${el.scrollLeft}, scrollWidth=${el.scrollWidth}, clientWidth=${el.clientWidth}, canScrollLeft=${el.scrollLeft > 0}, canScrollRight=${hasScrollableContent && el.scrollLeft < el.scrollWidth - el.clientWidth - 2}`);
   };
 
   const scrollLeft = (ref) => {
@@ -64,6 +88,10 @@ export default function LandingPage() {
     if (el) {
       const cardWidth = el.querySelector('.card-content')?.offsetWidth || 260;
       el.scrollBy({ left: -(cardWidth + 24), behavior: 'smooth' });
+      // Force scroll state update
+      setTimeout(() => checkScroll(el, 
+        ref === courseCarouselRef ? setCanScrollLeftCourses : setCanScrollLeftArticles, 
+        ref === courseCarouselRef ? setCanScrollRightCourses : setCanScrollRightArticles), 300);
     }
   };
 
@@ -72,6 +100,10 @@ export default function LandingPage() {
     if (el) {
       const cardWidth = el.querySelector('.card-content')?.offsetWidth || 260;
       el.scrollBy({ left: cardWidth + 24, behavior: 'smooth' });
+      // Force scroll state update
+      setTimeout(() => checkScroll(el, 
+        ref === courseCarouselRef ? setCanScrollLeftCourses : setCanScrollLeftArticles, 
+        ref === courseCarouselRef ? setCanScrollRightCourses : setCanScrollRightArticles), 300);
     }
   };
 
@@ -83,38 +115,25 @@ export default function LandingPage() {
 
     if (courseEl) {
       courseEl.addEventListener('scroll', handleCourseScroll);
-      checkScroll(courseEl, setCanScrollLeftCourses, setCanScrollRightCourses);
+      setTimeout(() => checkScroll(courseEl, setCanScrollLeftCourses, setCanScrollRightCourses), 100);
     }
     if (articleEl) {
       articleEl.addEventListener('scroll', handleArticleScroll);
-      checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles);
+      setTimeout(() => checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles), 100);
     }
 
-    // Re-check scroll on hydration
     if (isClient) {
-      checkScroll(courseEl, setCanScrollLeftCourses, setCanScrollRightCourses);
-      checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles);
+      setTimeout(() => {
+        checkScroll(courseEl, setCanScrollLeftCourses, setCanScrollRightCourses);
+        checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles);
+      }, 100);
     }
 
     return () => {
       if (courseEl) courseEl.removeEventListener('scroll', handleCourseScroll);
       if (articleEl) articleEl.removeEventListener('scroll', handleArticleScroll);
     };
-  }, [isClient]);
-
-  const courses = [
-    { title: 'Stock Market Basics', modules: 5, duration: 25 },
-    { title: 'Investing 101', modules: 6, duration: 30 },
-    { title: 'Mutual Funds', modules: 4, duration: 20 },
-    { title: 'Crypto Explained', modules: 5, duration: 22 },
-  ];
-
-  const articles = [
-    { title: 'Stock Market Basics', modules: 5, duration: 25 },
-    { title: 'Finance Tips', modules: 3, duration: 15 },
-    { title: 'Invest Smart', modules: 6, duration: 30 },
-    { title: 'Crypto Crash Course', modules: 4, duration: 20 },
-  ];
+  }, [isClient, isMobile]);
 
   if (!isClient || isLoading) {
     return (
@@ -145,10 +164,10 @@ export default function LandingPage() {
           }
           @media (min-width: 1024px) and (max-width: 1366px) and (min-height: 1000px) {
             .ipad-pro-fix {
-              display: grid;
-              grid-template-columns: repeat(2, minmax(0, 1fr));
+              display: grid !important;
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
               gap: 1.5rem;
-              overflow-x: visible;
+              overflow-x: visible !important;
             }
             .ipad-pro-fix .card-content img {
               width: clamp(60px, 10vw, 80px);
@@ -164,18 +183,22 @@ export default function LandingPage() {
           }
           @media (max-width: 639px) {
             .mobile-fix {
-              display: flex;
-              overflow-x: auto;
-              grid-template-columns: none;
+              display: flex !important;
+              flex-direction: row !important;
+              overflow-x: auto !important;
+              grid-template-columns: none !important;
             }
             .mobile-fix .card-content {
-              min-width: 260px;
+              min-width: 260px !important;
+              flex-shrink: 0;
             }
             .carousel-nav {
-              min-width: 40px;
-              height: 40px;
-              z-index: 10;
+              min-width: 40px !important;
+              height: 40px !important;
+              z-index: 10 !important;
               display: flex !important;
+              position: sticky;
+              top: 0;
             }
           }
         `}
@@ -336,17 +359,17 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Explore Courses</h2>
           <div className="flex gap-3">
             <button
-              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollLeftCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollLeftCourses && isMobile ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollLeft(courseCarouselRef)}
-              disabled={!canScrollLeftCourses}
+              disabled={!canScrollLeftCourses || !isMobile}
               aria-label="Scroll courses left"
             >
               ❮
             </button>
             <button
-              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollRightCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollRightCourses && isMobile ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollRight(courseCarouselRef)}
-              disabled={!canScrollRightCourses}
+              disabled={!canScrollRightCourses || !isMobile}
               aria-label="Scroll courses right"
             >
               ❯
@@ -354,7 +377,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix mobile-fix">
+        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className={`gap-6 px-4 sm:px-6 mb-8 snap-x snap-mandatory hide-scrollbar ${isMobile ? 'flex overflow-x-auto' : 'sm:grid sm:grid-cols-2 lg:grid-cols-4 ipad-pro-fix mobile-fix'}`}>
           {courses.length > 0 ? (
             courses.map((course, index) => (
               <div key={index} className="bg-white text-gray-900 rounded-xl p-8 shadow-md flex flex-col justify-between h-48 transition-transform duration-200 hover:-translate-y-1 min-w-[260px] sm:min-w-0 snap-start card-content">
@@ -392,17 +415,17 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Articles</h2>
           <div className="flex gap-3">
             <button
-              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollLeftArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollLeftArticles && isMobile ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollLeft(articleCarouselRef)}
-              disabled={!canScrollLeftArticles}
+              disabled={!canScrollLeftArticles || !isMobile}
               aria-label="Scroll articles left"
             >
               ❮
             </button>
             <button
-              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollRightArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`min-w-[40px] h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 carousel-nav ${canScrollRightArticles && isMobile ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
               onClick={() => scrollRight(articleCarouselRef)}
-              disabled={!canScrollRightArticles}
+              disabled={!canScrollRightArticles || !isMobile}
               aria-label="Scroll articles right"
             >
               ❯
@@ -410,7 +433,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={articleCarouselRef} role="region" aria-label="Articles carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix mobile-fix">
+        <div ref={articleCarouselRef} role="region" aria-label="Articles carousel" className={`gap-6 px-4 sm:px-6 mb-8 snap-x snap-mandatory hide-scrollbar ${isMobile ? 'flex overflow-x-auto' : 'sm:grid sm:grid-cols-2 lg:grid-cols-4 ipad-pro-fix mobile-fix'}`}>
           {articles.length > 0 ? (
             articles.map((article, index) => (
               <div key={index} className="bg-white text-gray-900 rounded-xl p-8 shadow-md flex flex-col justify-between h-48 transition-transform duration-200 hover:-translate-y-1 min-w-[260px] sm:min-w-0 snap-start card-content">

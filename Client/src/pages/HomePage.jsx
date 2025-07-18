@@ -155,6 +155,7 @@ const HomePage = () => {
     }
   }, [email]);
 
+
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
@@ -220,6 +221,17 @@ const HomePage = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-lg text-gray-800 font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="mx-auto bg-gray-100 font-inter text-[#1e1e1e] px-4 sm:px-6 xl:px-10 py-5">
