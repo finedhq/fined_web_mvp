@@ -294,7 +294,10 @@ const HomePage = () => {
             )}
             <button
               className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+              onClick={() => {
+                sessionStorage.setItem("forceReload", "true");
+                logout({ logoutParams: { returnTo: window.location.origin } })
+              }}
             >
               LogOut
             </button>
@@ -361,13 +364,15 @@ const HomePage = () => {
             </button>
           </nav>
         </div>
-        {isSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={toggleSidebar}
-          ></div>
-        )}
-      </header>
+        {
+          isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={toggleSidebar}
+            ></div>
+          )
+        }
+      </header >
 
       {loading && !showLeaderBoard ? (
         <div className="p-4 animate-pulse space-y-6">
@@ -681,188 +686,198 @@ const HomePage = () => {
         © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
       </p>
 
-      {warning && (
-        <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-[500px] space-y-4">
-            <p className="text-lg sm:text-xl font-bold text-red-600">⚠️ Alert</p>
-            <p className="text-sm sm:text-md font-semibold text-gray-700">{warning}</p>
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={() => setWarning("")}
-                className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
-              >
-                Close
-              </button>
+      {
+        warning && (
+          <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-[500px] space-y-4">
+              <p className="text-lg sm:text-xl font-bold text-red-600">⚠️ Alert</p>
+              <p className="text-sm sm:text-md font-semibold text-gray-700">{warning}</p>
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setWarning("")}
+                  className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {error && (
-        <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] space-y-4">
-            <p className="text-lg sm:text-xl font-bold text-red-600">⚠️ Alert</p>
-            <p className="text-sm sm:text-md font-semibold text-gray-700">{error}</p>
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => { setError(""); setLoading(false); navigate("/home") }}
-                className={`bg-amber-400 hover:bg-amber-500 transition-all duration-300 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
-              >
-                Close
-              </button>
+      {
+        error && (
+          <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
+            <div className="bg-white p-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] space-y-4">
+              <p className="text-lg sm:text-xl font-bold text-red-600">⚠️ Alert</p>
+              <p className="text-sm sm:text-md font-semibold text-gray-700">{error}</p>
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => { setError(""); setLoading(false); navigate("/home") }}
+                  className={`bg-amber-400 hover:bg-amber-500 transition-all duration-300 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {showLeaderBoard && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-          <div className="bg-white w-[90%] max-w-xl rounded-2xl shadow-xl p-6 relative">
-            <h2 className="text-xl sm:text-2xl font-bold text-center mb-4">🏆 FinStars Leaderboard</h2>
-            <button
-              onClick={() => setShowLeaderBoard(false)}
-              className="absolute top-3 right-4 text-xl sm:text-2xl text-gray-500 hover:text-black cursor-pointer"
-            >
-              ×
-            </button>
-            {loading ? (
-              <div className="overflow-y-auto max-h-[400px] divide-y divide-gray-100 px-4">
-                {[...Array(6)].map((_, index) => (
-                  <div key={index} className="flex justify-between items-center py-3 animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-full bg-gray-300"></div>
-                      <div className="w-32 h-5 rounded bg-gray-300"></div>
-                    </div>
-                    <div className="w-16 h-5 rounded bg-gray-300"></div>
-                  </div>
-                ))}
-                <div className="flex justify-between items-center px-2 pt-5">
-                  <div className="w-40 h-5 rounded-lg bg-gray-300 animate-pulse"></div>
-                  <div className="w-28 h-5 rounded-lg bg-gray-300 animate-pulse"></div>
-                </div>
-              </div>
-            ) : (
-              <div className="overflow-y-auto max-h-[400px] divide-y divide-gray-200">
-                {(() => {
-                  const leaderboardWithRanks = [];
-                  let rank = 1;
-                  let lastStars = null;
-                  let skip = 0;
-                  const sortedLeaderboard = [...leaderboard].sort((a, b) => b.fin_stars - a.fin_stars);
-                  for (let i = 0; i < sortedLeaderboard.length; i++) {
-                    const current = sortedLeaderboard[i];
-                    if (current.fin_stars === lastStars) {
-                      skip++;
-                    } else {
-                      rank += skip;
-                      skip = 1;
-                      lastStars = current.fin_stars;
-                    }
-                    leaderboardWithRanks.push({ ...current, rank });
-                  }
-                  return (
-                    <>
-                      {leaderboardWithRanks.map((entry, index) => {
-                        const isCurrentUser = user?.email === entry.email;
-                        const name = entry.email?.split("@")[0] || "User";
-                        const rankEmoji =
-                          entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : `#${entry.rank}`;
-                        return (
-                          <div
-                            key={entry.user_sub || index}
-                            className={`flex justify-between items-center px-4 py-3 text-base sm:text-lg transition-all duration-200 ${isCurrentUser ? "bg-yellow-100 font-semibold rounded-md" : ""}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="text-lg sm:text-xl">{rankEmoji}</span>
-                              <span>{name}</span>
-                            </div>
-                            <span className="font-bold text-indigo-600">
-                              {entry.fin_stars} ⭐
-                            </span>
-                          </div>
-                        );
-                      })}
-                      <div className="flex justify-between items-center px-4 sm:px-12 pt-5 text-base sm:text-lg font-semibold">
-                        <p>Your rank: {leaderboardWithRanks.find((entry) => entry.email === user?.email)?.rank ?? "N/A"}</p>
-                        <p>Your finstars: {userData?.fin_stars}</p>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {showFinScoreLog && (
-        <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
-          <div className="bg-white px-4 sm:px-6 py-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] max-h-[80vh] overflow-y-auto space-y-4">
-            <div className="flex justify-between">
-              <p className="text-lg sm:text-xl font-bold text-indigo-700">🕓 FinScore History</p>
+      {
+        showLeaderBoard && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+            <div className="bg-white w-[90%] max-w-xl rounded-2xl shadow-xl p-6 relative">
+              <h2 className="text-xl sm:text-2xl font-bold text-center mb-4">🏆 FinStars Leaderboard</h2>
               <button
-                onClick={() => setShowFinScoreLog(false)}
-                className="text-xl sm:text-2xl text-gray-500 hover:text-black cursor-pointer -mt-2"
+                onClick={() => setShowLeaderBoard(false)}
+                className="absolute top-3 right-4 text-xl sm:text-2xl text-gray-500 hover:text-black cursor-pointer"
               >
                 ×
               </button>
-            </div>
-            {isFetchingLog ? (
-              <ul className="space-y-4">
-                {[...Array(4)].map((_, i) => (
-                  <li key={i} className="bg-gray-100 p-3 rounded-lg animate-pulse space-y-2">
-                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                    <div className="flex justify-between">
-                      <div className="h-3 w-16 bg-gray-300 rounded"></div>
-                      <div className="h-3 w-24 bg-gray-300 rounded"></div>
+              {loading ? (
+                <div className="overflow-y-auto max-h-[400px] divide-y divide-gray-100 px-4">
+                  {[...Array(6)].map((_, index) => (
+                    <div key={index} className="flex justify-between items-center py-3 animate-pulse">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-gray-300"></div>
+                        <div className="w-32 h-5 rounded bg-gray-300"></div>
+                      </div>
+                      <div className="w-16 h-5 rounded bg-gray-300"></div>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            ) : finScoreLog && finScoreLog.length > 0 ? (
-              <ul className="space-y-3">
-                {finScoreLog.map((log, index) => (
-                  <li key={index} className="bg-gray-100 p-3 rounded-lg">
-                    <p className="text-xs sm:text-sm text-gray-800">{log.description}</p>
-                    <div className="text-xs text-gray-500 mt-1 flex justify-center">
-                      <span>{log.change > 0 ? `+${log.change}` : log.change} pts</span>
-                      <span>{new Date(log.created_at).toLocaleString()}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs sm:text-sm text-gray-500">No recent FinScore changes logged.</p>
-            )}
-          </div>
-        </div>
-      )}
-      {showFeedback && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg space-y-4">
-            <h2 className="text-xl font-bold text-gray-800">We’d love your feedback!</h2>
-            <p className="text-gray-600">Please take a moment to tell us how we're doing.</p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setShowFeedback(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-700 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  setShowFeedback(false);
-                  navigate("/feedback");
-                }}
-                className="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-lg font-semibold cursor-pointer"
-              >
-                Give Feedback
-              </button>
+                  ))}
+                  <div className="flex justify-between items-center px-2 pt-5">
+                    <div className="w-40 h-5 rounded-lg bg-gray-300 animate-pulse"></div>
+                    <div className="w-28 h-5 rounded-lg bg-gray-300 animate-pulse"></div>
+                  </div>
+                </div>
+              ) : (
+                <div className="overflow-y-auto max-h-[400px] divide-y divide-gray-200">
+                  {(() => {
+                    const leaderboardWithRanks = [];
+                    let rank = 1;
+                    let lastStars = null;
+                    let skip = 0;
+                    const sortedLeaderboard = [...leaderboard].sort((a, b) => b.fin_stars - a.fin_stars);
+                    for (let i = 0; i < sortedLeaderboard.length; i++) {
+                      const current = sortedLeaderboard[i];
+                      if (current.fin_stars === lastStars) {
+                        skip++;
+                      } else {
+                        rank += skip;
+                        skip = 1;
+                        lastStars = current.fin_stars;
+                      }
+                      leaderboardWithRanks.push({ ...current, rank });
+                    }
+                    return (
+                      <>
+                        {leaderboardWithRanks.map((entry, index) => {
+                          const isCurrentUser = user?.email === entry.email;
+                          const name = entry.email?.split("@")[0] || "User";
+                          const rankEmoji =
+                            entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : `#${entry.rank}`;
+                          return (
+                            <div
+                              key={entry.user_sub || index}
+                              className={`flex justify-between items-center px-4 py-3 text-base sm:text-lg transition-all duration-200 ${isCurrentUser ? "bg-yellow-100 font-semibold rounded-md" : ""}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg sm:text-xl">{rankEmoji}</span>
+                                <span>{name}</span>
+                              </div>
+                              <span className="font-bold text-indigo-600">
+                                {entry.fin_stars} ⭐
+                              </span>
+                            </div>
+                          );
+                        })}
+                        <div className="flex justify-between items-center px-4 sm:px-12 pt-5 text-base sm:text-lg font-semibold">
+                          <p>Your rank: {leaderboardWithRanks.find((entry) => entry.email === user?.email)?.rank ?? "N/A"}</p>
+                          <p>Your finstars: {userData?.fin_stars}</p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+      {
+        showFinScoreLog && (
+          <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
+            <div className="bg-white px-4 sm:px-6 py-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] max-h-[80vh] overflow-y-auto space-y-4">
+              <div className="flex justify-between">
+                <p className="text-lg sm:text-xl font-bold text-indigo-700">🕓 FinScore History</p>
+                <button
+                  onClick={() => setShowFinScoreLog(false)}
+                  className="text-xl sm:text-2xl text-gray-500 hover:text-black cursor-pointer -mt-2"
+                >
+                  ×
+                </button>
+              </div>
+              {isFetchingLog ? (
+                <ul className="space-y-4">
+                  {[...Array(4)].map((_, i) => (
+                    <li key={i} className="bg-gray-100 p-3 rounded-lg animate-pulse space-y-2">
+                      <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                      <div className="flex justify-between">
+                        <div className="h-3 w-16 bg-gray-300 rounded"></div>
+                        <div className="h-3 w-24 bg-gray-300 rounded"></div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : finScoreLog && finScoreLog.length > 0 ? (
+                <ul className="space-y-3">
+                  {finScoreLog.map((log, index) => (
+                    <li key={index} className="bg-gray-100 p-3 rounded-lg">
+                      <p className="text-xs sm:text-sm text-gray-800">{log.description}</p>
+                      <div className="text-xs text-gray-500 mt-1 flex justify-center">
+                        <span>{log.change > 0 ? `+${log.change}` : log.change} pts</span>
+                        <span>{new Date(log.created_at).toLocaleString()}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs sm:text-sm text-gray-500">No recent FinScore changes logged.</p>
+              )}
+            </div>
+          </div>
+        )
+      }
+      {
+        showFeedback && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg space-y-4">
+              <h2 className="text-xl font-bold text-gray-800">We’d love your feedback!</h2>
+              <p className="text-gray-600">Please take a moment to tell us how we're doing.</p>
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => setShowFeedback(false)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-700 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowFeedback(false);
+                    navigate("/feedback");
+                  }}
+                  className="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-lg font-semibold cursor-pointer"
+                >
+                  Give Feedback
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 
