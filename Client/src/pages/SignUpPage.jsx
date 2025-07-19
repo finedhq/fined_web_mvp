@@ -45,7 +45,7 @@ const SignUpPage = () => {
           ←
         </button>
 
-        <img src="/logo.jpg" alt="FinEd Logo" className="w-24 mx-auto my-5" /> 
+        <img onClick={() => navigate('/')} src="/logo.jpg" alt="FinEd Logo" className="w-24 mx-auto my-5 cursor-pointer" /> 
 
         <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 rounded-full cursor-pointer border border-black transition-colors duration-300 flex items-center justify-center bg-white max-w-sm hover:bg-gray-100" onClick={loginWithRedirect}> {/* .social-btn */}
           <img src="https://img.icons8.com/color/48/facebook-new.png" alt="Facebook" className="w-6 h-6 mr-2" /> 
@@ -117,7 +117,7 @@ const SignUpPage = () => {
         </div>
 
         
-        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 text-base font-bold rounded-full cursor-pointer mt-5 transition-colors duration-300 ease-in-out bg-white text-black border border-black hover:bg-gray-200 -mt-2.5" onClick={() => navigate('/signin')}>
+        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 text-base font-bold rounded-full cursor-pointer mt-5 transition-colors duration-300 ease-in-out bg-white text-black border border-black hover:bg-gray-200" onClick={() => navigate('/signin')}>
           Log In
         </button>
       </div>

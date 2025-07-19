@@ -37,7 +37,7 @@ const SignInPage = () => {
           ←
         </button>
 
-        <img src="/logo.jpg" alt="FinEd Logo" className="w-24 mx-auto my-5" />
+        <img onClick={() => navigate('/')} src="/logo.jpg" alt="FinEd Logo" className="w-24 mx-auto my-5 cursor-pointer" />
 
         <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 rounded-full cursor-pointer border border-black transition-colors duration-300 flex items-center justify-center bg-white max-w-sm hover:bg-gray-100" onClick={loginWithRedirect}>
           <img src="https://img.icons8.com/color/48/facebook-new.png" alt="Facebook" className="w-6 h-6 mr-2" />

@@ -122,7 +122,7 @@ export default function CourseOverviewPage() {
     <div className="min-h-screen px-10 pt-5 bg-white" >
       <header className="flex justify-between items-center h-[63px] bg-white box-border">
 
-        <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
+        <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
         </div>
 

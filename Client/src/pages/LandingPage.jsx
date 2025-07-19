@@ -153,7 +153,7 @@ export default function LandingPage() {
       </style>
       <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-white shadow-sm">
         <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
-          <div className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap">
+          <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
             <img
               src="/logo.jpg"
               srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"

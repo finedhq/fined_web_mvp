@@ -65,7 +65,7 @@ export default function FinToolsPage() {
         <div className="px-10 py-5 min-h-screen bg-gray-50">
             <header className="flex justify-between items-center h-[63px] py-6 bg-gray-50 box-border">
 
-                <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
+                <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
                     <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
                 </div>
 

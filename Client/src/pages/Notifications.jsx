@@ -51,7 +51,7 @@ const Notifications = () => {
     <div className="px-10 py-5 font-inter text-[#1e1e1e] bg-gray-100 min-h-screen">
       <header className="flex justify-between items-center h-[63px] bg-gray-100 box-border">
 
-        <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
+        <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
           <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
         </div>
 

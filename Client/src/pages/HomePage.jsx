@@ -33,6 +33,7 @@ const HomePage = () => {
   const [isFetchingLog, setIsFechingLog] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [showDescription, setShowDescription] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -236,7 +237,7 @@ const HomePage = () => {
       <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
         {/* Mobile and Tablet Header */}
         <div className="flex justify-between items-center w-full mt-8 xl:hidden">
-          <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
+          <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
             <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
           </div>
           <div className="flex items-center gap-4">
@@ -254,7 +255,7 @@ const HomePage = () => {
 
         {/* Desktop Header */}
         <div className="hidden xl:flex xl:flex-row xl:items-center w-full mt-8 justify-between">
-          <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
+          <div onClick={() => navigate('/home')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
             <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
           </div>
           <nav className="flex flex-wrap justify-center gap-5">
@@ -478,7 +479,7 @@ const HomePage = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="m-0 text-base sm:text-lg font-bold">FinScore</h3>
-                <IoIosInformationCircleOutline className="text-xl sm:text-2xl" />
+                <IoIosInformationCircleOutline onClick={(e) => { e.stopPropagation(); setShowDescription(true) }} className="text-xl sm:text-2xl" />
               </div>
               <div className="flex justify-center items-center w-full h-auto">
                 <FinScoreChart score={userData.fin_score} />
@@ -821,6 +822,78 @@ const HomePage = () => {
                   Give Feedback
                 </button>
               </div>
+            </div>
+          </div>
+        )
+      }
+      {
+        showDescription && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+            <div className="bg-white max-w-3xl w-full rounded-xl shadow-lg p-6 overflow-y-auto max-h-[90vh] relative">
+              <button
+                onClick={() => setShowDescription(false)}
+                className="absolute top-3 right-4 text-xl font-bold text-gray-500 hover:text-gray-700 cursor-pointer"
+              >
+                &times;
+              </button>
+
+              <h2 className="text-3xl font-bold mb-4 text-primary">📊 What is FinScore?</h2>
+              <p className="mb-4 text-gray-700">
+                <strong>FinScore</strong> is your financial growth score on FinEd. It reflects how well you learn, budget, and track your money. The higher your score, the better your financial behavior!
+              </p>
+
+              <h3 className="text-xl font-semibold mb-2 text-secondary">Why FinScore Matters</h3>
+              <ul className="list-disc ml-6 mb-4 text-gray-700 space-y-1">
+                <li>Track your financial growth</li>
+                <li>Unlock badges and achievements</li>
+                <li>Stay motivated through visible progress</li>
+                <li>Compete on the leaderboard</li>
+              </ul>
+
+              <h3 className="text-xl font-semibold mb-2 text-secondary">🔢 How It's Calculated</h3>
+              <div className="mb-4 space-y-2 text-gray-700">
+                <p><strong>1. Learning & Courses:</strong> Complete cards and quizzes to earn FinStars and course points.</p>
+                <p><strong>2. Budgeting:</strong> Set budgets early in the month, stick to them, and get rewarded.</p>
+                <p><strong>3. Consistency:</strong> Maintain streaks and show up daily to earn bonus points.</p>
+              </div>
+
+              <h3 className="text-xl font-semibold mb-2 text-secondary">🎯 FinScore Examples</h3>
+              <table className="w-full text-sm mb-6 border border-gray-300 rounded-md overflow-hidden">
+                <thead className="bg-gray-100 text-left">
+                  <tr>
+                    <th className="py-2 px-4 border-b">Action</th>
+                    <th className="py-2 px-4 border-b">FinScore Impact</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Complete a card", "+5 to +10"],
+                    ["Finish a module", "+15"],
+                    ["Set a monthly budget (first 5 days)", "+10"],
+                    ["Achieve monthly budget", "+15"],
+                    ["Miss monthly budget", "-10"],
+                    ["Upload transactions", "+ small boost"],
+                    ["7-day streak", "+10 bonus"],
+                  ].map(([action, score], i) => (
+                    <tr key={i} className="border-t">
+                      <td className="py-2 px-4">{action}</td>
+                      <td className="py-2 px-4">{score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <h3 className="text-xl font-semibold mb-2 text-secondary">📈 How to Improve FinScore</h3>
+              <ul className="list-disc ml-6 mb-6 text-gray-700 space-y-1">
+                <li>Complete course cards and finish modules</li>
+                <li>Set and review budgets monthly</li>
+                <li>Upload your expenses and income regularly</li>
+                <li>Log in and use the platform daily</li>
+              </ul>
+
+              <p className="text-gray-700 font-medium">
+                Your FinScore is more than a number — it’s a celebration of your financial learning journey! 💡
+              </p>
             </div>
           </div>
         )
