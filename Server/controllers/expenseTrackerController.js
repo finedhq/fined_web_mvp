@@ -310,86 +310,81 @@ export const budgets = async (req, res) => {
 
   try {
     const cleanedBudgets = [];
-    const todayDate = new Date().getDate();
-    const currMonth = new Date().toLocaleString("default", { month: "long" });
-    const currYear = new Date().getFullYear();
+    const today = new Date();
+    const todayDate = today.getDate();
+    const currMonth = today.toLocaleString("default", { month: "long" });
+    const currYear = today.getFullYear();
     let score = 0;
-    let userEmail = null;
+    let userEmail = incomingBudgets?.[0]?.email || null;
 
+    // 1. Fetch transactions in bulk for all categories
+    const uniqueCategories = [...new Set(incomingBudgets.map(b => b.category))];
+    const { data: allTx, error: txError } = await supabase
+      .from("transactions")
+      .select("amount, type, date, category, email")
+      .in("category", uniqueCategories)
+      .eq("email", userEmail);
+    if (txError) throw txError;
+
+    // 2. Fetch existing Monthly budget if applicable
+    const needsMonthlyCheck = incomingBudgets.some(b => b.category === "Monthly" && b.month === currMonth && b.year === currYear);
+    let existingMonthlyBudget = null;
+    if (needsMonthlyCheck) {
+      const { data, error } = await supabase
+        .from("budgets")
+        .select("limit")
+        .match({ email: userEmail, category: "Monthly", month: currMonth, year: currYear })
+        .maybeSingle();
+      if (error) throw error;
+      existingMonthlyBudget = data;
+    }
+
+    // 3. Prepare cleaned budgets
     for (const budget of incomingBudgets) {
       const { email, category, month, year, limit } = budget;
-      userEmail = email;
 
-      const { data: matchingTransactions, error: txError } = await supabase
-        .from("transactions")
-        .select("amount, type, date")
-        .match({ email, category });
-
-      if (txError) throw txError;
-
-      const spent = matchingTransactions
+      const spent = allTx
         .filter(tx => {
           const txDate = new Date(tx.date);
-          const txMonth = txDate.toLocaleString("default", { month: "long" });
-          const txYear = txDate.getFullYear();
-          return tx.type === "expense" && txMonth === month && txYear === year;
+          return (
+            tx.email === email &&
+            tx.category === category &&
+            tx.type === "expense" &&
+            txDate.getFullYear() === year &&
+            txDate.toLocaleString("default", { month: "long" }) === month
+          );
         })
         .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
 
       cleanedBudgets.push({ email, category, month, year, limit, spent });
 
+      // Score logic for Monthly budget
       if (category === "Monthly" && month === currMonth && year === currYear) {
-        if (todayDate <= 5) score += 10;
-
-        const { data: existingMonthlyBudget, error: existingError } = await supabase
-          .from("budgets")
-          .select("limit")
-          .match({ email, category: "Monthly", month, year })
-          .maybeSingle();
-
-        if (existingError) throw existingError;
-
-        if (!existingMonthlyBudget && todayDate > 5) score -= 10;
+        if (todayDate <= 5) {
+          score += 10;
+        } else if (!existingMonthlyBudget) {
+          score -= 10;
+        }
       }
     }
 
+    // 4. Fetch user before update
     const { data: userData, error: fetchUserErr } = await supabase
       .from("users")
       .select("article_score, consistency_score, expense_score, course_score")
       .eq("email", userEmail)
       .single();
-
     if (fetchUserErr) throw fetchUserErr;
 
-    const { article_score = 0, consistency_score = 0, expense_score = 0, course_score = 0 } = userData || {};
+    const { article_score = 0, consistency_score = 0, expense_score = 0, course_score = 0 } = userData;
     const oldTotalScore = article_score + consistency_score + expense_score + course_score;
-
     const updatedExpenseScore = Math.max(0, Math.min(150, expense_score + score));
 
-    const { error: updateUserErr } = await supabase
-      .from("users")
-      .update({ expense_score: updatedExpenseScore })
-      .eq("email", userEmail)
-      .select("*")
-
-    if (updateUserErr) throw updateUserErr;
-
-    const { data, error } = await supabase
-      .from("budgets")
-      .upsert(cleanedBudgets, {
-        onConflict: ["email", "month", "year", "category"],
-      });
-
-    if (error) {
-      console.error("Supabase error while saving budgets:", error);
-      return res.status(400).json({ error: error.message });
-    }
-
+    // 5. Upsert budgets & userCategories in parallel
     const commonCategories = [
       "Food", "Travel", "Rent", "Apparel", "Health", "Education", "Transportation",
       "Bills & Utilities", "Shopping", "Entertainment", "Investments", "Savings", "Salary", "Monthly"
     ];
-
     const categoryPairs = Array.from(
       new Set(
         cleanedBudgets
@@ -401,23 +396,28 @@ export const budgets = async (req, res) => {
       return { email, category };
     });
 
-    const { error: categoryError } = await supabase
-      .from("userCategories")
-      .upsert(categoryPairs, {
-        onConflict: ["email", "category"],
-      });
+    const [upsertBudget, updateUser, upsertCategories] = await Promise.all([
+      supabase.from("budgets").upsert(cleanedBudgets, {
+        onConflict: ["email", "month", "year", "category"]
+      }),
+      supabase.from("users").update({ expense_score: updatedExpenseScore }).eq("email", userEmail),
+      categoryPairs.length > 0
+        ? supabase.from("userCategories").upsert(categoryPairs, {
+            onConflict: ["email", "category"]
+          })
+        : Promise.resolve({ error: null }) // skip if no custom categories
+    ]);
 
-    if (categoryError) {
-      console.error("Supabase error while saving user categories:", categoryError);
-      return res.status(400).json({ error: categoryError.message });
-    }
+    if (upsertBudget.error) throw upsertBudget.error;
+    if (updateUser.error) throw updateUser.error;
+    if (upsertCategories.error) throw upsertCategories.error;
 
+    // 6. Fetch new user score & log if score changed
     const { data: newUserData, error: newUserError } = await supabase
       .from("users")
       .select("article_score, consistency_score, expense_score, course_score")
       .eq("email", userEmail)
       .single();
-
     if (newUserError) throw newUserError;
 
     const { article_score: newArticle = 0, consistency_score: newConsistency = 0, expense_score: newExpense = 0, course_score: newCourse = 0 } = newUserData;
@@ -425,23 +425,20 @@ export const budgets = async (req, res) => {
     const delta = newTotalScore - oldTotalScore;
 
     if (delta !== 0) {
-      const { error: logError } = await supabase
-        .from("finScoreLogs")
-        .insert({
-          email: userEmail,
-          old_score: oldTotalScore,
-          new_score: newTotalScore,
-          change: delta,
-          description:
-            score > 0
-              ? `🎯 Monthly budget set on time (+${score})`
-              : `⚠️ Monthly budget not set in time (${score})`,
-        });
-
+      const { error: logError } = await supabase.from("finScoreLogs").insert({
+        email: userEmail,
+        old_score: oldTotalScore,
+        new_score: newTotalScore,
+        change: delta,
+        description:
+          score > 0
+            ? `🎯 Monthly budget set on time (+${score})`
+            : `⚠️ Monthly budget not set in time (${score})`,
+      });
       if (logError) throw logError;
     }
 
-    res.json({ message: "Budgets, categories, and scores saved successfully", data });
+    res.json({ message: "Budgets, categories, and scores saved successfully", data: upsertBudget.data });
 
   } catch (err) {
     res.status(500).json({ error: `Failed to save budgets: ${err.message}` });
@@ -556,6 +553,15 @@ export const transaction = async (req, res) => {
   const { transaction } = req.body;
 
   try {
+    const email = transaction.email;
+    const txnDate = new Date(transaction.date);
+    const todayStr = new Date().toISOString().split("T")[0];
+    const month = txnDate.toLocaleString("default", { month: "long" });
+    const year = txnDate.getFullYear();
+    const amount = Number(transaction.amount);
+    const category = transaction.category;
+
+    // 1. Save the transaction
     const { error: upsertError } = await supabase
       .from("transactions")
       .upsert(transaction);
@@ -564,61 +570,39 @@ export const transaction = async (req, res) => {
       return res.status(400).json({ error: upsertError.message });
     }
 
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-
-    let shouldScoreToday = false;
-
-    // Fetch user's current transaction scoring status
-    const { data: userData, error: userFetchErr } = await supabase
+    // 2. Fetch user's scoring-related data
+    const { data: user, error: userFetchErr } = await supabase
       .from("users")
-      .select("transaction_streak_count, last_transaction_date, last_transaction_score_date, transaction_scored, article_score, consistency_score, expense_score, course_score")
-      .eq("email", transaction.email)
+      .select("transaction_streak_count, last_transaction_date, last_transaction_score_date, expense_score, article_score, consistency_score, course_score")
+      .eq("email", email)
       .single();
 
     if (userFetchErr) throw userFetchErr;
 
-    // Determine if today is already scored
-    if (!userData.last_transaction_score_date || userData.last_transaction_score_date !== todayStr) {
-      shouldScoreToday = true;
-    }
-
     let scoreDelta = 0;
-    let oldTotalScore = null;
+    let streak = user.transaction_streak_count || 0;
+    const lastDate = user.last_transaction_date ? new Date(user.last_transaction_date) : null;
+    const lastScoreDate = user.last_transaction_score_date;
+    const shouldScoreToday = lastScoreDate !== todayStr;
+    let oldTotalScore = user.expense_score + user.article_score + user.consistency_score + user.course_score;
 
     if (shouldScoreToday) {
-      let streak = 1;
+      streak = 1;
       scoreDelta = 3;
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
 
-      const lastDate = userData?.last_transaction_date
-        ? new Date(userData.last_transaction_date)
-        : null;
-
-      const isYesterdayTracked =
-        lastDate && lastDate.toDateString() === yesterday.toDateString();
-
-      const gapDays = lastDate
-        ? Math.floor((today - lastDate) / (1000 * 60 * 60 * 24))
-        : null;
-
-      if (gapDays && gapDays > 1) {
-        const missedDays = Math.min(gapDays - 1, 7);
-        scoreDelta -= missedDays;
-        if (gapDays >= 7) scoreDelta -= 10;
+      if (lastDate) {
+        const gapDays = Math.floor((new Date() - lastDate) / (1000 * 60 * 60 * 24));
+        if (gapDays === 1) {
+          streak = (user.transaction_streak_count || 0) + 1;
+          if (streak === 7) scoreDelta += 10;
+        } else if (gapDays > 1) {
+          const missed = Math.min(gapDays - 1, 7);
+          scoreDelta -= missed;
+          if (gapDays >= 7) scoreDelta -= 10;
+        }
       }
 
-      if (isYesterdayTracked) {
-        streak = (userData.transaction_streak_count || 1) + 1;
-        if (streak === 7) scoreDelta += 10;
-      } else if (lastDate && gapDays > 1) {
-        streak = 1;
-      }
-
-      oldTotalScore = (userData.expense_score || 0) + (userData.article_score || 0) + (userData.consistency_score || 0) + userData.course_score || 0;
-
-      const updatedExpense = Math.max(0, Math.min(150, (userData.expense_score || 0) + scoreDelta));
+      const newExpenseScore = Math.max(0, Math.min(150, (user.expense_score || 0) + scoreDelta));
 
       const { error: updateUserErr } = await supabase
         .from("users")
@@ -626,65 +610,50 @@ export const transaction = async (req, res) => {
           transaction_streak_count: streak,
           last_transaction_date: todayStr,
           last_transaction_score_date: todayStr,
-          transaction_scored: true,
-          expense_score: updatedExpense,
+          expense_score: newExpenseScore,
         })
-        .eq("email", transaction.email);
+        .eq("email", email);
 
       if (updateUserErr) throw updateUserErr;
 
-      const { data: updatedUser, error: fetchUpdatedErr } = await supabase
-        .from("users")
-        .select("expense_score, article_score, consistency_score, course_score")
-        .eq("email", transaction.email)
-        .single();
-
-      if (fetchUpdatedErr) throw fetchUpdatedErr;
-
-      const newTotalScore = (updatedUser.expense_score || 0) + (updatedUser.article_score || 0) + (updatedUser.consistency_score || 0) + (updatedUser.course_score || 0);
+      const newTotalScore = newExpenseScore + user.article_score + user.consistency_score + user.course_score;
       const delta = newTotalScore - oldTotalScore;
 
       if (delta !== 0) {
-        const descParts = [];
+        const description = [
+          scoreDelta > 0 && streak !== 7 ? `+${scoreDelta} for logging a transaction` : null,
+          scoreDelta < 0 ? `${scoreDelta} penalty for missed days` : null,
+          streak === 7 ? `+10 bonus for 7-day streak` : null
+        ].filter(Boolean).join("; ");
 
-        if (scoreDelta > 0 && streak !== 7) {
-          descParts.push(`+${scoreDelta} points for logging a transaction today`);
-        }
-        if (scoreDelta < 0) {
-          descParts.push(`${scoreDelta} points penalty due to missed days in streak`);
-        }
-        if (streak === 7) {
-          descParts.push(`+10 bonus points for completing a 7-day transaction streak`);
-        }
-
-        const { error: logError } = await supabase
+        const { error: logErr } = await supabase
           .from("finScoreLogs")
           .insert({
-            email: transaction.email,
+            email,
             old_score: oldTotalScore,
             new_score: newTotalScore,
             change: delta,
-            description: descParts.join("; "),
+            description,
           });
 
-        if (logError) throw logError;
+        if (logErr) throw logErr;
       }
     }
 
-    // Budget update (same as before)
+    // 3. Update budgets (only if expense)
     if (transaction.type === "expense") {
-      const txnDate = new Date(transaction.date);
-      const month = txnDate.toLocaleString("default", { month: "long" });
-      const year = txnDate.getFullYear();
+      const monthNum = txnDate.getMonth() + 1;
+      const nextMonthStr = `${year}-${String(monthNum + 1).padStart(2, "0")}-01`;
+      const thisMonthStr = `${year}-${String(monthNum).padStart(2, "0")}-01`;
 
       const { data: totalSpentData, error: aggError } = await supabase
         .from("transactions")
         .select("amount")
-        .eq("email", transaction.email)
-        .eq("category", transaction.category)
+        .eq("email", email)
+        .eq("category", category)
         .eq("type", "expense")
-        .gte("date", `${year}-${String(txnDate.getMonth() + 1).padStart(2, "0")}-01`)
-        .lt("date", `${year}-${String(txnDate.getMonth() + 2).padStart(2, "0")}-01`);
+        .gte("date", thisMonthStr)
+        .lt("date", nextMonthStr);
 
       if (aggError) throw aggError;
 
@@ -693,81 +662,56 @@ export const transaction = async (req, res) => {
       const { error: updateError } = await supabase
         .from("budgets")
         .update({ spent: totalSpent })
-        .match({
-          email: transaction.email,
-          category: transaction.category,
-          month,
-          year,
-        });
+        .match({ email, category, month, year });
 
       if (updateError) throw updateError;
     }
 
-    // Update monthly summary
-    const txnDate = new Date(transaction.date);
-    const month = txnDate.toLocaleString("default", { month: "long" });
-    const year = txnDate.getFullYear();
-    const amount = Number(transaction.amount);
-
-    const { data: existingSummary, error: fetchSummaryError } = await supabase
+    // 4. Update transaction summary
+    const { data: summary, error: summaryErr } = await supabase
       .from("transaction_summary")
       .select("*")
-      .eq("email", transaction.email)
+      .eq("email", email)
       .eq("month", month)
       .eq("year", year)
       .single();
 
-    if (fetchSummaryError && fetchSummaryError.code !== "PGRST116") {
-      return res.status(400).json({ error: fetchSummaryError.message });
+    if (summaryErr && summaryErr.code !== "PGRST116") {
+      return res.status(400).json({ error: summaryErr.message });
     }
 
-    let updatedSummary = {
-      email: transaction.email,
+    const updatedSummary = {
+      email,
       month,
       year,
-      expense: 0,
-      income: 0,
-      saving: 0,
-      investment: 0,
+      expense: summary?.expense || 0,
+      income: summary?.income || 0,
+      saving: summary?.saving || 0,
+      investment: summary?.investment || 0,
     };
 
-    if (existingSummary) {
-      updatedSummary = { ...existingSummary };
-    }
-
-    if (transaction.type === "expense") {
-      updatedSummary.expense += amount;
-    } else if (transaction.type === "income") {
-      updatedSummary.income += amount;
-    } else if (transaction.type === "saving") {
-      updatedSummary.saving += amount;
-    } else if (transaction.type === "investment") {
-      updatedSummary.investment += amount;
+    if (transaction.type in updatedSummary) {
+      updatedSummary[transaction.type] += amount;
     }
 
     const { error: summaryUpsertError } = await supabase
       .from("transaction_summary")
-      .upsert([updatedSummary], {
-        onConflict: ["email", "month", "year"],
-      });
+      .upsert([updatedSummary], { onConflict: ["email", "month", "year"] });
 
     if (summaryUpsertError) {
       return res.status(400).json({ error: summaryUpsertError.message });
     }
 
-    // Save uncommon category
+    // 5. Save uncommon category
     const commonCategories = [
       "Food", "Travel", "Rent", "Apparel", "Health", "Education", "Transportation",
       "Bills & Utilities", "Shopping", "Entertainment", "Investments", "Savings", "Salary",
     ];
 
-    if (!commonCategories.includes(transaction.category)) {
+    if (!commonCategories.includes(category)) {
       const { error: userCategoryError } = await supabase
         .from("userCategories")
-        .upsert(
-          [{ email: transaction.email, category: transaction.category }],
-          { onConflict: ["email", "category"] }
-        );
+        .upsert([{ email, category }], { onConflict: ["email", "category"] });
 
       if (userCategoryError) {
         return res.status(400).json({ error: userCategoryError.message });

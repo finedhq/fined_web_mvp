@@ -201,27 +201,26 @@ export const updateACard = async (req, res) => {
   try {
     const { course_id, module_id, card_id } = req.params;
     const { status, userAnswer, email, finStars, userIndex } = req.body;
-    const today = new Date().toISOString().split("T")[0];
+    const todayISO = new Date().toISOString();
 
-    // Fetch card info
-    const { data: cardData, error: cardError } = await supabase
-      .from("cards")
-      .select("*")
-      .eq("card_id", card_id)
-      .single();
+    // Fetch card and user info in parallel
+    const [{ data: cardData, error: cardError }, { data: user, error: userError }] = await Promise.all([
+      supabase.from("cards").select("*").eq("card_id", card_id).single(),
+      supabase.from("users").select("fin_stars, course_count, course_score, consistency_score, article_score, expense_score").eq("email", email).maybeSingle()
+    ]);
     if (cardError) throw cardError;
+    if (userError) throw userError;
 
+    // Get answer tags
     let optionsTags = [];
     if (typeof cardData?.options_tags === "string") {
-      try {
-        optionsTags = JSON.parse(cardData.options_tags);
-      } catch {}
+      try { optionsTags = JSON.parse(cardData.options_tags); } catch {}
     } else if (Array.isArray(cardData?.options_tags)) {
       optionsTags = cardData.options_tags;
     }
     const answer_tags = userIndex != null ? optionsTags[userIndex] : null;
 
-    // Check for existing card progress
+    // Check existing card progress
     const { data: existingProgress, error: checkError } = await supabase
       .from("userCourses")
       .select("id")
@@ -233,7 +232,7 @@ export const updateACard = async (req, res) => {
       status,
       user_answer: userAnswer || null,
       answer_tags,
-      completion_date: status === "completed" ? new Date().toISOString() : null,
+      completion_date: status === "completed" ? todayISO : null,
     };
 
     if (existingProgress) {
@@ -242,44 +241,32 @@ export const updateACard = async (req, res) => {
       await supabase.from("userCourses").insert([{ email, course_id, module_id, card_id, progress_type: "card", ...payload }]);
     }
 
-    // Fetch user info
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select("fin_stars, course_count, course_score, consistency_score, article_score, expense_score")
-      .eq("email", email)
-      .maybeSingle();
-    if (userError) throw userError;
-
-    // Update FinStars
+    // Update FinStars if applicable
     if (finStars) {
-      await supabase.from("users").update({ fin_stars: (user?.fin_stars || 0) + finStars }).eq("email", email);
+      await supabase
+        .from("users")
+        .update({ fin_stars: (user?.fin_stars || 0) + finStars })
+        .eq("email", email);
     }
 
-    // Fetch all cards in module
-    const { data: allCards, error: cardsError } = await supabase
-      .from("cards")
-      .select("card_id")
-      .eq("module_id", module_id)
-      .order("order_index");
+    // Fetch all cards in the module
+    const [{ data: allCards, error: cardsError }, { data: moduleProgress, error: progressError }] = await Promise.all([
+      supabase.from("cards").select("card_id").eq("module_id", module_id).order("order_index"),
+      supabase.from("userCourses").select("card_id").match({ email, module_id, progress_type: "card", status: "completed" })
+    ]);
     if (cardsError) throw cardsError;
+    if (progressError) throw progressError;
 
     const currentIndex = allCards.findIndex(c => c.card_id === card_id);
     const prevCardId = allCards[currentIndex - 1]?.card_id || null;
     const nextCardId = allCards[currentIndex + 1]?.card_id || null;
-
-    // Count completed cards in this module
-    const { data: moduleProgress, error: progressError } = await supabase
-      .from("userCourses")
-      .select("card_id")
-      .match({ email, module_id, progress_type: "card", status: "completed" });
-    if (progressError) throw progressError;
-
     const module_progress = moduleProgress.length;
     const module_total_cards = allCards.length;
 
+    const logs = [];
+
     // ✅ Module completion bonus
     if (module_progress === module_total_cards && user.course_count < 5) {
-
       const oldScore = user.course_score + user.consistency_score + user.article_score + user.expense_score;
       const newCourseScore = Math.min(user.course_score + 20, 500);
       const newTotal = newCourseScore + user.consistency_score + user.article_score + user.expense_score;
@@ -288,7 +275,7 @@ export const updateACard = async (req, res) => {
       await supabase.from("users").update({ course_score: newCourseScore }).eq("email", email);
 
       if (delta !== 0) {
-        await supabase.from("finScoreLogs").insert({
+        logs.push({
           email,
           old_score: oldScore,
           new_score: newTotal,
@@ -298,7 +285,7 @@ export const updateACard = async (req, res) => {
       }
     }
 
-    // ✅ Course completion + Quiz bonus
+    // ✅ Course completion + quiz bonus
     const { data: modules, error: modulesError } = await supabase
       .from("modules")
       .select("id")
@@ -306,34 +293,26 @@ export const updateACard = async (req, res) => {
     if (modulesError) throw modulesError;
 
     const moduleIds = modules.map(m => m.id);
-
     const [{ data: allCourseCards, error: allCourseError }, { data: completedCards, error: completedError }] = await Promise.all([
       supabase.from("cards").select("card_id").in("module_id", moduleIds),
-      supabase.from("userCourses").select("card_id").match({ email, course_id, progress_type: "card", status: "completed" })
+      supabase.from("userCourses").select("card_id").match({ email, course_id, progress_type: "card", status: "completed" }),
     ]);
     if (allCourseError) throw allCourseError;
     if (completedError) throw completedError;
 
     if (allCourseCards.length === completedCards.length && user.course_count < 5) {
-      const { data: courseAnswers, error: courseAnsError } = await supabase
-        .from("userCourses")
-        .select("user_answer, card_id")
-        .match({ email, course_id, progress_type: "card" });
+      const [{ data: courseAnswers, error: courseAnsError }, { data: answerKeys, error: keyError }] = await Promise.all([
+        supabase.from("userCourses").select("user_answer, card_id").match({ email, course_id, progress_type: "card" }),
+        supabase.from("cards").select("card_id, correct_answer").in("module_id", moduleIds),
+      ]);
       if (courseAnsError) throw courseAnsError;
-
-      const { data: answerKeys, error: keyError } = await supabase
-        .from("cards")
-        .select("card_id, correct_answer")
-        .in("module_id", moduleIds);
       if (keyError) throw keyError;
 
       const correctMap = Object.fromEntries(answerKeys.map(c => [c.card_id, c.correct_answer?.trim().toLowerCase()]));
       let correct = 0, total = 0;
-
       for (const { card_id, user_answer } of courseAnswers) {
-        if (user_answer && correctMap[card_id] && user_answer.trim().toLowerCase() === correctMap[card_id]) {
-          correct++;
-        }
+        const ans = user_answer?.trim().toLowerCase();
+        if (ans && correctMap[card_id] && ans === correctMap[card_id]) correct++;
         if (correctMap[card_id]) total++;
       }
 
@@ -354,11 +333,11 @@ export const updateACard = async (req, res) => {
 
       await supabase.from("users").update({
         course_score: updatedScore,
-        course_count: user.course_count + 1
+        course_count: user.course_count + 1,
       }).eq("email", email);
 
       if (delta !== 0) {
-        await supabase.from("finScoreLogs").insert({
+        logs.push({
           email,
           old_score: user.course_score + user.consistency_score + user.article_score + user.expense_score,
           new_score: newTotal,
@@ -368,7 +347,11 @@ export const updateACard = async (req, res) => {
       }
     }
 
-    // Final response
+    // Bulk insert logs if any
+    if (logs.length) {
+      await supabase.from("finScoreLogs").insert(logs);
+    }
+
     res.json({
       ...cardData,
       status: "completed",

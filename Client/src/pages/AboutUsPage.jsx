@@ -66,7 +66,7 @@ const AboutUs = () => {
       setWarning("🎉 Subscribed successfully.")
       setIsEnteredEmail(true)
     } catch (err) {
-      toast.success("Failed to save email.")
+      toast.error("❌ Failed to save email.")
     } finally {
       setIsSaved(false)
     }
@@ -80,7 +80,7 @@ const AboutUs = () => {
       setEnteredEmail("")
       setIsEnteredEmail(false)
     } catch (err) {
-      toast.success("Failed to remove email.")
+      toast.error("❌ Failed to remove email.")
     } finally {
       setIsSaved(false)
     }
@@ -188,7 +188,7 @@ const AboutUs = () => {
         </header>
       }
 
-      <div className="max-w-5xl self-center py-10 space-y-10" >
+      <div className="max-w-5xl text-lg self-center py-10 space-y-10" >
         {/* About Us Section */}
         <section className="flex flex-col md:flex-row items-center gap-6">
           <div className="flex-1 space-y-4">
@@ -206,7 +206,7 @@ const AboutUs = () => {
 
         {/* Who We Are */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Who We Are</h2>
+          <h2 className="text-2xl font-bold">Who We Are</h2>
           <p>
             At FinEd, we believe that understanding money is a basic life skill — not a luxury. We’re building
             a platform that makes financial literacy easy, engaging, and free for everyone.
@@ -220,7 +220,7 @@ const AboutUs = () => {
 
         {/* Why We Started */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Why We Started</h2>
+          <h2 className="text-2xl font-bold">Why We Started</h2>
           <p>
             Most of us grow up without ever being taught how to manage money. Schools don’t cover it, financial
             products are confusing, and the internet is full of myths.
@@ -233,7 +233,7 @@ const AboutUs = () => {
 
         {/* What We're Building */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">What We’re Building</h2>
+          <h2 className="text-2xl font-bold">What We’re Building</h2>
           <p>
             We’re building more than just a learning platform. FinEd is designed to be your personal financial
             growth companion.
@@ -248,7 +248,7 @@ const AboutUs = () => {
 
         {/* Our Vision */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Our Vision</h2>
+          <h2 className="text-2xl font-bold">Our Vision</h2>
           <p>
             We envision a future where every Indian — no matter their background — can understand, manage, and
             grow their money confidently.
@@ -261,7 +261,7 @@ const AboutUs = () => {
 
         {/* For Financial Institutions */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">For Financial Institutions</h2>
+          <h2 className="text-2xl font-bold">For Financial Institutions</h2>
           <p>
             FinEd is also a powerful partner for financial institutions. We help banks, NBFCs, and credit
             unions to educate their users, build trust, and drive smarter product adoption by:
@@ -275,7 +275,7 @@ const AboutUs = () => {
 
         {/* Mascot */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">A Friendly Face: Meet Finix</h2>
+          <h2 className="text-2xl font-bold">A Friendly Face: Meet Finix</h2>
           <p>
             Our mascot, Finix, adds a friendly face to your learning journey. While finance is serious
             business, learning it doesn’t have to be dull.
@@ -286,10 +286,25 @@ const AboutUs = () => {
           </div>
         </section>
 
-        {/* Meet the Team */}
+        {/* Meet the Team Section */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Meet the Team</h2>
-          <p>[Leave blank for now]</p>
+          <h2 className="text-2xl font-semibold text-center">Meet the Team</h2>
+          <p className="text-center text-gray-600 max-w-3xl mx-auto">
+            A passionate group of educators, developers, and dreamers working together to bring financial education to everyone.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
+            {[...Array(8)].map((_, idx) => (
+              <div key={idx} className="bg-white rounded-xl shadow-sm p-4 flex flex-col items-center">
+                <img
+                  src={`/team/person${idx + 1}.jpg`}
+                  alt={`Team Member ${idx + 1}`}
+                  className="w-24 h-24 object-cover rounded-full mb-3"
+                />
+                <h4 className="text-lg font-semibold text-gray-800">Person {idx + 1}</h4>
+                <p className="text-sm text-gray-500">Team Role</p>
+              </div>
+            ))}
+          </div>
         </section>
 
       </div>

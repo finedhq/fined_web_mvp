@@ -9,6 +9,7 @@ import { GrNotes } from "react-icons/gr"
 import { RxCross2 } from "react-icons/rx"
 import { AiTwotoneDelete } from "react-icons/ai"
 import { useAuth0 } from '@auth0/auth0-react'
+import toast from "react-hot-toast"
 
 export default function ExpenseTracker() {
 
@@ -232,7 +233,7 @@ export default function ExpenseTracker() {
   }, [monthsRange, email])
 
   useEffect(() => {
-    if (fetchedTransactions.length > 0) {
+    if (fetchedTransactions.length >= 0) {
       fetchCategoryBudgets()
     }
   }, [fetchedTransactions])
@@ -758,7 +759,7 @@ export default function ExpenseTracker() {
                 <div className="flex justify-between" >
                   <button onClick={() => setIsAddingTransaction(true)} className="bg-violet-900 hover:bg-violet-950 transition-all duration-200 py-4 px-6 text-white shadow-sm text-lg font-semibold rounded-xl flex items-center justify-center gap-4 cursor-pointer" ><p className="text-3xl" >+</p>Add transaction</button>
                   <button onClick={() => setIsBudgetEditing(true)} className="bg-white hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Set budget goals</button>
-                  <button className="bg-white hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Add receipts & trips</button>
+                  <button title="Coming Soon ..." onClick={() => toast("ℹ️ Coming Soon ...")} className="bg-white hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Add receipts & trips</button>
                 </div>
                 <div>
                   <WorkingCapitalChart data={fetchedTransactions} monthsRange={monthsRange} setMonthsRange={setMonthsRange} />

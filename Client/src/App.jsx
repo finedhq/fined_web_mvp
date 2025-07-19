@@ -27,6 +27,8 @@ import Notifications from './pages/Notifications.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import FeedbackPage from './pages/FeedbackPage.jsx';
 import AboutUs from './pages/AboutUsPage.jsx';
+import HelpPage from './pages/HelpPage.jsx';
+import ContactUs from './pages/ContactUsPage.jsx';
 
 function ScrollToTop() {
   let { pathname } = useLocation()
@@ -69,6 +71,8 @@ const App = () => {
           <Route path="/fin-tools/expensetracker" element={<ExpenseTracker />} />
           <Route path="/feedback" element={<FeedbackPage />} />
           <Route path="/about" element={<AboutUs />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/contact" element={<ContactUs />} />
 
           <Route path='*' element={<NotFoundPage />} />
 
