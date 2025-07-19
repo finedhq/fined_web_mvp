@@ -384,7 +384,7 @@ export default function CoursesHomePage() {
                                 )}
                             </div>
 
-                            <div className="w-full">
+                            <div className="w-full pb-10">
                                 <div className="flex justify-between" >
                                     <h2 className="text-xl font-semibold">Recommended Courses</h2>
                                     <div className="flex space-x-2 mr-2 mb-2">

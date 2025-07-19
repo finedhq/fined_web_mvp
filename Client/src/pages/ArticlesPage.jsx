@@ -333,7 +333,7 @@ const ArticlesPage = () => {
 
 
   return (
-    <div className="mx-auto bg-gray-100 font-inter text-[#1e1e1e]">
+    <div className="bg-gray-100 font-inter text-[#1e1e1e]">
 
       {isAuthenticated ?
         <header className="flex justify-between items-center h-[63px] px-10 py-12 bg-gray-100 box-border">
@@ -521,7 +521,7 @@ const ArticlesPage = () => {
               </div>
             </div>
 
-            <div className="flex gap-6 bg-gray-100 py-12">
+            <div className="flex gap-6 px-10 py-12 bg-gray-100">
 
               <div onClick={() => openArticle(articles[1])} className='cursor-pointer min-w-1/2' >
                 <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-72 object-cover mb-6" />
@@ -554,7 +554,7 @@ const ArticlesPage = () => {
               </div>
             </div>
 
-            <div className="bg-gray-100 py-12">
+            <div className="bg-gray-100 px-10 py-12">
               <div className="flex justify-between items-center mb-12">
                 <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
                 <div className="flex gap-3">

@@ -232,7 +232,7 @@ const HomePage = () => {
   }
 
   return (
-    <div className="mx-auto bg-gray-100 font-inter text-[#1e1e1e] px-4 sm:px-6 xl:px-10 2xl:max-w-[2000px]  2xl:mx-auto">
+    <div className="bg-gray-100 font-inter text-[#1e1e1e] pb-5 px-4 sm:px-6 xl:px-10 2xl:max-w-[2000px] 2xl:mx-auto">
       <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
         {/* Mobile and Tablet Header */}
         <div className="flex justify-between items-center w-full mt-8 xl:hidden">
@@ -560,7 +560,7 @@ const HomePage = () => {
         </div>
       )}
 
-      <footer className="bg-[#f7fafc] -mx-4 sm:-mx-6 xl:-mx-10 p-6 sm:p-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans 2xl:max-w-[1400px] 2xl:mx-auto">
+      <footer className="bg-[#f7fafc] -mx-4 sm:-mx-6 xl:-mx-10 p-6 sm:px-20 sm:py-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans">
         <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] flex flex-col items-center sm:items-start">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
           <p className="text-sm sm:text-base text-gray-700 mb-4 text-center sm:text-left">Financial Education made Easy.</p>
