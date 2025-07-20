@@ -202,9 +202,7 @@ export default function LandingPage() {
           <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
             <img
               src="/logo.jpg"
-              sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
               alt="FinEd logo"
-              loading="lazy"
               className="h-12 sm:h-14 w-auto object-contain"
             />
           </div>
@@ -260,9 +258,7 @@ export default function LandingPage() {
         <div className="w-full lg:w-[600px] flex justify-center">
           <img
             src="/landing1.png"
-            sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Code preview"
-            loading="lazy"
             className="w-full max-w-[600px] rounded-2xl shadow-xl object-contain"
           />
         </div>
@@ -288,9 +284,7 @@ export default function LandingPage() {
         <div className="flex-1 w-full md:w-[45%] flex justify-center">
           <img
             src="/landing2.png"
-            sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Dashboard preview 1"
-            loading="lazy"
             className="w-full max-w-[500px] h-auto rounded-lg shadow-lg object-contain"
           />
         </div>
@@ -300,9 +294,7 @@ export default function LandingPage() {
         <div className="flex-1 w-full md:w-[45%] flex justify-center mb-10 md:mb-0">
           <img
             src="/dashboard.png"
-            sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Dashboard preview 2"
-            loading="lazy"
             className="w-full max-w-[500px] h-auto rounded-lg shadow-lg object-contain"
           />
         </div>
@@ -335,9 +327,7 @@ export default function LandingPage() {
         <div className="flex-1 w-full md:w-[45%] flex justify-center">
           <img
             src="/dashboard.png"
-            sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Organization Overview"
-            loading="lazy"
             className="w-full max-w-[500px] h-auto rounded-lg shadow-lg object-contain"
           />
         </div>
