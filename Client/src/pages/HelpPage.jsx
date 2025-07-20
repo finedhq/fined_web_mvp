@@ -268,7 +268,7 @@ const HelpPage = () => {
                             </button>
                         </div>
                         <nav role="navigation" aria-label="Main navigation" className="hidden sm:flex flex-wrap items-center justify-center sm:justify-end gap-6 sm:gap-10">
-                            <Link to="/courses" aria-label="View courses" className="px-6 py-2 rounded-full font-medium transition-colors duration-200 text-base sm:text-lg text-white bg-amber-400">Courses</Link>
+                            <Link to="/courses" aria-label="View courses" className="font-medium transition-colors duration-200 text-base sm:text-lg text-gray-700 hover:text-blue-700">Courses</Link>
                             <Link to="/articles" aria-label="View articles" className="font-medium transition-colors duration-200 text-base sm:text-lg text-gray-700 hover:text-blue-700" >Articles</Link>
                             <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
                             <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>

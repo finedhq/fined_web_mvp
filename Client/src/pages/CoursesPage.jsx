@@ -89,7 +89,7 @@ export default function CoursesHomePage() {
     const scrollLeft = (ref) => {
         const el = ref.current;
         if (el) {
-            const scrollAmount = window.innerWidth <= 768 ? 332 : window.innerWidth >= 1400 ? 930 : 620;
+            const scrollAmount = window.innerWidth <= 768 ? 330 : window.innerWidth >= 1400 ? 1060 : 620;
             el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         }
     };
@@ -97,7 +97,7 @@ export default function CoursesHomePage() {
     const scrollRight = (ref) => {
         const el = ref.current;
         if (el) {
-            const scrollAmount = window.innerWidth <= 768 ? 332 : window.innerWidth >= 1400 ? 930 : 620;
+            const scrollAmount = window.innerWidth <= 768 ? 330 : window.innerWidth >= 1400 ? 1060 : 620;
             el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
     };
@@ -527,7 +527,7 @@ export default function CoursesHomePage() {
                                         </button>
                                     </div>
                                 </div>
-                                <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[34px] h-[740px] mx-4 overflow-hidden">
+                                <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[34px] h-[740px] mx-4 px-2 sm:px-0 overflow-hidden">
                                     {courses.map((course) => (
                                         <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                                     ))}

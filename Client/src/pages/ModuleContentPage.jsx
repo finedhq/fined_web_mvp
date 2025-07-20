@@ -209,11 +209,17 @@ const ModuleContentPage = () => {
                 const isCorrectAnswer = option === card.correct_answer
 
                 let optionClass = 'bg-gray-200 hover:bg-gray-400'
+
                 if (disabled) {
-                  if (isSelected && isCorrectAnswer) optionClass = 'bg-green-400'
-                  else if (isSelected && !isCorrectAnswer) optionClass = 'bg-red-400'
-                  else if (isCorrectAnswer) optionClass = 'bg-green-300'
-                  else optionClass = 'bg-gray-200 opacity-50'
+                  if (card.correct_answer) {
+                    if (isSelected && isCorrectAnswer) optionClass = 'bg-green-400'
+                    else if (isSelected && !isCorrectAnswer) optionClass = 'bg-red-400'
+                    else if (isCorrectAnswer) optionClass = 'bg-green-300'
+                    else optionClass = 'bg-gray-200 opacity-50'
+                  } else {
+                    if (isSelected) optionClass = 'bg-amber-300 text-blue-900 font-semibold'
+                    else optionClass = 'bg-gray-200 opacity-50'
+                  }
                 }
 
                 return (
@@ -232,9 +238,9 @@ const ModuleContentPage = () => {
               })}
             </div>
 
-            {disabled && (
+            {disabled && card?.correct_answer && (
               <div className='bg-gray-100 p-4 rounded-xl my-4 text-lg text-center font-medium'>
-                Correct Answer: <span className="font-bold">{card?.correct_answer}</span>
+                Correct Answer: <span className="font-bold">{card.correct_answer}</span>
               </div>
             )}
 

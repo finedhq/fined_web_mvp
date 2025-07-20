@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
 import toast from "react-hot-toast";
+import instance from "../lib/axios";
 
 export default function LandingPage() {
   const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
@@ -9,11 +10,16 @@ export default function LandingPage() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [canScrollLeftCourses, setCanScrollLeftCourses] = useState(false);
-  const [canScrollRightCourses, setCanScrollRightCourses] = useState(true);
+  const [canScrollRightCourses, setCanScrollRightCourses] = useState(false);
   const [canScrollLeftArticles, setCanScrollLeftArticles] = useState(false);
-  const [canScrollRightArticles, setCanScrollRightArticles] = useState(true);
+  const [canScrollRightArticles, setCanScrollRightArticles] = useState(false);
   const courseCarouselRef = useRef(null);
   const articleCarouselRef = useRef(null);
+
+  const [courses, setCourses] = useState([]);
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && location.pathname === '/') {
@@ -33,10 +39,36 @@ export default function LandingPage() {
     );
   }
 
+  async function fetchCourses() {
+    setLoading(true)
+    try {
+      const res = await instance.get("/courses/getall")
+      if (res.data.length > 0) {
+        setCourses(res.data)
+        setLoading(false)
+      }
+    } catch (err) {
+      setError("Failed to load courses.")
+    }
+  }
+
+  const fetchArticles = async () => {
+    try {
+      const res = await instance.post("/articles/getall", { limit: 15, offset: 0 })
+      setArticles(res?.data)
+    } catch (err) {
+      setError("Failed to load articles.")
+    }
+  }
+
+  useEffect(() => {
+    fetchCourses()
+    fetchArticles()
+  }, [])
+
   useEffect(() => {
     const shouldReload = sessionStorage.getItem("forceReload");
     if (shouldReload) {
-      // console.log("Reloading,.");
       sessionStorage.removeItem("forceReload");
       window.location.reload();
     }
@@ -56,63 +88,77 @@ export default function LandingPage() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const checkScroll = (ref, setLeft, setRight) => {
-    const el = ref.current;
+  const checkScroll = (el, setLeft, setRight) => {
     if (!el) return;
-    setLeft(el.scrollLeft > 0);
-    setRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+    const scrollLeft = el.scrollLeft;
+    const maxScrollLeft = el.scrollWidth - el.clientWidth;
+
+    setLeft(scrollLeft > 10);
+    setRight(scrollLeft < maxScrollLeft - 10);
   };
 
   const scrollLeft = (ref) => {
     const el = ref.current;
     if (el) {
-      const cardWidth = el.querySelector('.card-content')?.offsetWidth || 260;
-      el.scrollBy({ left: -(cardWidth + 24), behavior: 'smooth' }); // Include gap
+      const width = el.getBoundingClientRect().width;
+      el.scrollBy({ left: -width, behavior: 'smooth' });
     }
   };
 
   const scrollRight = (ref) => {
     const el = ref.current;
     if (el) {
-      const cardWidth = el.querySelector('.card-content')?.offsetWidth || 260;
-      el.scrollBy({ left: cardWidth + 24, behavior: 'smooth' }); // Include gap
+      const width = el.getBoundingClientRect().width;
+      el.scrollBy({ left: width, behavior: 'smooth' });
     }
   };
 
   useEffect(() => {
-    const courseEl = courseCarouselRef.current;
-    const articleEl = articleCarouselRef.current;
-    const handleCourseScroll = () => checkScroll(courseEl, setCanScrollLeftCourses, setCanScrollRightCourses);
-    const handleArticleScroll = () => checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles);
+    const el1 = courseCarouselRef.current;
+    const el2 = articleCarouselRef.current;
 
-    if (courseEl) {
-      courseEl.addEventListener('scroll', handleCourseScroll);
-      checkScroll(courseEl, setCanScrollLeftCourses, setCanScrollRightCourses);
+    const updateScrollStates = () => {
+      checkScroll(el1, setCanScrollLeftCourses, setCanScrollRightCourses);
+      checkScroll(el2, setCanScrollLeftArticles, setCanScrollRightArticles);
+    };
+
+    const handler1 = () => checkScroll(el1, setCanScrollLeftCourses, setCanScrollRightCourses);
+    const handler2 = () => checkScroll(el2, setCanScrollLeftArticles, setCanScrollRightArticles);
+
+    if (el1) {
+      el1.addEventListener('scroll', handler1);
     }
-    if (articleEl) {
-      articleEl.addEventListener('scroll', handleArticleScroll);
-      checkScroll(articleEl, setCanScrollLeftArticles, setCanScrollRightArticles);
+    if (el2) {
+      el2.addEventListener('scroll', handler2);
     }
+
+    const resizeObserver = new ResizeObserver(updateScrollStates);
+    const mutationObserver = new MutationObserver(updateScrollStates);
+
+    if (el1) {
+      resizeObserver.observe(el1);
+      mutationObserver.observe(el1, { childList: true, subtree: true });
+    }
+    if (el2) {
+      resizeObserver.observe(el2);
+      mutationObserver.observe(el2, { childList: true, subtree: true });
+    }
+
+    updateScrollStates();
 
     return () => {
-      if (courseEl) courseEl.removeEventListener('scroll', handleCourseScroll);
-      if (articleEl) articleEl.removeEventListener('scroll', handleArticleScroll);
+      if (el1) {
+        el1.removeEventListener('scroll', handler1);
+        resizeObserver.unobserve(el1);
+        mutationObserver.disconnect();
+      }
+      if (el2) {
+        el2.removeEventListener('scroll', handler2);
+        resizeObserver.unobserve(el2);
+        mutationObserver.disconnect();
+      }
     };
-  }, []);
-
-  const courses = [
-    { title: 'Stock Market Basics', modules: 5, duration: 25 },
-    { title: 'Investing 101', modules: 6, duration: 30 },
-    { title: 'Mutual Funds', modules: 4, duration: 20 },
-    { title: 'Crypto Explained', modules: 5, duration: 22 },
-  ];
-
-  const articles = [
-    { title: 'Stock Market Basics', modules: 5, duration: 25 },
-    { title: 'Finance Tips', modules: 3, duration: 15 },
-    { title: 'Invest Smart', modules: 6, duration: 30 },
-    { title: 'Crypto Crash Course', modules: 4, duration: 20 },
-  ];
+  }, [courses, articles]);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 font-inter">
@@ -151,12 +197,11 @@ export default function LandingPage() {
           }
         `}
       </style>
-      <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-white shadow-sm">
-        <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
+      <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-3 sm:py-6 bg-white shadow-sm">
+        <div className="flex items-center justify-between w-full sm:w-auto">
           <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
             <img
               src="/logo.jpg"
-              srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
               sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
               alt="FinEd logo"
               loading="lazy"
@@ -214,8 +259,7 @@ export default function LandingPage() {
         </div>
         <div className="w-full lg:w-[600px] flex justify-center">
           <img
-            src="/dashboard.png"
-            srcSet="/dashboard-320w.png 320w, /dashboard-640w.png 640w, /dashboard.png 1280w"
+            src="/landing1.png"
             sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Code preview"
             loading="lazy"
@@ -227,7 +271,7 @@ export default function LandingPage() {
       <section className="bg-[#3B0DAD] text-white py-12 sm:py-16 px-6 sm:px-10 lg:px-16 text-center relative">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-5 font-semibold">Jump into your first course</h2>
         <p className="text-base sm:text-lg mb-8">No sign-in, no hassle. Start learning about money in just one click.</p>
-        <Link to="/course/1" className="bg-[#fbbf24] text-white py-3 px-8 rounded-lg font-bold no-underline text-base sm:text-lg hover:bg-[#e6b640] transition-colors duration-200">Give It a Go →</Link>
+        <Link to={`/courses/course/${courses[0]?.id}`} className="bg-[#fbbf24] text-white py-3 px-8 rounded-lg font-bold no-underline text-base sm:text-lg hover:bg-[#e6b640] transition-colors duration-200">Give It a Go →</Link>
       </section>
 
       <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center bg-white gap-8">
@@ -243,8 +287,7 @@ export default function LandingPage() {
         </div>
         <div className="flex-1 w-full md:w-[45%] flex justify-center">
           <img
-            src="/dashboard.png"
-            srcSet="/dashboard-320w.png 320w, /dashboard-640w.png 640w, /dashboard.png 1280w"
+            src="/landing2.png"
             sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Dashboard preview 1"
             loading="lazy"
@@ -257,7 +300,6 @@ export default function LandingPage() {
         <div className="flex-1 w-full md:w-[45%] flex justify-center mb-10 md:mb-0">
           <img
             src="/dashboard.png"
-            srcSet="/dashboard-320w.png 320w, /dashboard-640w.png 640w, /dashboard.png 1280w"
             sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Dashboard preview 2"
             loading="lazy"
@@ -293,7 +335,6 @@ export default function LandingPage() {
         <div className="flex-1 w-full md:w-[45%] flex justify-center">
           <img
             src="/dashboard.png"
-            srcSet="/dashboard-320w.png 320w, /dashboard-640w.png 640w, /dashboard.png 1280w"
             sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
             alt="Organization Overview"
             loading="lazy"
@@ -303,11 +344,11 @@ export default function LandingPage() {
       </div>
 
       <section className="wave-container text-white py-16 px-6 sm:px-10 lg:px-16">
-        <div className="flex justify-between items-center mb-8 px-4 sm:px-6">
+        <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Explore Courses</h2>
           <div className="flex gap-3">
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollLeftCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollLeftCourses ? 'bg-amber-400 text-white hover:bg-amber-500 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               onClick={() => scrollLeft(courseCarouselRef)}
               disabled={!canScrollLeftCourses}
               aria-label="Scroll courses left"
@@ -315,7 +356,7 @@ export default function LandingPage() {
               ❮
             </button>
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollRightCourses ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollRightCourses ? 'bg-amber-400 text-white hover:bg-amber-500 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               onClick={() => scrollRight(courseCarouselRef)}
               disabled={!canScrollRightCourses}
               aria-label="Scroll courses right"
@@ -325,24 +366,24 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix">
+        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[440px] pt-4 gap-8 sm:px-2 mb-10 overflow-hidden snap-x snap-mandatory hide-scrollbar">
           {courses.length > 0 ? (
             courses.map((course, index) => (
-              <div key={index} className="bg-white text-gray-900 rounded-xl p-8 shadow-md flex flex-col justify-between h-48 transition-transform duration-200 hover:-translate-y-1 min-w-[260px] sm:min-w-0 snap-start card-content">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl sm:text-2xl lg:text-3xl text-purple-800 font-semibold">{course.title}</h3>
-                  <img
-                    src="/stock.png"
-                    srcSet="/stock-320w.png 320w, /stock-640w.png 640w, /stock.png 1280w"
-                    sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-                    alt={course.title}
-                    loading="lazy"
-                    className="w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 object-contain max-w-[80px] md:max-w-[100px] lg:max-w-[120px]"
-                    style={{ width: '80px', height: '80px', maxWidth: '90px' }}
-                  />
+              <div key={index} className="bg-white text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-48 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
+                <div className='flex justify-between gap-4' >
+                  <div className='max-w-3/5' >
+                    <p className='text-2xl text-purple-700 font-semibold' >{course.title}</p>
+                  </div>
+                  <div className="flex">
+                    <img
+                      src={course.thumbnail_url}
+                      alt={course.title}
+                      className="h-28 w-44 object-cover rounded-2xl"
+                    />
+                  </div>
                 </div>
                 <div className="mt-auto">
-                  <p className="text-sm sm:text-base text-gray-700">{course.modules} modules • {course.duration} mins</p>
+                  <p className="text-sm sm:text-base text-gray-700">{course.modules_count} modules • {course.duration} mins</p>
                 </div>
               </div>
             ))
@@ -359,11 +400,11 @@ export default function LandingPage() {
       </section>
 
       <section className="bg-white py-16 px-6 sm:px-10 lg:px-16">
-        <div className="flex justify-between items-center mb-8 px-4 sm:px-6">
+        <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Articles</h2>
           <div className="flex gap-3">
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollLeftArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollLeftArticles ? 'bg-amber-400 text-white hover:bg-amber-500 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               onClick={() => scrollLeft(articleCarouselRef)}
               disabled={!canScrollLeftArticles}
               aria-label="Scroll articles left"
@@ -371,7 +412,7 @@ export default function LandingPage() {
               ❮
             </button>
             <button
-              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollRightArticles ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-gray-200 text-gray-400'}`}
+              className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 ${canScrollRightArticles ? 'bg-amber-400 text-white hover:bg-amber-500 cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
               onClick={() => scrollRight(articleCarouselRef)}
               disabled={!canScrollRightArticles}
               aria-label="Scroll articles right"
@@ -381,24 +422,21 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={articleCarouselRef} role="region" aria-label="Articles carousel" className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-6 mb-8 overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory hide-scrollbar ipad-pro-fix">
+        <div ref={articleCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[390px] pt-4 gap-8 sm:px-2 mb-10 overflow-hidden snap-x snap-mandatory hide-scrollbar">
           {articles.length > 0 ? (
             articles.map((article, index) => (
-              <div key={index} className="bg-white text-gray-900 rounded-xl p-8 shadow-md flex flex-col justify-between h-48 transition-transform duration-200 hover:-translate-y-1 min-w-[260px] sm:min-w-0 snap-start card-content">
-                <div className="flex justify-between items-center">
-                  <strong className="text-xl sm:text-2xl lg:text-3xl text-purple-800 font-semibold">{article.title}</strong>
-                  <img
-                    src="/stock.png"
-                    srcSet="/stock-320w.png 320w, /stock-640w.png 640w, /stock.png 1280w"
-                    sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-                    alt={article.title}
-                    loading="lazy"
-                    className="w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 object-contain max-w-[80px] md:max-w-[100px] lg:max-w-[120px]"
-                    style={{ width: '80px', height: '80px', maxWidth: '90px' }}
-                  />
-                </div>
-                <div className="mt-auto">
-                  <p className="text-sm sm:text-base text-gray-700">{article.modules} modules • {article.duration} mins</p>
+              <div key={index} className="bg-white text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-40 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
+                <div className='flex justify-between gap-4' >
+                  <div className='max-w-3/5' >
+                    <p className='text-xl text-purple-700 font-semibold' >{article.title}</p>
+                  </div>
+                  <div className="flex">
+                    <img
+                      src={article.image_url}
+                      alt={article.title}
+                      className="h-32 w-58 object-cover rounded-2xl"
+                    />
+                  </div>
                 </div>
               </div>
             ))
@@ -409,51 +447,31 @@ export default function LandingPage() {
       </section>
 
       <footer className="bg-[#f7fafc] py-12 px-6 sm:px-10 lg:px-16 flex flex-col md:flex-row flex-wrap justify-between text-[#333] font-sans gap-8">
-        <div className="flex-1 basis-full md:basis-[200px] min-w-[200px] flex flex-col items-center md:items-start mb-8 md:mb-0">
-          <img
-            src="/logo.jpg"
-            srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
-            sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-            alt="FinEd Logo"
-            loading="lazy"
-            className="h-10 sm:h-12 mb-4"
-          />
-          <p className="text-base sm:text-lg text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
-          <div className="flex gap-5">
-            <a href="https://www.linkedin.com/company/fined-personal-finance/" aria-label="Visit our LinkedIn page">
-              <img
-                src="/linkedin.png"
-                srcSet="/linkedin-320w.png 320w, /linkedin-640w.png 640w, /linkedin.png 1280w"
-                sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-                alt="LinkedIn"
-                loading="lazy"
-                className="w-10 h-10 transition-transform duration-200 hover:scale-110 cursor-pointer"
-              />
-            </a>
-            <a href="https://instagram.com/fined.personalfinance" aria-label="Visit our Instagram page">
-              <img
-                src="/insta.jpg"
-                srcSet="/insta-320w.jpg 320w, /insta-640w.jpg 640w, /insta.jpg 1280w"
-                sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-                alt="Instagram"
-                loading="lazy"
-                className="w-10 h-10 transition-transform duration-200 hover:scale-110 cursor-pointer"
-              />
-            </a>
+        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
+          <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
+          <p className="text-base text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
+          <div className="flex gap-4">
+            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
+            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
           </div>
         </div>
-        <div className="flex-1 basis-full md:basis-[200px] min-w-[200px] text-center md:text-left">
-          <h4 className="text-sm sm:text-base font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
-          <Link to="/courses" aria-label="View courses" className="block mb-3 text-base sm:text-lg text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
-          <Link to="/articles" aria-label="View articles" className="block mb-3 text-base sm:text-lg text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link onClick={() => toast.error("Please sign in")} aria-label="View FinTools" className="block mb-3 text-base sm:text-lg text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
-          <Link to="/about" aria-label="About us" className="block mb-3 text-base sm:text-lg text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
+        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
+          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
+          <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
+          <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
+          <Link to={isAuthenticated ? "/fin-tools" : "#"} onClick={(e) => {
+            if (!isAuthenticated) {
+              e.preventDefault();
+              toast.error("Please sign in");
+            }
+          }} className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
+          <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
         </div>
-        <div className="flex-1 basis-full md:basis-[200px] min-w-[200px] text-center md:text-left">
-          <h4 className="text-sm sm:text-base font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/help" aria-label="Help" className="block mb-3 text-base sm:text-lg text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
-          <Link to="/contact" aria-label="Contact us" className="block mb-3 text-base sm:text-lg text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
-          <Link to="/feedback" aria-label="Feedback" className="block mb-3 text-base sm:text-lg text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
+        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
+          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
+          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
+          <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
+          <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
         </div>
         <div className="flex-1 basis-full md:basis-[200px] min-w-[200px] text-center md:text-left">
           <h4 className="text-sm sm:text-base font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
@@ -464,7 +482,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      <p className="text-center w-full py-6 sm:py-8 text-sm sm:text-base">
+      <p className="text-center w-full py-10 text-xs">
         © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
       </p>
     </div>
