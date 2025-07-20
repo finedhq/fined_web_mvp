@@ -142,11 +142,11 @@ const ModuleContentPage = () => {
                 <img
                   src={card.image_url}
                   alt="image"
-                  className="float-left h-48 w-48 object-cover mr-8"
+                  className="float-left h-32 w-32 sm:h-48 sm:w-48 object-cover mr-4 sm:mr-8"
                 />
               }
-              <h1 className="text-2xl font-bold mb-4">{card.title}</h1>
-              <p className='text-justify' >{card.content_text}</p>
+              <h1 className="text-lg sm:text-2xl font-bold mb-4">{card.title}</h1>
+              <p className='text-base text-justify' >{card.content_text}</p>
             </div>
             <div className="flex justify-between mt-8">
               {prevCardId ? (
@@ -220,7 +220,7 @@ const ModuleContentPage = () => {
                   <div
                     key={index}
                     onClick={() => checkIsCorrect(index)}
-                    className={`w-2/3 flex justify-between items-center transition-all duration-200 px-4 py-2 cursor-pointer rounded-lg ${optionClass}`}
+                    className={`w-full sm:w-2/3 flex justify-between items-center transition-all duration-200 px-4 py-2 cursor-pointer rounded-lg ${optionClass}`}
                   >
                     <p className='rounded-full bg-gray-300 px-3 py-1'>
                       {String.fromCharCode(65 + index)}

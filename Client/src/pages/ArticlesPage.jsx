@@ -337,7 +337,7 @@ const ArticlesPage = () => {
     <div className="bg-gray-100 font-inter text-[#1e1e1e] 2xl:max-w-[2000px] 2xl:mx-auto">
 
       {isAuthenticated ?
-        <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
+        <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4">
           {/* Mobile and Tablet Header */}
           <div className="flex justify-between items-center w-full mt-4 xl:hidden px-4">
             <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">

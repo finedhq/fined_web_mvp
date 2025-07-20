@@ -309,7 +309,7 @@ export default function CourseOverviewPage() {
 
                   return (
                     <div key={i} className={`relative w-full flex ${i % 2 === 0 ? "justify-start sm:pl-20" : "justify-end sm:pr-20"}`}>
-                      <div className={`flex flex-col items-center w-28 ${i % 2 === 0 ? '-ml-4 sm:ml-[125px]' : '-mr-4 sm:mr-[120px]'}`}>
+                      <div className={`flex flex-col items-center w-1/6 ${i % 2 === 0 ? 'ml-0 sm:ml-[125px]' : 'sm:mr-[120px]'}`}>
                         <button
                           onClick={() => {
                             if (isClickable) {
@@ -341,7 +341,7 @@ export default function CourseOverviewPage() {
                         <img
                           src={i % 2 === 0 ? imageAssets.pathLeftToRight : imageAssets.pathRightToLeft}
                           alt="path"
-                          className="absolute mt-12 top-12 left-1/2 transform -translate-x-1/2 w-56 sm:w-64"
+                          className="absolute mt-12 top-12 left-1/2 transform -translate-x-1/2 w-6/7 sm:w-1/3"
                         />
                       )}
                     </div>
