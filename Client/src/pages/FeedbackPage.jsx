@@ -93,13 +93,13 @@ export default function FeedbackPage() {
     )
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center py-10 px-4">
-            <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center sm:py-10 sm:px-4">
+            <div className="max-w-xl w-full bg-white rounded-2xl shadow-xl p-4 sm:p-8 space-y-6">
                 <div className='flex justify-between'>
-                    <h2 className="text-3xl font-bold text-center text-gray-800">We Value Your Feedback</h2>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800">We Value Your Feedback</h2>
                     <button
                         onClick={() => navigate(-1)}
-                        className="text-gray-500 hover:text-gray-700 text-4xl -mt-2 font-bold cursor-pointer"
+                        className="text-gray-500 hover:text-gray-700 text-3xl sm:text-4xl -mt-1 sm:-mt-2 font-bold cursor-pointer"
                     >
                         &times;
                     </button>
@@ -112,7 +112,7 @@ export default function FeedbackPage() {
                             name="name"
                             value={form.name}
                             onChange={handleChange}
-                            className="w-full mt-1 px-4 py-2 border rounded-lg shadow-sm focus:outline-none"
+                            className="w-full text-sm sm:text-base mt-1 px-4 py-2 border rounded-lg shadow-sm focus:outline-none"
                             required
                         />
                     </div>
@@ -123,18 +123,18 @@ export default function FeedbackPage() {
                             name="email"
                             value={form.email}
                             onChange={handleChange}
-                            className="w-full mt-1 px-4 py-2 border rounded-lg shadow-sm focus:outline-none"
+                            className="w-full text-sm sm:text-base mt-1 px-4 py-2 border rounded-lg shadow-sm focus:outline-none"
                             required
                         />
                     </div>
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Q1. How helpful did you find the financial learning content?</label>
                         {renderStars("q1_helpfulness", form.q1_helpfulness)}
                     </div>
 
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Q2. Did the content feel too basic, too advanced, or just right for you?</label>
-                        <select name="q2_difficulty" value={form.q2_difficulty} onChange={handleChange} className="w-full px-4 py-2 mt-3 border rounded-lg cursor-pointer">
+                        <select name="q2_difficulty" value={form.q2_difficulty} onChange={handleChange} className="w-full px-2 sm:px-4 py-2 mt-3 border rounded-lg cursor-pointer">
                             <option value="">Select...</option>
                             <option value="Too basic">Too basic</option>
                             <option value="Slightly basic">Slightly basic</option>
@@ -144,14 +144,14 @@ export default function FeedbackPage() {
                         </select>
                     </div>
 
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Q3. On a scale of 1–5, how easy was it to navigate the website?</label>
                         {renderStars("q3_navigation", form.q3_navigation)}
                     </div>
 
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Q4. How would you rate the overall design and layout of the website?</label>
-                        <select name="q4_design" value={form.q4_design} onChange={handleChange} className="w-full px-4 py-2 mt-3 border rounded-lg cursor-pointer">
+                        <select name="q4_design" value={form.q4_design} onChange={handleChange} className="w-full px-2 sm:px-4 py-2 mt-3 border rounded-lg cursor-pointer">
                             <option value="">Select...</option>
                             <option value="Very poor">Very poor</option>
                             <option value="Poor">Poor</option>
@@ -161,9 +161,9 @@ export default function FeedbackPage() {
                         </select>
                     </div>
 
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Q5. Were there any parts of the website that felt confusing?</label>
-                        <select name="q5_confusing" value={form.q5_confusing} onChange={handleChange} className="w-full px-4 py-2 mt-3 border rounded-lg cursor-pointer">
+                        <select name="q5_confusing" value={form.q5_confusing} onChange={handleChange} className="w-full px-2 sm:px-4 py-2 mt-3 border rounded-lg cursor-pointer">
                             <option value="">Select...</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
@@ -174,15 +174,15 @@ export default function FeedbackPage() {
                                 placeholder="If yes, please specify..."
                                 value={form.q5_details}
                                 onChange={handleChange}
-                                className="w-full mt-2 px-4 py-2 border rounded-lg resize-none"
+                                className="w-full mt-2 px-2 sm:px-4 py-2 border rounded-lg resize-none"
                                 rows="3"
                             />
                         )}
                     </div>
 
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Q6. What feature did you find most useful?</label>
-                        <select name="q6_favFeature" value={form.q6_favFeature} onChange={handleChange} className="w-full px-4 py-2 mt-3 border rounded-lg cursor-pointer">
+                        <select name="q6_favFeature" value={form.q6_favFeature} onChange={handleChange} className="w-full px-2 sm:px-4 py-2 mt-3 border rounded-lg cursor-pointer">
                             <option value="">Select...</option>
                             <option value="Courses">Courses</option>
                             <option value="Articles">Articles</option>
@@ -193,26 +193,26 @@ export default function FeedbackPage() {
                         </select>
                     </div>
 
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Q7. Based on your experience, how likely are you to return to FinEd?</label>
                         {renderStars("q7_returnLikelihood", form.q7_returnLikelihood)}
                     </div>
 
-                    <div>
+                    <div className='text-sm sm:text-base' >
                         <label>Additional Feedback</label>
                         <textarea
                             name="additionalFeedback"
                             rows="4"
                             value={form.additionalFeedback}
                             onChange={handleChange}
-                            className="w-full mt-1 px-4 py-2 border rounded-lg resize-none"
+                            className="w-full mt-1 px-2 sm:px-4 py-2 border rounded-lg resize-none"
                         />
                     </div>
 
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full bg-amber-400 text-white py-2 px-4 rounded-lg hover:bg-amber-500 transition-all font-semibold cursor-pointer"
+                        className="text-sm sm:text-base w-full bg-amber-400 text-white py-2 px-4 rounded-lg hover:bg-amber-500 transition-all font-semibold cursor-pointer"
                     >
                         {submitting ? "Submitting..." : "Submit Feedback"}
                     </button>

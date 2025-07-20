@@ -4,6 +4,7 @@ import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import { FiMenu, FiX } from "react-icons/fi"
 
 const ArticlesPage = () => {
   const navigate = useNavigate()
@@ -333,118 +334,229 @@ const ArticlesPage = () => {
 
 
   return (
-    <div className="bg-gray-100 font-inter text-[#1e1e1e]">
+    <div className="bg-gray-100 font-inter text-[#1e1e1e] 2xl:max-w-[2000px] 2xl:mx-auto">
 
       {isAuthenticated ?
-        <header className="flex justify-between items-center h-[63px] px-10 py-12 bg-gray-100 box-border">
-
-          <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-            <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
+        <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
+          {/* Mobile and Tablet Header */}
+          <div className="flex justify-between items-center w-full mt-4 xl:hidden px-4">
+            <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+              <img src="logo.jpg" alt="FinEd Logo" className="h-[48px] w-auto object-contain" />
+            </div>
+            <div className="flex items-center gap-4">
+              <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-2 shadow-md cursor-pointer">
+                <img src="bell.png" alt="Bell Icon" className='w-6' />
+                {hasUnseen && (
+                  <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+                )}
+              </div>
+              <button className="p-2 text-2xl" onClick={toggleSidebar}>
+                {isSidebarOpen ? <FiX /> : <FiMenu />}
+              </button>
+            </div>
           </div>
 
-          <nav className="flex gap-5">
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/home')}
-            >
-              Home
-            </button>
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/courses')}
-            >
-              Courses
-            </button>
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/articles')}
-            >
-              Articles
-            </button>
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/fin-tools')}
-            >
-              FinTools
-            </button>
-
-            {role === "Admin" ? <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/admin')}
-            >Admin DashBoard</button> : ""}
-
-            {isAuthenticated && <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-            >
-              LogOut
-            </button>}
-          </nav>
-
-          <div onClick={() => { isAuthenticated ? navigate("/notifications") : toast.error("Please sign in") }} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-            <img src="bell.png" alt="Bell Icon" width="24" />
-            {hasUnseen && (
-              <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-            )}
+          {/* Desktop Header */}
+          <div className="hidden xl:flex xl:flex-row xl:items-center w-full mt-8 px-10 justify-between">
+            <div onClick={() => navigate('/home')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+              <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
+            </div>
+            <nav className="flex flex-wrap justify-center gap-5">
+              <button
+                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => navigate('/home')}
+              >
+                Home
+              </button>
+              <button
+                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => navigate('/courses')}
+              >
+                Courses
+              </button>
+              <button
+                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => navigate('/articles')}
+              >
+                Articles
+              </button>
+              <button
+                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => navigate('/fin-tools')}
+              >
+                FinTools
+              </button>
+              {role === "Admin" && (
+                <button
+                  className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                  onClick={() => navigate('/admin')}
+                >
+                  Admin Dashboard
+                </button>
+              )}
+              <button
+                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
+                onClick={() => {
+                  sessionStorage.setItem("forceReload", "true");
+                  logout({ logoutParams: { returnTo: window.location.origin } })
+                }}
+              >
+                LogOut
+              </button>
+            </nav>
+            <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
+              <img src="bell.png" alt="Bell Icon" width="24" />
+              {hasUnseen && (
+                <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+              )}
+            </div>
           </div>
+
+          {/* Sidebar for mobile and tablet */}
+          <div
+            className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:hidden`}
+          >
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h2 className="text-lg font-bold">Menu</h2>
+              <button onClick={toggleSidebar} className="text-2xl">
+                <FiX />
+              </button>
+            </div>
+            <nav className="flex flex-col p-4 gap-2">
+              <button
+                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { navigate('/home'); setIsSidebarOpen(false); }}
+              >
+                Home
+              </button>
+              <button
+                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { navigate('/courses'); setIsSidebarOpen(false); }}
+              >
+                Courses
+              </button>
+              <button
+                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { navigate('/articles'); setIsSidebarOpen(false); }}
+              >
+                Articles
+              </button>
+              <button
+                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { navigate('/fin-tools'); setIsSidebarOpen(false); }}
+              >
+                FinTools
+              </button>
+              {role === "Admin" && (
+                <button
+                  className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                  onClick={() => { navigate('/admin'); setIsSidebarOpen(false); }}
+                >
+                  Admin Dashboard
+                </button>
+              )}
+              <button
+                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left bg-white text-gray-700 hover:bg-gray-200`}
+                onClick={() => {
+                  logout({ logoutParams: { returnTo: window.location.origin } });
+                  setIsSidebarOpen(false);
+                }}
+              >
+                LogOut
+              </button>
+            </nav>
+          </div>
+          {
+            isSidebarOpen && (
+              <div
+                className="fixed inset-0 bg-black/50 z-40"
+                onClick={toggleSidebar}
+              ></div>
+            )
+          }
         </header>
         :
-        <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-gray-100">
-          <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
-            <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
-              <img
-                src="/logo.jpg"
-                srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
-                sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-                alt="FinEd logo"
-                loading="lazy"
-                className="h-12 sm:h-14 w-auto object-contain"
-              />
+        <div>
+          <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-gray-100">
+            <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
+              <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
+                <img
+                  src="/logo.jpg"
+                  srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
+                  sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
+                  alt="FinEd logo"
+                  loading="lazy"
+                  className="h-12 sm:h-14 w-auto object-contain"
+                />
+              </div>
+              <button
+                className="sm:hidden text-gray-800 focus:outline-none p-2"
+                onClick={toggleSidebar}
+                aria-label="Toggle menu"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path>
+                </svg>
+              </button>
             </div>
-            <button
-              className="sm:hidden text-gray-800 focus:outline-none p-2"
-              onClick={toggleSidebar}
-              aria-label="Toggle menu"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path>
-              </svg>
-            </button>
+            <nav role="navigation" aria-label="Main navigation" className="hidden sm:flex flex-wrap items-center justify-center sm:justify-end gap-6 sm:gap-10">
+              <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Courses</Link>
+              <Link to="/articles" aria-label="View articles" className={`px-6 py-2 rounded-full font-medium transition-colors duration-200 text-base sm:text-lg ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>Articles</Link>
+              <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
+              <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
+            </nav>
+          </header>
+          <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out sm:hidden z-50`}>
+            <div className="flex justify-between items-center p-5 border-b">
+              <span className="font-bold text-lg">Menu</span>
+              <button onClick={toggleSidebar} className="text-gray-800 focus:outline-none" aria-label="Close menu">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <nav role="navigation" aria-label="Mobile navigation" className="flex flex-col p-5 space-y-5">
+              <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Courses</Link>
+              <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Articles</Link>
+              <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>About Us</Link>
+              <button onClick={() => { loginWithRedirect(); toggleSidebar(); }} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-lg cursor-pointer">Sign up / Login</button>
+            </nav>
           </div>
-          <nav role="navigation" aria-label="Main navigation" className="hidden sm:flex flex-wrap items-center justify-center sm:justify-end gap-6 sm:gap-10">
-            <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Courses</Link>
-            <Link to="/articles" aria-label="View articles" className={`px-6 py-2 rounded-full font-medium transition-colors duration-200 text-base sm:text-lg ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>Articles</Link>
-            <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
-            <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
-          </nav>
-        </header>
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-white bg-opacity-80 sm:hidden z-40"
+              onClick={toggleSidebar}
+              aria-hidden="true"
+            ></div>
+          )}
+        </div>
       }
       {isAuthenticated ?
         loading ?
-          <div className="min-h-screen w-full p-10 bg-gray-50 space-y-10 animate-pulse">
-            <div className="flex gap-10">
-              <div className="bg-gray-300 rounded-3xl shadow-md w-1/2 h-96"></div>
-              <div className="flex flex-col gap-8 w-1/2">
-                <div className="h-6 bg-gray-300 rounded w-2/3"></div>
-                <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-                <div className="h-4 bg-gray-300 rounded w-full"></div>
-                <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+          <div className="min-h-screen w-full p-4 sm:p-10 bg-gray-100 space-y-10 animate-pulse">
+            <div className="flex flex-col sm:flex-row gap-10">
+              <div className="bg-gray-300 rounded-3xl shadow-md sm:w-1/2 h-80"></div>
+              <div className="flex flex-col gap-8 sm:w-1/2">
+                <div className="h-6 bg-gray-300 rounded sm:w-2/3"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-1/2"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-full"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-5/6"></div>
               </div>
             </div>
-            <div className="flex gap-12">
-              <div className="flex flex-col gap-4 w-1/2">
+            <div className="flex flex-col sm:flex-row gap-12">
+              <div className="flex flex-col gap-4 sm:w-1/2">
                 <div className="h-72 bg-gray-300 rounded-2xl w-full"></div>
                 <div className="h-5 bg-gray-300 rounded w-3/4"></div>
                 <div className="h-4 bg-gray-300 rounded w-full"></div>
                 <div className="h-4 bg-gray-300 rounded w-5/6"></div>
               </div>
-              <div className="flex flex-col gap-4 w-1/2">
+              <div className="flex flex-col gap-4 sm:w-1/2">
                 <div className="h-5 bg-gray-300 rounded w-1/2"></div>
                 <div className="h-4 bg-gray-300 rounded w-full"></div>
                 <div className="h-64 bg-gray-300 rounded-2xl w-full"></div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="sm:grid grid-cols-2 gap-6 hidden">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex gap-5 mb-6 p-4 bg-white rounded-lg shadow">
                   <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
@@ -459,15 +571,15 @@ const ArticlesPage = () => {
           </div>
           :
           <div>
-            <div className="flex px-10 py-5 gap-6">
+            <div className="flex flex-col sm:flex-row px-4 sm:px-10 py-5 sm:py-10 gap-6">
 
               <div onClick={() => openArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
                 <div className="relative">
-                  <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-96 object-cover" />
+                  <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-48 sm:h-96 object-cover" />
                   <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
                 </div>
                 <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
+                  <h2 className="text-base sm:text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
                   <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
                   <p className='text-gray-600 text-sm mb-4' >[ . . . ]</p>
                   <p className="text-xs text-gray-400">{new Date(articles[0]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
@@ -477,7 +589,7 @@ const ArticlesPage = () => {
 
               <div className="flex flex-col gap-6 min-w-1/2">
 
-                <div className="flex justify-end items-center space-x-2 mr-6">
+                <div className="flex justify-end items-center space-x-2 sm:mr-6">
                   <button
                     className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
@@ -498,15 +610,15 @@ const ArticlesPage = () => {
                     ❯
                   </button>
                 </div>
-                <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-[500px] w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
+                <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 w-[327px] sm:h-[500px] sm:w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
                   {articles.slice(3).map((article, index) =>
-                    <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-6 cursor-pointer h-36 w-[690px]">
-                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-40 h-36 object-cover" />
+                    <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-80 sm:h-36 sm:w-[690px]">
+                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-cover" />
                       <div>
-                        <p className="text-xs text-gray-400 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
-                        <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
-                        <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                        <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                        <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
+                        <p className="text-gray-600 text-justify text-[10px] sm:text-sm max-h-8 sm:max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
+                        <p className='text-gray-600 text-[8px] sm:text-sm' >[ . . . ]</p>
                       </div>
                     </div>
                   )}
@@ -521,40 +633,42 @@ const ArticlesPage = () => {
               </div>
             </div>
 
-            <div className="flex gap-6 px-10 py-12 bg-gray-100">
+            <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
 
               <div onClick={() => openArticle(articles[1])} className='cursor-pointer min-w-1/2' >
-                <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-72 object-cover mb-6" />
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
-                <div className="flex items-center text-sm text-gray-500 mb-4">
+                <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-40 sm:h-72 object-cover mb-4 sm:mb-6" />
+                <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[1]?.title || ""}</h2>
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                 </div>
-                <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-                <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
+                <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
               </div>
 
-              <div onClick={() => openArticle(articles[2])} className="flex flex-col gap-10 min-w-1/2 cursor-pointer">
-                <div className='mr-6' >
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
+              <hr className='sm:hidden' />
+
+              <div onClick={() => openArticle(articles[2])} className="flex flex-col gap-4 sm:gap-10 min-w-1/2 cursor-pointer">
+                <div className='sm:mr-6' >
+                  <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[2]?.title || ""}</h2>
+                  <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                   </div>
-                  <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-                  <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                  <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[2]?.content || ""}</p>
+                  <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
                 </div>
-                <div className='mr-6' >
-                  <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
+                <div className='sm:mr-6' >
+                  <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-40 sm:h-72 object-cover" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-100 px-10 py-12">
+            <div className="bg-gray-100 px-10 py-12 hidden sm:block">
               <div className="flex justify-between items-center mb-12">
                 <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
                 <div className="flex gap-3">
@@ -604,16 +718,16 @@ const ArticlesPage = () => {
             </div>
           </div>
         :
-        <div className='px-10 py-5' >
-          <div className="flex gap-6">
+        <div>
+          <div className="flex flex-col sm:flex-row px-4 sm:px-10 py-5 sm:py-10 gap-6">
 
             <div className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
               <div className="relative">
-                <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-96 object-cover" />
+                <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-48 sm:h-96 object-cover" />
                 <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
               </div>
               <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
+                <h2 className="text-base sm:text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
                 <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
                 <p className='text-gray-600 text-sm mb-4' >[ . . . ]</p>
                 <p className="text-xs text-gray-400">{new Date(articles[0]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
@@ -623,7 +737,7 @@ const ArticlesPage = () => {
 
             <div className="flex flex-col gap-6 min-w-1/2">
 
-              <div className="flex justify-end items-center space-x-2 mr-6">
+              <div className="flex justify-end items-center space-x-2 sm:mr-6">
                 <button
                   className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
@@ -644,15 +758,15 @@ const ArticlesPage = () => {
                   ❯
                 </button>
               </div>
-              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-[500px] w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
+              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 w-[327px] sm:h-[500px] sm:w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
                 {articles.slice(3).map((article, index) =>
-                  <div key={index + 4} className="flex gap-6 cursor-pointer h-36 w-[690px]">
-                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-40 h-36 object-cover" />
+                  <div key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-80 sm:h-36 sm:w-[690px]">
+                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-cover" />
                     <div>
-                      <p className="text-xs text-gray-400 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
-                      <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
-                      <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                      <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                      <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
+                      <p className="text-gray-600 text-justify text-[10px] sm:text-sm max-h-8 sm:max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
+                      <p className='text-gray-600 text-[8px] sm:text-sm' >[ . . . ]</p>
                     </div>
                   </div>
                 )}
@@ -667,40 +781,42 @@ const ArticlesPage = () => {
             </div>
           </div>
 
-          <div className="flex gap-6 bg-gray-100 py-12">
+          <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
 
             <div className='cursor-pointer min-w-1/2' >
-              <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-72 object-cover mb-6" />
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
-              <div className="flex items-center text-sm text-gray-500 mb-4">
+              <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-40 sm:h-72 object-cover mb-4 sm:mb-6" />
+              <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[1]?.title || ""}</h2>
+              <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
               </div>
-              <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-              <p className='text-gray-600 text-sm' >[ . . . ]</p>
+              <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
+              <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
             </div>
 
-            <div className="flex flex-col gap-10 min-w-1/2 cursor-pointer">
-              <div className='mr-6' >
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
-                <div className="flex items-center text-sm text-gray-500 mb-4">
+            <hr className='sm:hidden' />
+
+            <div className="flex flex-col gap-4 sm:gap-10 min-w-1/2 cursor-pointer">
+              <div className='sm:mr-6' >
+                <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[2]?.title || ""}</h2>
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                 </div>
-                <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-                <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[2]?.content || ""}</p>
+                <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
               </div>
-              <div className='mr-6' >
-                <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
+              <div className='sm:mr-6' >
+                <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-40 sm:h-72 object-cover" />
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-100 py-12">
+          <div className="bg-gray-100 px-10 py-12 hidden sm:block">
             <div className="flex justify-between items-center mb-12">
               <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
               <div className="flex gap-3">
@@ -726,7 +842,7 @@ const ArticlesPage = () => {
               </div>
             </div>
 
-            <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="max-h-[80vh] columns-2 carousel-track-2 space-x-4" >
+            <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="max-h-[570px] columns-2 carousel-track-2 space-x-4" >
               {articles.slice(3).map((article, index) =>
                 <div key={index + 4} className="flex gap-5 mb-6 p-4 cursor-pointer">
                   <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 rounded-md object-cover" />
@@ -751,7 +867,7 @@ const ArticlesPage = () => {
         </div>
       }
 
-      <footer className="bg-[#f7fafc] py-10 px-20 flex flex-wrap justify-between text-[#333] font-sans">
+      <footer className="bg-[#f7fafc] p-6 sm:px-20 sm:py-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans">
 
         <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
           <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
@@ -831,8 +947,8 @@ const ArticlesPage = () => {
             }`}
         >
           <button
-            className={`absolute left-6 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full shadow-md 
-        flex items-center justify-center text-lg transition-all duration-200 z-50
+            className={`absolute left-1 sm:left-6 top-1/2 transform -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full shadow-md 
+        flex items-center justify-center text-base sm:text-lg transition-all duration-200 z-50
         ${selectedIndex > 0
                 ? "bg-amber-400 text-white hover:bg-amber-500 cursor-pointer"
                 : "bg-white text-amber-300 cursor-not-allowed"
@@ -849,7 +965,7 @@ const ArticlesPage = () => {
             <FaArrowLeft />
           </button>
           <button
-            className={`absolute right-6 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full shadow-md 
+            className={`absolute right-1 sm:right-6 top-1/2 transform -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full shadow-md 
         flex items-center justify-center text-lg transition-all duration-200 z-50
         ${(selectedIndex < articles.length - 1 || hasMore)
                 ? "bg-amber-400 text-white hover:bg-amber-500 cursor-pointer"
@@ -879,16 +995,16 @@ const ArticlesPage = () => {
                   setSelectedArticle(null);
                 }, 500);
               }}
-              className="absolute top-0 right-2 text-gray-500 hover:text-gray-700 text-4xl font-bold z-50 transition-all duration-200 cursor-pointer"
+              className="absolute -top-2 right-0 sm:top-0 sm:right-2 text-gray-500 hover:text-gray-700 text-4xl font-bold z-50 transition-all duration-200 cursor-pointer"
             >
               &times;
             </button>
             <img
               src={selectedArticle.image_url || "_"}
               alt="Article"
-              className="w-full max-h-full object-cover rounded-md mb-6"
+              className="h-60 w-full sm:max-h-full object-cover rounded-md mb-6"
             />
-            <h2 className="text-4xl font-extrabold text-gray-800 mb-3">{selectedArticle.title}</h2>
+            <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{selectedArticle.title}</h2>
             <p className="text-sm text-gray-500 mb-6">
               {new Date(selectedArticle.created_at).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -896,7 +1012,7 @@ const ArticlesPage = () => {
                 day: "numeric"
               })}
             </p>
-            <div className="text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify">
+            <div className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify">
               {selectedArticle.content}
             </div>
             {(prefetchingNext || loading) && selectedIndex === articles.length - 1 && hasMore && (

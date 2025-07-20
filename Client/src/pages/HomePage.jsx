@@ -236,13 +236,13 @@ const HomePage = () => {
     <div className="bg-gray-100 font-inter text-[#1e1e1e] pb-5 px-4 sm:px-6 xl:px-10 2xl:max-w-[2000px] 2xl:mx-auto">
       <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
         {/* Mobile and Tablet Header */}
-        <div className="flex justify-between items-center w-full mt-8 xl:hidden">
+        <div className="flex justify-between items-center w-full mt-4 xl:hidden">
           <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-            <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
+            <img src="logo.jpg" alt="FinEd Logo" className="h-[48px] w-auto object-contain" />
           </div>
           <div className="flex items-center gap-4">
-            <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-              <img src="bell.png" alt="Bell Icon" width="24" />
+            <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-2 shadow-md cursor-pointer">
+              <img src="bell.png" alt="Bell Icon" className='w-6' />
               {hasUnseen && (
                 <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
               )}
@@ -541,12 +541,11 @@ const HomePage = () => {
               </div>
             </div>
             <div className="w-full xl:w-1/3">
-              <section className="bg-white rounded-2xl px-2 md:px-3 text-center flex flex-col justify-between w-full h-auto min-h-[300px] sm:h-[440px] border border-gray-300 mt-4 xl:mt-0 md:hidden xl:block">
+              <section className="bg-white rounded-3xl text-center flex flex-col space-y-2 justify-between w-full h-auto min-h-[300px] sm:h-[440px] border border-gray-300 mt-4 xl:mt-0 md:hidden xl:block">
                 <div className="flex justify-between items-center mb-2 sm:mb-5">
-                  <h3 className="m-2 ml-3 mt-3 text-base sm:text-lg font-bold">Recommended Schemes</h3>
-                  <IoIosInformationCircleOutline className="text-xl sm:text-2xl" />
+                  <img src='/schemes.png' alt='schemes' className='rounded-2xl' />
                 </div>
-                <div className='space-y-3 max-h-[340px] overflow-y-auto px-3' >
+                <div className='space-y-3 max-h-48 overflow-y-auto px-3' >
                   {recommendedSchemes?.length > 0 && recommendedSchemes?.map((scheme, index) =>
                     <div key={index} className='max-h-40 truncate text-start' >
                       <p>Scheme Name: {scheme.scheme_name}</p>
@@ -554,6 +553,13 @@ const HomePage = () => {
                       <p>Description: {scheme.description.slice(0, 40)}...</p>
                     </div>
                   )}
+                </div>
+                <hr/>
+                <div className='flex justify-center items-center' >
+                  <div className='flex items-center gap-4 cursor-pointer' >
+                    <p className='font-semibold text-lg mt-[3px]' >View All</p>
+                    <p className='text-2xl' >→</p>
+                  </div>
                 </div>
               </section>
             </div>

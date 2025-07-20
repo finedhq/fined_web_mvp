@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 import toast from "react-hot-toast"
+import { FiMenu, FiX } from "react-icons/fi"
 
 const imageAssets = {
   completed: "/FcomplitedModule.png",
@@ -30,6 +31,7 @@ export default function CourseOverviewPage() {
   const [enteredEmail, setEnteredEmail] = useState("")
   const [isEnteredEmail, setIsEnteredEmail] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -117,60 +119,160 @@ export default function CourseOverviewPage() {
     }
   }
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsSidebarOpen(false);
+    };
+    if (isSidebarOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isSidebarOpen]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
 
-    <div className="min-h-screen px-10 pt-5 bg-white" >
-      <header className="flex justify-between items-center h-[63px] bg-white box-border">
-
-        <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
+    <div className="min-h-screen px-4 sm:px-10 sm:pt-4 bg-white" >
+      <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-white box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
+        {/* Mobile and Tablet Header */}
+        <div className="flex justify-between items-center w-full mt-4 xl:hidden">
+          <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+            <img src="/logo.jpg" alt="FinEd Logo" className="h-[48px] w-auto object-contain" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-2 shadow-md cursor-pointer">
+              <img src="/bell.png" alt="Bell Icon" className='w-6' />
+              {hasUnseen && (
+                <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+              )}
+            </div>
+            <button className="p-2 text-2xl" onClick={toggleSidebar}>
+              {isSidebarOpen ? <FiX /> : <FiMenu />}
+            </button>
+          </div>
         </div>
 
-        <nav className="flex gap-5">
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/home')}
-          >
-            Home
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname.startsWith('/courses') ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/courses')}
-          >
-            Courses
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname.startsWith('/articles') ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/articles')}
-          >
-            Articles
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/fin-tools')}
-          >
-            FinTools
-          </button>
-
-          {role === "Admin" ? <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/admin')}
-          >Admin DashBoard</button> : ""}
-
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200`}
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-          >
-            LogOut
-          </button>
-        </nav>
-
-        <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-          <img src="/bell.png" alt="Bell Icon" width="24" />
-          {hasUnseen && (
-            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-          )}
+        {/* Desktop Header */}
+        <div className="hidden xl:flex xl:flex-row xl:items-center w-full justify-between">
+          <div onClick={() => navigate('/home')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+            <img src="/logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
+          </div>
+          <nav className="flex flex-wrap justify-center gap-5">
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/home')}
+            >
+              Home
+            </button>
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname.startsWith('/courses') ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/courses')}
+            >
+              Courses
+            </button>
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/articles')}
+            >
+              Articles
+            </button>
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => navigate('/fin-tools')}
+            >
+              FinTools
+            </button>
+            {role === "Admin" && (
+              <button
+                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => navigate('/admin')}
+              >
+                Admin Dashboard
+              </button>
+            )}
+            <button
+              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
+              onClick={() => {
+                sessionStorage.setItem("forceReload", "true");
+                logout({ logoutParams: { returnTo: window.location.origin } })
+              }}
+            >
+              LogOut
+            </button>
+          </nav>
+          <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
+            <img src="/bell.png" alt="Bell Icon" width="24" />
+            {hasUnseen && (
+              <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+            )}
+          </div>
         </div>
+
+        {/* Sidebar for mobile and tablet */}
+        <div
+          className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:hidden`}
+        >
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            <h2 className="text-lg font-bold">Menu</h2>
+            <button onClick={toggleSidebar} className="text-2xl">
+              <FiX />
+            </button>
+          </div>
+          <nav className="flex flex-col p-4 gap-2">
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/home'); setIsSidebarOpen(false); }}
+            >
+              Home
+            </button>
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname.startsWith('/courses') ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/courses'); setIsSidebarOpen(false); }}
+            >
+              Courses
+            </button>
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/articles'); setIsSidebarOpen(false); }}
+            >
+              Articles
+            </button>
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+              onClick={() => { navigate('/fin-tools'); setIsSidebarOpen(false); }}
+            >
+              FinTools
+            </button>
+            {role === "Admin" && (
+              <button
+                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                onClick={() => { navigate('/admin'); setIsSidebarOpen(false); }}
+              >
+                Admin Dashboard
+              </button>
+            )}
+            <button
+              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left bg-white text-gray-700 hover:bg-gray-200`}
+              onClick={() => {
+                logout({ logoutParams: { returnTo: window.location.origin } });
+                setIsSidebarOpen(false);
+              }}
+            >
+              LogOut
+            </button>
+          </nav>
+        </div>
+        {
+          isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={toggleSidebar}
+            ></div>
+          )
+        }
       </header>
 
       {loading ?
@@ -180,15 +282,15 @@ export default function CourseOverviewPage() {
           ))}
         </div>
         :
-        <div className="py-10 bg-white min-h-screen">
-          <div className="bg-violet-800 text-white rounded-2xl overflow-hidden mb-6 w-full max-w-3xl mx-auto">
+        <div className="py-5 sm:py-10 bg-white min-h-screen">
+          <div className="bg-violet-800 text-white rounded-2xl overflow-hidden mb-6 w-full sm:max-w-3xl sm:mx-auto">
             <div className="flex items-center px-4 py-3 border-b border-white/40">
-              <button onClick={() => navigate('/courses')} className="text-xl mr-4 cursor-pointer">←</button>
-              <h2 className="text-lg font-semibold">{courseTitle}</h2>
+              <button onClick={() => navigate('/courses')} className="text-lg sm:text-xl mr-4 cursor-pointer">←</button>
+              <h2 className="text-md sm:text-lg font-semibold">{courseTitle}</h2>
             </div>
             <div className="px-4 py-2">
-              <div className="font-semibold">Module 1</div>
-              <div className="text-m">{course[0]?.moduleTitle}</div>
+              <div className="font-medium sm:font-semibold">Module 1</div>
+              <div>{course[0]?.moduleTitle}</div>
             </div>
           </div>
 
@@ -196,18 +298,18 @@ export default function CourseOverviewPage() {
             <div key={index} className="mb-20 mx-auto max-w-3xl">
               {index !== 0 && (
                 <div className="bg-violet-800 text-white px-4 py-2 rounded-2xl font-medium text-left w-full">
-                  <div className="font-semibold">Module {index + 1}</div>
-                  <div className="text-sm font-normal">{module.moduleTitle}</div>
+                  <div className="font-medium sm:font-semibold">Module {index + 1}</div>
+                  <div className="font-normal">{module.moduleTitle}</div>
                 </div>
               )}
 
-              <div className="mt-10 flex flex-col items-center gap-14">
+              <div className="mt-10 flex flex-col items-center gap-14 px-4 sm:px-0">
                 {module.cards.map((card, i) => {
                   const isClickable = i === 0 || module.cards[i - 1].status === "completed"
 
                   return (
-                    <div key={i} className={`relative w-full flex ${i % 2 === 0 ? "justify-start pl-20" : "justify-end pr-20"}`}>
-                      <div className={`flex flex-col items-center w-28 ${i % 2 === 0 ? 'ml-[125px]' : 'mr-[120px]'}`}>
+                    <div key={i} className={`relative w-full flex ${i % 2 === 0 ? "justify-start sm:pl-20" : "justify-end sm:pr-20"}`}>
+                      <div className={`flex flex-col items-center w-28 ${i % 2 === 0 ? '-ml-4 sm:ml-[125px]' : '-mr-4 sm:mr-[120px]'}`}>
                         <button
                           onClick={() => {
                             if (isClickable) {
@@ -239,7 +341,7 @@ export default function CourseOverviewPage() {
                         <img
                           src={i % 2 === 0 ? imageAssets.pathLeftToRight : imageAssets.pathRightToLeft}
                           alt="path"
-                          className="absolute mt-12 top-12 left-1/2 transform -translate-x-1/2 w-64"
+                          className="absolute mt-12 top-12 left-1/2 transform -translate-x-1/2 w-56 sm:w-64"
                         />
                       )}
                     </div>

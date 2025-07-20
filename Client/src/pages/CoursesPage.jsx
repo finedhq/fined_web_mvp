@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 import toast from 'react-hot-toast'
+import { FiMenu, FiX } from "react-icons/fi"
 
 export default function CoursesHomePage() {
     const navigate = useNavigate()
@@ -88,16 +89,16 @@ export default function CoursesHomePage() {
     const scrollLeft = (ref) => {
         const el = ref.current;
         if (el) {
-            const width = el.getBoundingClientRect().width;
-            el.scrollBy({ left: -width, behavior: 'smooth' });
+            const scrollAmount = window.innerWidth <= 768 ? 332 : window.innerWidth >= 1400 ? 930 : 620;
+            el.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         }
     };
 
     const scrollRight = (ref) => {
         const el = ref.current;
         if (el) {
-            const width = el.getBoundingClientRect().width;
-            el.scrollBy({ left: width, behavior: 'smooth' });
+            const scrollAmount = window.innerWidth <= 768 ? 332 : window.innerWidth >= 1400 ? 930 : 620;
+            el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
     };
 
@@ -191,144 +192,252 @@ export default function CoursesHomePage() {
     return (
         <div className="bg-gray-100 min-h-screen flex flex-col">
             {isAuthenticated ?
-                <header className="flex justify-between items-center h-[63px] px-10 py-12 bg-gray-100 box-border">
-
-                    <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-                        <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
+                <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
+                    {/* Mobile and Tablet Header */}
+                    <div className="flex justify-between items-center w-full mt-4 xl:hidden px-4">
+                        <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+                            <img src="logo.jpg" alt="FinEd Logo" className="h-[48px] w-auto object-contain" />
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-2 shadow-md cursor-pointer">
+                                <img src="bell.png" alt="Bell Icon" className='w-6' />
+                                {hasUnseen && (
+                                    <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+                                )}
+                            </div>
+                            <button className="p-2 text-2xl" onClick={toggleSidebar}>
+                                {isSidebarOpen ? <FiX /> : <FiMenu />}
+                            </button>
+                        </div>
                     </div>
 
-                    <nav className="flex gap-5">
-                        <button
-                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                            onClick={() => navigate('/home')}
-                        >
-                            Home
-                        </button>
-                        <button
-                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                            onClick={() => navigate('/courses')}
-                        >
-                            Courses
-                        </button>
-                        <button
-                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                            onClick={() => navigate('/articles')}
-                        >
-                            Articles
-                        </button>
-                        <button
-                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                            onClick={() => navigate('/fin-tools')}
-                        >
-                            FinTools
-                        </button>
-
-                        {role === "Admin" ? <button
-                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                            onClick={() => navigate('/admin')}
-                        >Admin DashBoard</button> : ""}
-
-                        {isAuthenticated && <button
-                            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-                            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                        >
-                            LogOut
-                        </button>}
-                    </nav>
-
-                    <div onClick={() => { isAuthenticated ? navigate("/notifications") : toast.error("Please sign in") }} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-                        <img src="bell.png" alt="Bell Icon" width="24" />
-                        {hasUnseen && (
-                            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-                        )}
+                    {/* Desktop Header */}
+                    <div className="hidden xl:flex xl:flex-row xl:items-center w-full mt-8 px-10 justify-between">
+                        <div onClick={() => navigate('/home')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+                            <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
+                        </div>
+                        <nav className="flex flex-wrap justify-center gap-5">
+                            <button
+                                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => navigate('/home')}
+                            >
+                                Home
+                            </button>
+                            <button
+                                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => navigate('/courses')}
+                            >
+                                Courses
+                            </button>
+                            <button
+                                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => navigate('/articles')}
+                            >
+                                Articles
+                            </button>
+                            <button
+                                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => navigate('/fin-tools')}
+                            >
+                                FinTools
+                            </button>
+                            {role === "Admin" && (
+                                <button
+                                    className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                    onClick={() => navigate('/admin')}
+                                >
+                                    Admin Dashboard
+                                </button>
+                            )}
+                            <button
+                                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
+                                onClick={() => {
+                                    sessionStorage.setItem("forceReload", "true");
+                                    logout({ logoutParams: { returnTo: window.location.origin } })
+                                }}
+                            >
+                                LogOut
+                            </button>
+                        </nav>
+                        <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
+                            <img src="bell.png" alt="Bell Icon" width="24" />
+                            {hasUnseen && (
+                                <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
+                            )}
+                        </div>
                     </div>
+
+                    {/* Sidebar for mobile and tablet */}
+                    <div
+                        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:hidden`}
+                    >
+                        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                            <h2 className="text-lg font-bold">Menu</h2>
+                            <button onClick={toggleSidebar} className="text-2xl">
+                                <FiX />
+                            </button>
+                        </div>
+                        <nav className="flex flex-col p-4 gap-2">
+                            <button
+                                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => { navigate('/home'); setIsSidebarOpen(false); }}
+                            >
+                                Home
+                            </button>
+                            <button
+                                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => { navigate('/courses'); setIsSidebarOpen(false); }}
+                            >
+                                Courses
+                            </button>
+                            <button
+                                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => { navigate('/articles'); setIsSidebarOpen(false); }}
+                            >
+                                Articles
+                            </button>
+                            <button
+                                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                onClick={() => { navigate('/fin-tools'); setIsSidebarOpen(false); }}
+                            >
+                                FinTools
+                            </button>
+                            {role === "Admin" && (
+                                <button
+                                    className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
+                                    onClick={() => { navigate('/admin'); setIsSidebarOpen(false); }}
+                                >
+                                    Admin Dashboard
+                                </button>
+                            )}
+                            <button
+                                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left bg-white text-gray-700 hover:bg-gray-200`}
+                                onClick={() => {
+                                    logout({ logoutParams: { returnTo: window.location.origin } });
+                                    setIsSidebarOpen(false);
+                                }}
+                            >
+                                LogOut
+                            </button>
+                        </nav>
+                    </div>
+                    {
+                        isSidebarOpen && (
+                            <div
+                                className="fixed inset-0 bg-black/50 z-40"
+                                onClick={toggleSidebar}
+                            ></div>
+                        )
+                    }
                 </header>
                 :
-                <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-gray-100">
-                    <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
-                        <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
-                            <img
-                                src="/logo.jpg"
-                                srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
-                                sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-                                alt="FinEd logo"
-                                loading="lazy"
-                                className="h-12 sm:h-14 w-auto object-contain"
-                            />
+                <div>
+                    <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-gray-100">
+                        <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
+                            <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
+                                <img
+                                    src="/logo.jpg"
+                                    srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
+                                    sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
+                                    alt="FinEd logo"
+                                    loading="lazy"
+                                    className="h-12 sm:h-14 w-auto object-contain"
+                                />
+                            </div>
+                            <button
+                                className="sm:hidden text-gray-800 focus:outline-none p-2"
+                                onClick={toggleSidebar}
+                                aria-label="Toggle menu"
+                            >
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path>
+                                </svg>
+                            </button>
                         </div>
-                        <button
-                            className="sm:hidden text-gray-800 focus:outline-none p-2"
-                            onClick={toggleSidebar}
-                            aria-label="Toggle menu"
-                        >
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path>
-                            </svg>
-                        </button>
+                        <nav role="navigation" aria-label="Main navigation" className="hidden sm:flex flex-wrap items-center justify-center sm:justify-end gap-6 sm:gap-10">
+                            <Link to="/courses" aria-label="View courses" className="px-6 py-2 rounded-full font-medium transition-colors duration-200 text-base sm:text-lg text-white bg-amber-400">Courses</Link>
+                            <Link to="/articles" aria-label="View articles" className="font-medium transition-colors duration-200 text-base sm:text-lg text-gray-700 hover:text-blue-700" >Articles</Link>
+                            <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
+                            <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
+                        </nav>
+                    </header>
+                    <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out sm:hidden z-50`}>
+                        <div className="flex justify-between items-center p-5 border-b">
+                            <span className="font-bold text-lg">Menu</span>
+                            <button onClick={toggleSidebar} className="text-gray-800 focus:outline-none" aria-label="Close menu">
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <nav role="navigation" aria-label="Mobile navigation" className="flex flex-col p-5 space-y-5">
+                            <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Courses</Link>
+                            <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Articles</Link>
+                            <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>About Us</Link>
+                            <button onClick={() => { loginWithRedirect(); toggleSidebar(); }} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-lg cursor-pointer">Sign up / Login</button>
+                        </nav>
                     </div>
-                    <nav role="navigation" aria-label="Main navigation" className="hidden sm:flex flex-wrap items-center justify-center sm:justify-end gap-6 sm:gap-10">
-                        <Link to="/courses" aria-label="View courses" className={`px-6 py-2 rounded-full font-medium transition-colors duration-200 text-base sm:text-lg ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>Courses</Link>
-                        <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Articles</Link>
-                        <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
-                        <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
-                    </nav>
-                </header>
+                    {isSidebarOpen && (
+                        <div
+                            className="fixed inset-0 bg-white bg-opacity-80 sm:hidden z-40"
+                            onClick={toggleSidebar}
+                            aria-hidden="true"
+                        ></div>
+                    )}
+                </div>
             }
             {isAuthenticated ?
 
-                <main className="flex-grow px-10 pt-5">
+                <main className="flex-grow px-4 sm:px-10 sm:pt-5">
                     {loading ?
-                        <div className="min-h-screen w-full p-10 bg-gray-50 space-y-10 animate-pulse">
-                            <div className="flex gap-6 overflow-hidden">
-                                <div className="bg-white h-[360px] w-96 rounded-xl shadow flex flex-col">
-                                    <div className="h-40 bg-gray-300 rounded-t-xl"></div>
-                                    <div className="p-4 space-y-3">
-                                        <div className="h-3 w-1/2 bg-gray-300 rounded"></div>
-                                        <div className="h-4 w-full bg-gray-300 rounded"></div>
-                                        <div className="h-3 w-5/6 bg-gray-300 rounded"></div>
-                                    </div>
-                                </div>
-                                {[...Array(3)].map((_, i) => (
-                                    <div key={i} className="bg-white h-[360px] w-96 rounded-xl shadow flex flex-col">
-                                        <div className="h-40 bg-gray-300 rounded-t-xl"></div>
-                                        <div className="p-4 space-y-3">
-                                            <div className="h-3 w-1/2 bg-gray-300 rounded"></div>
-                                            <div className="h-4 w-full bg-gray-300 rounded"></div>
-                                            <div className="h-3 w-5/6 bg-gray-300 rounded"></div>
+                        <div className="min-h-screen w-full px-4 sm:px-10 pt-5 bg-gray-100 space-y-12 animate-pulse">
+                            {/* Skeleton for Continue Learning section */}
+                            <div>
+                                <div className="h-6 bg-gray-300 rounded w-1/3 mb-4"></div>
+                                <div className="flex gap-12 mb-6">
+                                    {[...Array(1)].map((_, i) => (
+                                        <div key={i} className="bg-gray-100 rounded-xl px-4 py-3 w-full sm:w-1/4 h-44 space-y-3 shrink-0 ml-1 border border-gray-300">
+                                            <div>
+                                                <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <div className="w-2/5 h-20 bg-gray-300 rounded-md"></div>
+                                                <div className="flex flex-col justify-center items-center w-3/5">
+                                                    <div className="flex gap-2 mb-2">
+                                                        <div className="h-3 w-14 bg-gray-300 rounded"></div>
+                                                        <div className="h-3 w-2 bg-gray-300 rounded"></div>
+                                                        <div className="h-3 w-14 bg-gray-300 rounded"></div>
+                                                    </div>
+                                                    <div className="h-8 w-24 bg-gray-300 rounded-full mt-2"></div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
-                                <div>
-                                    <div className="h-6 bg-gray-300 rounded w-1/3 mb-6"></div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        {[...Array(4)].map((_, i) => (
-                                            <div key={i} className="bg-white h-[360px] rounded-xl shadow flex flex-col">
-                                                <div className="h-40 bg-gray-300 rounded-t-xl"></div>
-                                                <div className="p-4 space-y-3">
-                                                    <div className="h-3 w-1/2 bg-gray-300 rounded"></div>
-                                                    <div className="h-4 w-full bg-gray-300 rounded"></div>
-                                                    <div className="h-3 w-5/6 bg-gray-300 rounded"></div>
-                                                </div>
-                                            </div>
-                                        ))}
+
+                            {/* Skeleton for Recommended Courses section */}
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="h-6 bg-gray-300 rounded w-1/3"></div>
+                                    <div className="flex space-x-2">
+                                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                                        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
                                     </div>
                                 </div>
-                                <div>
-                                    <div className="h-6 bg-gray-300 rounded w-1/3 mb-6"></div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        {[...Array(4)].map((_, i) => (
-                                            <div key={i} className="bg-white h-[360px] w-72 rounded-xl shadow">
-                                                <div className="h-40 bg-gray-300 rounded-t-xl"></div>
-                                                <div className="p-4 space-y-3">
-                                                    <div className="h-3 w-1/2 bg-gray-300 rounded"></div>
-                                                    <div className="h-4 w-full bg-gray-300 rounded"></div>
-                                                    <div className="h-3 w-5/6 bg-gray-300 rounded"></div>
-                                                </div>
+                                <div className="flex flex-wrap gap-y-6 gap-x-[34px] mx-4 mb-10 h-[740px] overflow-hidden">
+                                    {[...Array(6)].map((_, i) => (
+                                        <div key={i} className="bg-white h-[360px] w-72 rounded-xl shadow">
+                                            <div className="h-40 bg-gray-300 rounded-t-xl"></div>
+                                            <div className="p-4 space-y-3">
+                                                <div className="h-3 w-1/2 bg-gray-300 rounded"></div>
+                                                <div className="h-4 w-full bg-gray-300 rounded"></div>
+                                                <div className="h-3 w-5/6 bg-gray-300 rounded"></div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -337,7 +446,7 @@ export default function CoursesHomePage() {
                             <h2 className="text-xl font-semibold mb-4">Continue Learning</h2>
                             <div className="flex gap-12 w-full mb-6 px-4" >
                                 {isFetchingOngoing ? (
-                                    <div className="bg-white rounded-xl px-4 py-3 w-1/4 h-52 space-y-3 shrink-0 ml-1 border border-gray-300 animate-pulse">
+                                    <div className="bg-white rounded-xl px-4 py-3 w-full sm:w-1/4 space-y-3 sm:shrink-0 border border-gray-300 animate-pulse">
                                         <div>
                                             <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
                                             <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
@@ -356,12 +465,14 @@ export default function CoursesHomePage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-white rounded-xl hover:shadow-md transition px-4 py-3 w-1/4 h-fit space-y-3 shrink-0 border border-gray-300">
+                                    <div className="bg-white rounded-xl hover:shadow-md transition px-4 py-3 w-full sm:w-1/4 h-fit space-y-3 sm:shrink-0 border border-gray-300">
                                         <div>
-                                            <h3 className="font-semibold text-cyan-800 text-base tracking-wide mb-2">
+                                            <h3 className="font-semibold text-cyan-800 text-base tracking-wide sm:mb-2">
                                                 {ongoingCourse?.title || courses[5]?.title}
                                             </h3>
-                                            <p className="text-xs text-gray-600 mb-2">{ongoingCourse?.description || courses[5]?.description}</p>
+                                            <p className="text-xs text-gray-600 mb-2">
+                                                {ongoingCourse?.description || courses[5]?.description}
+                                            </p>
                                         </div>
                                         <div className="flex justify-between">
                                             <img
@@ -369,13 +480,20 @@ export default function CoursesHomePage() {
                                                 alt={ongoingCourse?.title || courses[5]?.title}
                                                 className="w-2/5 h-20 object-cover rounded-md"
                                             />
-                                            <div className="flex flex-col justify-center items-center">
+                                            <div className="flex flex-col justify-center items-center w-3/5">
                                                 <div className="flex gap-1">
-                                                    <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.modules_count || courses[5]?.modules_count} Modules</p>
+                                                    <p className="text-xs text-gray-500 mb-1">
+                                                        {ongoingCourse?.modules_count || courses[5]?.modules_count} Modules
+                                                    </p>
                                                     <p className="text-xs text-gray-500 mb-1">&bull;</p>
-                                                    <p className="text-xs text-gray-500 mb-1">{ongoingCourse?.duration || courses[5]?.duration} mins</p>
+                                                    <p className="text-xs text-gray-500 mb-1">
+                                                        {ongoingCourse?.duration || courses[5]?.duration} mins
+                                                    </p>
                                                 </div>
-                                                <button onClick={() => navigate(`course/${ongoingCourse?.id || courses[5]?.id}`)} className="bg-amber-400 text-white px-6 py-2 rounded-full self-end mt-2 cursor-pointer">
+                                                <button
+                                                    onClick={() => navigate(`course/${ongoingCourse?.id || courses[5]?.id}`)}
+                                                    className="bg-amber-400 text-white px-3 py-1 sm:px-6 sm:py-2 rounded-full self-end mt-2 cursor-pointer"
+                                                >
                                                     {ongoingCourse?.id ? "Continue Learning" : "Start Now"}
                                                 </button>
                                             </div>
@@ -387,7 +505,7 @@ export default function CoursesHomePage() {
                             <div className="w-full pb-10">
                                 <div className="flex justify-between" >
                                     <h2 className="text-xl font-semibold">Recommended Courses</h2>
-                                    <div className="flex space-x-2 mr-2 mb-2">
+                                    <div className="flex space-x-2 mr-2 mb-6 sm:mb-2">
                                         <button
                                             className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
@@ -419,10 +537,10 @@ export default function CoursesHomePage() {
                     }
                 </main>
                 :
-                <div className="w-full px-10 py-5">
+                <div className="w-full px-4 sm:px-10 py-5">
                     <div className="flex justify-between" >
                         <h2 className="text-xl font-semibold">Recommended Courses</h2>
-                        <div className="flex space-x-2 mr-2 mb-2">
+                        <div className="flex space-x-2 mr-2 mb-4 sm:mb-2">
                             <button
                                 className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
@@ -444,7 +562,7 @@ export default function CoursesHomePage() {
                             </button>
                         </div>
                     </div>
-                    <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[34px] h-[740px] mx-4 overflow-hidden">
+                    <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[36px] h-[740px] mx-4 overflow-hidden">
                         {courses.map((course) => (
                             <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                         ))}
@@ -452,7 +570,7 @@ export default function CoursesHomePage() {
                 </div>
             }
 
-            <footer className="bg-[#f7fafc] py-10 px-20 flex flex-wrap justify-between text-[#333] font-sans">
+            <footer className="bg-[#f7fafc] p-6 sm:px-20 sm:py-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans">
 
                 <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
                     <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
@@ -579,11 +697,11 @@ function CourseCard({ course, isAuthenticated }) {
                     toast.error("Please sign in");
                 }
             }}
-            className="bg-white rounded-xl border border-gray-300 hover:shadow-md transition w-80 h-[360px] cursor-pointer">
+            className="bg-white rounded-xl border border-gray-300 hover:shadow-md transition h-80 sm:w-80 sm:h-[360px] cursor-pointer">
             <img
                 src={course.thumbnail_url}
                 alt={course.title}
-                className="w-full h-48 object-cover rounded-md mb-2"
+                className="w-full h-40 sm:h-48 object-cover rounded-xl mb-2"
             />
             <div className="p-4 space-y-2" >
                 <div className="flex gap-1" >

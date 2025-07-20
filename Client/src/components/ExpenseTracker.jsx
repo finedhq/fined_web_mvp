@@ -750,8 +750,8 @@ export default function ExpenseTracker() {
               <div className="w-3/4" >
                 <FinancialSummaryBar transactions={fetchedTransactions} />
               </div>
-              <div onClick={() => setAutomatePopup(true)} className="w-1/4 cursor-pointer" >
-                <img src="/automate.jpg" className="h-full w-full" />
+              <div onClick={() => setAutomatePopup(true)} className="w-1/4 h-1/10 cursor-pointer" >
+                <img src="/expense.png" className="h-full w-full rounded-2xl shadow-md" />
               </div>
             </div>
             <div className="flex gap-3 mt-4" >
