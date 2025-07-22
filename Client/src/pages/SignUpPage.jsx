@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
-  const {loginWithRedirect}=useAuth0();
+  const {loginWithPopup}=useAuth0();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,14 +45,14 @@ const SignUpPage = () => {
           ←
         </button>
 
-        <img onClick={() => navigate('/')} src="/logo.jpg" alt="FinEd Logo" className="w-24 mx-auto my-5 cursor-pointer" /> 
+        <img onClick={() => navigate('/')} src="/logo.png" alt="FinEd Logo" className="w-24 mx-auto my-5 cursor-pointer" /> 
 
-        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 rounded-full cursor-pointer border border-black transition-colors duration-300 flex items-center justify-center bg-white max-w-sm hover:bg-gray-100" onClick={loginWithRedirect}> {/* .social-btn */}
+        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 rounded-full cursor-pointer border border-black transition-colors duration-300 flex items-center justify-center bg-white max-w-sm hover:bg-gray-100" onClick={loginWithPopup}> {/* .social-btn */}
           <img src="https://img.icons8.com/color/48/facebook-new.png" alt="Facebook" className="w-6 h-6 mr-2" /> 
           Continue with Facebook
         </button>
 
-        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 rounded-full cursor-pointer border border-black transition-colors duration-300 flex items-center justify-center bg-white max-w-sm hover:bg-gray-100" onClick={loginWithRedirect}> {/* .social-btn */}
+        <button className="w-11/12 py-2.5 px-4 mx-auto my-2.5 rounded-full cursor-pointer border border-black transition-colors duration-300 flex items-center justify-center bg-white max-w-sm hover:bg-gray-100" onClick={loginWithPopup}> {/* .social-btn */}
           <img src="https://img.icons8.com/color/48/google-logo.png" alt="Google" className="w-6 h-6 mr-2" /> 
           Continue with Google
         </button>

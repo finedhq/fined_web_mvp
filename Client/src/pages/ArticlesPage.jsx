@@ -5,12 +5,14 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
 import toast from 'react-hot-toast'
 import { FiMenu, FiX } from "react-icons/fi"
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
 const ArticlesPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { user, isLoading, isAuthenticated, logout, loginWithRedirect } = useAuth0()
+  const { user, isLoading, isAuthenticated, logout, loginWithPopup } = useAuth0()
   const [role, setrole] = useState("")
 
   const [email, setEmail] = useState("")
@@ -334,203 +336,10 @@ const ArticlesPage = () => {
 
 
   return (
-    <div className="bg-gray-100 font-inter text-[#1e1e1e] 2xl:max-w-[2000px] 2xl:mx-auto">
+    <div className="bg-gray-100 font-inter pb-5 text-[#1e1e1e] 2xl:max-w-[2500px] 2xl:mx-auto">
 
-      {isAuthenticated ?
-        <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4">
-          {/* Mobile and Tablet Header */}
-          <div className="flex justify-between items-center w-full mt-4 xl:hidden px-4">
-            <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-              <img src="logo.jpg" alt="FinEd Logo" className="h-[48px] w-auto object-contain" />
-            </div>
-            <div className="flex items-center gap-4">
-              <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-2 shadow-md cursor-pointer">
-                <img src="bell.png" alt="Bell Icon" className='w-6' />
-                {hasUnseen && (
-                  <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-                )}
-              </div>
-              <button className="p-2 text-2xl" onClick={toggleSidebar}>
-                {isSidebarOpen ? <FiX /> : <FiMenu />}
-              </button>
-            </div>
-          </div>
+      <Navbar />
 
-          {/* Desktop Header */}
-          <div className="hidden xl:flex xl:flex-row xl:items-center w-full mt-8 px-10 justify-between">
-            <div onClick={() => navigate('/home')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-              <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
-            </div>
-            <nav className="flex flex-wrap justify-center gap-5">
-              <button
-                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => navigate('/home')}
-              >
-                Home
-              </button>
-              <button
-                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => navigate('/courses')}
-              >
-                Courses
-              </button>
-              <button
-                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => navigate('/articles')}
-              >
-                Articles
-              </button>
-              <button
-                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => navigate('/fin-tools')}
-              >
-                FinTools
-              </button>
-              {role === "Admin" && (
-                <button
-                  className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                  onClick={() => navigate('/admin')}
-                >
-                  Admin Dashboard
-                </button>
-              )}
-              <button
-                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-                onClick={() => {
-                  sessionStorage.setItem("forceReload", "true");
-                  logout({ logoutParams: { returnTo: window.location.origin } })
-                }}
-              >
-                LogOut
-              </button>
-            </nav>
-            <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-              <img src="bell.png" alt="Bell Icon" width="24" />
-              {hasUnseen && (
-                <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-              )}
-            </div>
-          </div>
-
-          {/* Sidebar for mobile and tablet */}
-          <div
-            className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:hidden`}
-          >
-            <div className="flex justify-between items-center p-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold">Menu</h2>
-              <button onClick={toggleSidebar} className="text-2xl">
-                <FiX />
-              </button>
-            </div>
-            <nav className="flex flex-col p-4 gap-2">
-              <button
-                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => { navigate('/home'); setIsSidebarOpen(false); }}
-              >
-                Home
-              </button>
-              <button
-                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => { navigate('/courses'); setIsSidebarOpen(false); }}
-              >
-                Courses
-              </button>
-              <button
-                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => { navigate('/articles'); setIsSidebarOpen(false); }}
-              >
-                Articles
-              </button>
-              <button
-                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => { navigate('/fin-tools'); setIsSidebarOpen(false); }}
-              >
-                FinTools
-              </button>
-              {role === "Admin" && (
-                <button
-                  className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                  onClick={() => { navigate('/admin'); setIsSidebarOpen(false); }}
-                >
-                  Admin Dashboard
-                </button>
-              )}
-              <button
-                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left bg-white text-gray-700 hover:bg-gray-200`}
-                onClick={() => {
-                  logout({ logoutParams: { returnTo: window.location.origin } });
-                  setIsSidebarOpen(false);
-                }}
-              >
-                LogOut
-              </button>
-            </nav>
-          </div>
-          {
-            isSidebarOpen && (
-              <div
-                className="fixed inset-0 bg-black/50 z-40"
-                onClick={toggleSidebar}
-              ></div>
-            )
-          }
-        </header>
-        :
-        <div>
-          <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-6 bg-gray-100">
-            <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
-              <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
-                <img
-                  src="/logo.jpg"
-                  srcSet="/logo-320w.jpg 320w, /logo-640w.jpg 640w, /logo.jpg 1280w"
-                  sizes="(max-width: 640px) 320px, (max-width: 1280px) 640px, 1280px"
-                  alt="FinEd logo"
-                  loading="lazy"
-                  className="h-12 sm:h-14 w-auto object-contain"
-                />
-              </div>
-              <button
-                className="sm:hidden text-gray-800 focus:outline-none p-2"
-                onClick={toggleSidebar}
-                aria-label="Toggle menu"
-              >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}></path>
-                </svg>
-              </button>
-            </div>
-            <nav role="navigation" aria-label="Main navigation" className="hidden sm:flex flex-wrap items-center justify-center sm:justify-end gap-6 sm:gap-10">
-              <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Courses</Link>
-              <Link to="/articles" aria-label="View articles" className={`px-6 py-2 rounded-full font-medium transition-colors duration-200 text-base sm:text-lg ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>Articles</Link>
-              <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
-              <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
-            </nav>
-          </header>
-          <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out sm:hidden z-50`}>
-            <div className="flex justify-between items-center p-5 border-b">
-              <span className="font-bold text-lg">Menu</span>
-              <button onClick={toggleSidebar} className="text-gray-800 focus:outline-none" aria-label="Close menu">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            <nav role="navigation" aria-label="Mobile navigation" className="flex flex-col p-5 space-y-5">
-              <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Courses</Link>
-              <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Articles</Link>
-              <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>About Us</Link>
-              <button onClick={() => { loginWithRedirect(); toggleSidebar(); }} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-lg cursor-pointer">Sign up / Login</button>
-            </nav>
-          </div>
-          {isSidebarOpen && (
-            <div
-              className="fixed inset-0 bg-white bg-opacity-80 sm:hidden z-40"
-              onClick={toggleSidebar}
-              aria-hidden="true"
-            ></div>
-          )}
-        </div>
-      }
       {isAuthenticated ?
         loading ?
           <div className="min-h-screen w-full p-4 sm:p-10 bg-gray-100 space-y-10 animate-pulse">
@@ -610,10 +419,10 @@ const ArticlesPage = () => {
                     ❯
                   </button>
                 </div>
-                <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 w-[327px] sm:h-[500px] sm:w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
+                <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-11/12 columns-1 carousel-track-1 space-y-[22px] gap-2" >
                   {articles.slice(3).map((article, index) =>
-                    <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-80 sm:h-36 sm:w-[690px]">
-                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-cover" />
+                    <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
+                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill" />
                       <div>
                         <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                         <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
@@ -758,14 +567,14 @@ const ArticlesPage = () => {
                   ❯
                 </button>
               </div>
-              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 w-[327px] sm:h-[500px] sm:w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
+              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-full columns-1 carousel-track-1 space-y-[22px] gap-2" >
                 {articles.slice(3).map((article, index) =>
-                  <div key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-80 sm:h-36 sm:w-[690px]">
-                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-cover" />
+                  <div key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
+                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill" />
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                       <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
-                      <p className="text-gray-600 text-justify text-[10px] sm:text-sm max-h-8 sm:max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
+                      <p className="text-gray-600 text-justify text-[10px] sm:text-sm max-h-8 sm:max-h-16 sm:w-11/12 overflow-hidden">{articles[0]?.content || ""}</p>
                       <p className='text-gray-600 text-[8px] sm:text-sm' >[ . . . ]</p>
                     </div>
                   </div>
@@ -867,79 +676,7 @@ const ArticlesPage = () => {
         </div>
       }
 
-      <footer className="bg-[#f7fafc] p-6 sm:px-20 sm:py-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans">
-
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
-          <p className="text-base text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
-          <div className="flex gap-4">
-            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-          </div>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
-          <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
-          <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to={isAuthenticated ? "/fin-tools" : "#"} onClick={(e) => {
-            if (!isAuthenticated) {
-              e.preventDefault();
-              toast.error("Please sign in");
-            }
-          }} className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
-          <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
-          <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
-          <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
-        </div>
-        <div className="newsletter m-5">
-          <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
-          {isEnteredEmail ?
-            <div>
-              <p className="py-3 pl-3 pr-28 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" >{enteredEmail}</p>
-              {isSaved ?
-                <div className="flex items-center justify-center gap-2 text-[#fbbf24] font-semibold">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Unsubscribing...
-                </div>
-                :
-                <button
-                  onClick={() => { isAuthenticated ? removeEmail() : toast.error("Please sign in") }}
-                  className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Unubscribe
-                </button>
-              }
-            </div>
-            :
-            <div>
-              <input value={enteredEmail} onChange={(e) => setEnteredEmail(e.target.value.trim())} type="email" placeholder="Enter your email address" className="p-3 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" />
-              {isSaved ?
-                <button className="flex items-center justify-center gap-2 p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Subscribing...
-                </button>
-                :
-                <button onClick={() => { isAuthenticated ? saveEmail() : toast.error("Please sign in") }} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Subscribe Now
-                </button>
-              }
-            </div>
-          }
-        </div>
-      </footer>
-
-      <p className="text-center justify-center w-full py-10 text-xs">
-        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-      </p>
+      <Footer />
 
       {!isArticleClosed && (
         <div

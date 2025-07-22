@@ -20,6 +20,23 @@ export const getCardsByModule = async (req, res) => {
   }
 };
 
+export const deleteCard = async (req, res) => {
+  const { id } = req.params
+  try {
+    const { data, error } = await supabase
+      .from('cards')
+      .delete()
+      .eq('card_id', id);
+
+    if (error) {
+      throw error
+    }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: `Error fetching card: ${err.message}` });
+  }
+};
+
 export const addCard = async (req, res) => {
   try {
     const { moduleId } = req.params;

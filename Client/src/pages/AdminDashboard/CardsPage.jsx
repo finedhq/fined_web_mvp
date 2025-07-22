@@ -23,6 +23,13 @@ const CardsPage = () => {
     fetchCards();
   }, [moduleId]);
 
+  const handleDeleteCard = async (id) => {
+    const res = await axios.delete(`/cards/${id}`)
+    if (res) {
+      setCards(prev => prev.filter(card => card.card_id !== id));
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-10 px-6">
       <div className="max-w-5xl mx-auto">
@@ -69,9 +76,10 @@ const CardsPage = () => {
                   </h2>
                   <p className="text-xs text-gray-500">Finstars: {card.allotted_finstars || 0}</p>
                 </div>
-
-                <p className='text-lg font-semibold text-indigo-800' >Title: {card.title}</p>
-
+                <div className='flex justify-between' >
+                  <p className='text-lg font-semibold text-indigo-800' >Title: {card.title}</p>
+                  <button onClick={() => handleDeleteCard(card.card_id)} >Delete Card</button>
+                </div>
                 {card.content_text && (
                   <p className="text-gray-700">{card.content_text}</p>
                 )}

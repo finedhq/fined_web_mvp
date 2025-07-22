@@ -22,6 +22,24 @@ export const getModulesByCourse = async (req, res) => {
   }
 };
 
+export const deleteModule = async (req, res) => {
+  const { id } = req.params
+  try {
+    const { data, error } = await supabase
+      .from('modules')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error
+    }
+    res.json(data);
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: `Error fetching module: ${err.message}` });
+  }
+};
+
 // ✅ Add a new module to a course
 export const addModule = async (req, res) => {
   const { course_id } = req.params;

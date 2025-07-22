@@ -36,7 +36,7 @@ export default function WorkingCapitalChart({ data, monthsRange, setMonthsRange 
   };
 
   return (
-    <div className="bg-white shadow-sm p-4 rounded-xl border-2 border-gray-300">
+    <div className="bg-gray-50 shadow-sm p-4 rounded-xl border-2 border-gray-300">
       <div className="flex justify-between items-center mb-2">
         <h2
           title="Visualizes income vs expenses month-wise to help track your working capital trend."

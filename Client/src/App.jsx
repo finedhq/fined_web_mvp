@@ -29,6 +29,8 @@ import FeedbackPage from './pages/FeedbackPage.jsx';
 import AboutUs from './pages/AboutUsPage.jsx';
 import HelpPage from './pages/HelpPage.jsx';
 import ContactUs from './pages/ContactUsPage.jsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
+import TermsOfService from './pages/TermsOfService.jsx';
 
 function ScrollToTop() {
   let { pathname } = useLocation()
@@ -73,6 +75,8 @@ const App = () => {
           <Route path="/about" element={<AboutUs />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/contact" element={<ContactUs />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/termsofservice" element={<TermsOfService />} />
 
           <Route path='*' element={<NotFoundPage />} />
 

@@ -24,6 +24,13 @@ const ModulesPage = () => {
     fetchModules();
   }, [courseId]);
 
+  const handleDeleteModule = async (id) => {
+    const res = await axios.delete(`/modules/${id}`)
+    if (res) {
+      setModules(prev => prev.filter(module => module.id !== id));
+    }
+  };
+
   return (
     <main className="min-h-screen px-6 py-10 bg-gradient-to-br from-white to-blue-50">
       <div className="max-w-5xl mx-auto">
@@ -67,9 +74,12 @@ const ModulesPage = () => {
                 key={mod.id}
                 className="bg-white shadow-md border border-gray-200 rounded-lg p-5 hover:shadow-lg transition"
               >
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {mod.title}
-                </h3>
+                <div className='flex justify-between' >
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    {mod.title}
+                  </h3>
+                  <button onClick={() => handleDeleteModule(mod.id)} >Delete Module</button>
+                </div>
                 <p className="text-gray-600 text-sm mb-2">
                   {mod.description || <span className="italic text-gray-400">No description provided.</span>}
                 </p>

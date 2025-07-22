@@ -25,6 +25,13 @@ const CoursesPage = () => {
     fetchCourses();
   }, []);
 
+  const handleDeleteCourse = async (id) => {
+    const res = await axios.delete(`/courses/${id}`)
+    if (res) {
+      setCourses(prev => prev.filter(course => course.id !== id));
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 p-10">
       <section className="max-w-7xl mx-auto">
@@ -80,9 +87,12 @@ const CoursesPage = () => {
                   </div>
                 )}
                 <div className="p-6">
+                  <div className="flex justify-between" >
                   <h2 className="text-xl font-bold text-gray-900 mb-3 truncate">
                     {course.title}
                   </h2>
+                  <button onClick={() => handleDeleteCourse(course.id)} >Delete Course</button>
+                  </div>
                   <p className="text-gray-700 mb-5 line-clamp-3">
                     {course.description}
                   </p>

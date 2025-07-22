@@ -5,14 +5,13 @@ import instance from '../lib/axios'
 import toast from 'react-hot-toast'
 import FinScoreChart from '../components/finScoreChart'
 import { IoIosInformationCircleOutline } from "react-icons/io"
-import { FiMenu, FiX } from "react-icons/fi"
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
 const HomePage = () => {
   const { user, isLoading, isAuthenticated, logout } = useAuth0()
   const [role, setrole] = useState("")
   const [email, setEmail] = useState("")
-  const [enteredEmail, setEnteredEmail] = useState("")
-  const [isEnteredEmail, setIsEnteredEmail] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [warning, setWarning] = useState("")
   const [error, setError] = useState("")
@@ -20,7 +19,6 @@ const HomePage = () => {
   const [recommendedCourses, setRecommendedCourses] = useState([])
   const [ongoingCourse, setOngoingCourse] = useState({})
   const [recommendedSchemes, setRecommendedSchemes] = useState([])
-  const [hasUnseen, setHasUnseen] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
   const carouselRef1 = useRef(null)
   const [canScrollLeft1, setCanScrollLeft1] = useState(false)
@@ -32,7 +30,6 @@ const HomePage = () => {
   const [showFinScoreLog, setShowFinScoreLog] = useState(false)
   const [isFetchingLog, setIsFechingLog] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showDescription, setShowDescription] = useState(false)
 
   useEffect(() => {
@@ -102,36 +99,10 @@ const HomePage = () => {
     }
   }
 
-  async function fetchHasUnseen() {
-    try {
-      const res = await instance.post("/home/hasunseen", { email });
-      if (res) {
-        setHasUnseen(res.data);
-      }
-    } catch (error) {
-      toast.error("Failed to fetch notifications status.");
-    }
-  }
-
   useEffect(() => {
     if (!email) return;
     fetchData();
-    fetchHasUnseen();
   }, [email]);
-
-  async function fetchEnteredEmail() {
-    try {
-      const res = await instance.post("/articles/getenteredemail", { email });
-      if (res.data[0]?.enteredEmail) {
-        setEnteredEmail(res.data[0]?.enteredEmail || null);
-        setIsEnteredEmail(true);
-      }
-    } catch (error) {
-      setEnteredEmail("");
-      setIsEnteredEmail(false);
-      toast.error("Failed to fetch your subscription email.");
-    }
-  }
 
   const fetchRecommendations = async () => {
     try {
@@ -148,12 +119,6 @@ const HomePage = () => {
       fetchRecommendations()
     }
   }, [email])
-
-  useEffect(() => {
-    if (email) {
-      fetchEnteredEmail();
-    }
-  }, [email]);
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -186,40 +151,7 @@ const HomePage = () => {
     if (showFinScoreLog) fetchFinScoreLog();
   }, [showLeaderBoard, showFinScoreLog]);
 
-  const saveEmail = async () => {
-    if (enteredEmail === "") return;
-    setIsSaved(true);
-    try {
-      await instance.post("/articles/saveemail", { email, enteredEmail });
-      toast.success("🎉 Subscribed successfully.")
-      setIsEnteredEmail(true);
-    } catch (err) {
-      setWarning("Failed to save email.");
-    } finally {
-      setIsSaved(false);
-    }
-  };
-
-  const removeEmail = async () => {
-    setIsSaved(true);
-    try {
-      await instance.post("/articles/removeemail", { email, enteredEmail });
-      toast.success("Unsubscribed successfully.");
-      setEnteredEmail("");
-      setIsEnteredEmail(false);
-    } catch (err) {
-      setWarning("Failed to remove email.");
-    } finally {
-      setIsSaved(false);
-    }
-  };
-
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
 
   if (isLoading) {
     return (
@@ -233,146 +165,8 @@ const HomePage = () => {
   }
 
   return (
-    <div className="bg-gray-100 font-inter text-[#1e1e1e] pb-5 px-4 sm:px-6 xl:px-10 2xl:max-w-[2000px] 2xl:mx-auto">
-      <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4 2xl:max-w-[1400px] 2xl:mx-auto">
-        {/* Mobile and Tablet Header */}
-        <div className="flex justify-between items-center w-full mt-4 xl:hidden">
-          <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-            <img src="logo.jpg" alt="FinEd Logo" className="h-[48px] w-auto object-contain" />
-          </div>
-          <div className="flex items-center gap-4">
-            <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-2 shadow-md cursor-pointer">
-              <img src="bell.png" alt="Bell Icon" className='w-6' />
-              {hasUnseen && (
-                <div className="absolute top-1 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-              )}
-            </div>
-            <button className="p-2 text-2xl" onClick={toggleSidebar}>
-              {isSidebarOpen ? <FiX /> : <FiMenu />}
-            </button>
-          </div>
-        </div>
-
-        {/* Desktop Header */}
-        <div className="hidden xl:flex xl:flex-row xl:items-center w-full mt-8 justify-between">
-          <div onClick={() => navigate('/home')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-            <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
-          </div>
-          <nav className="flex flex-wrap justify-center gap-5">
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/home')}
-            >
-              Home
-            </button>
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/courses')}
-            >
-              Courses
-            </button>
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/articles')}
-            >
-              Articles
-            </button>
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => navigate('/fin-tools')}
-            >
-              FinTools
-            </button>
-            {role === "Admin" && (
-              <button
-                className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => navigate('/admin')}
-              >
-                Admin Dashboard
-              </button>
-            )}
-            <button
-              className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-              onClick={() => {
-                sessionStorage.setItem("forceReload", "true");
-                logout({ logoutParams: { returnTo: window.location.origin } })
-              }}
-            >
-              LogOut
-            </button>
-          </nav>
-          <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-            <img src="bell.png" alt="Bell Icon" width="24" />
-            {hasUnseen && (
-              <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar for mobile and tablet */}
-        <div
-          className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl transform transition-transform duration-300 z-50 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:hidden`}
-        >
-          <div className="flex justify-between items-center p-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold">Menu</h2>
-            <button onClick={toggleSidebar} className="text-2xl">
-              <FiX />
-            </button>
-          </div>
-          <nav className="flex flex-col p-4 gap-2">
-            <button
-              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => { navigate('/home'); setIsSidebarOpen(false); }}
-            >
-              Home
-            </button>
-            <button
-              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => { navigate('/courses'); setIsSidebarOpen(false); }}
-            >
-              Courses
-            </button>
-            <button
-              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => { navigate('/articles'); setIsSidebarOpen(false); }}
-            >
-              Articles
-            </button>
-            <button
-              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-              onClick={() => { navigate('/fin-tools'); setIsSidebarOpen(false); }}
-            >
-              FinTools
-            </button>
-            {role === "Admin" && (
-              <button
-                className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left ${location.pathname === '/admin' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                onClick={() => { navigate('/admin'); setIsSidebarOpen(false); }}
-              >
-                Admin Dashboard
-              </button>
-            )}
-            <button
-              className={`px-4 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors text-left bg-white text-gray-700 hover:bg-gray-200`}
-              onClick={() => {
-                logout({ logoutParams: { returnTo: window.location.origin } });
-                setIsSidebarOpen(false);
-              }}
-            >
-              LogOut
-            </button>
-          </nav>
-        </div>
-        {
-          isSidebarOpen && (
-            <div
-              className="fixed inset-0 bg-black/50 z-40"
-              onClick={toggleSidebar}
-            ></div>
-          )
-        }
-      </header>
-
+    <div className="bg-gray-100 font-inter text-[#1e1e1e] pb-5 2xl:max-w-[2000px] 2xl:mx-auto">
+      <Navbar />
       {loading && !showLeaderBoard ? (
         <div className="p-4 animate-pulse space-y-6 2xl:max-w-[1400px] 2xl:mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start pt-6">
@@ -396,7 +190,7 @@ const HomePage = () => {
           </div>
         </div>
       ) : (
-        <div className="pt-5 2xl:max-w-[1400px] 2xl:mx-auto">
+        <div className="pt-5 px-4 sm:px-10 2xl:max-w-[1400px] 2xl:mx-auto">
           <main className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start bg-gray-100 mb-5">
             <div className="col-span-1 md:col-span-1 xl:col-span-1">
               <section className="bg-[#4E00E3] p-4 h-[194px] rounded-2xl text-white text-center flex flex-col justify-center items-center gap-4">
@@ -554,7 +348,7 @@ const HomePage = () => {
                     </div>
                   )}
                 </div>
-                <hr/>
+                <hr />
                 <div className='flex justify-center items-center' >
                   <div className='flex items-center gap-4 cursor-pointer' >
                     <p className='font-semibold text-lg mt-[3px]' >View All</p>
@@ -567,77 +361,7 @@ const HomePage = () => {
         </div>
       )}
 
-      <footer className="bg-[#f7fafc] -mx-4 sm:-mx-6 xl:-mx-10 p-6 sm:px-20 sm:py-10 flex flex-col sm:flex-row flex-wrap justify-between text-[#333] font-sans">
-        <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] flex flex-col items-center sm:items-start">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
-          <p className="text-sm sm:text-base text-gray-700 mb-4 text-center sm:text-left">Financial Education made Easy.</p>
-          <div className="flex gap-4">
-            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-          </div>
-        </div>
-        <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] font-semibold text-center sm:text-left">
-          <h4 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
-          <Link to="/courses" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
-          <Link to="/articles" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to="/fin-tools" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
-          <Link to="/about" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
-        </div>
-        <div className="flex-1 basis-full sm:basis-[200px] my-5 sm:m-5 min-w-[200px] font-semibold text-center sm:text-left">
-          <h4 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/help" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
-          <Link to="/contact" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
-          <Link to="/feedback" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
-        </div>
-        <div className="newsletter my-5 sm:m-5 w-full sm:w-auto">
-          <h4 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
-          {isEnteredEmail ? (
-            <div>
-              <p className="py-3 pl-3 pr-10 sm:pr-28 w-full mb-3 border border-gray-200 rounded-md text-xs sm:text-sm box-border">{enteredEmail}</p>
-              {isSaved ?
-                <div className="flex items-center justify-center gap-2 text-[#fbbf24] font-semibold">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Unsubscribing...
-                </div>
-                :
-                <button onClick={removeEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Unsubscribe
-                </button>
-              }
-            </div>
-          ) : (
-            <div>
-              <input
-                value={enteredEmail}
-                onChange={(e) => setEnteredEmail(e.target.value.trim())}
-                type="email"
-                placeholder="Enter your email address"
-                className="p-3 w-full mb-3 border border-gray-200 rounded-md text-xs sm:text-sm box-border"
-              />
-              {isSaved ?
-                <button className="flex items-center justify-center gap-2 p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Subscribing...
-                </button>
-                :
-                <button onClick={saveEmail} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Subscribe Now
-                </button>
-              }
-            </div>
-          )}
-        </div>
-      </footer>
-
-      <p className="text-center justify-center w-full mt-10 my-5 text-xs 2xl:max-w-[1400px] 2xl:mx-auto">
-        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-      </p>
+      <Footer />
 
       {
         warning && (
@@ -679,8 +403,8 @@ const HomePage = () => {
 
       {
         showLeaderBoard && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-            <div className="bg-white w-[90%] max-w-xl rounded-2xl shadow-xl p-6 relative">
+          <div onClick={() => setShowLeaderBoard(false)} className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+            <div onClick={(e) => e.stopPropagation()} className="bg-white w-[90%] max-w-xl rounded-2xl shadow-xl p-6 relative">
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-4">🏆 FinStars Leaderboard</h2>
               <button
                 onClick={() => setShowLeaderBoard(false)}
@@ -763,8 +487,8 @@ const HomePage = () => {
 
       {
         showFinScoreLog && (
-          <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
-            <div className="bg-white px-4 sm:px-6 py-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] space-y-4">
+          <div onClick={() => setShowFinScoreLog(false)} className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
+            <div onClick={(e) => e.stopPropagation()} className="bg-white px-4 sm:px-6 py-4 rounded-2xl shadow-xl w-[90%] max-w-[500px] space-y-4">
               <div className="flex justify-between">
                 <p className="text-lg sm:text-xl font-bold text-indigo-700">🕓 FinScore History</p>
                 <button

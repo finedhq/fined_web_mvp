@@ -44,7 +44,7 @@ const AdminHome = () => {
       {/* Top Navigation */}
       <div className="w-full max-w-6xl flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          <img onClick={() => navigate('/')} src="/logo.jpg" alt="FinEd Logo" className="h-12 w-auto rounded-md cursor-pointer" />
+          <img onClick={() => navigate('/')} src="/logo.png" alt="FinEd Logo" className="h-12 w-auto rounded-md cursor-pointer" />
           <h2 className="text-2xl font-bold text-indigo-700">FinEd Admin Panel</h2>
         </div>
         <button

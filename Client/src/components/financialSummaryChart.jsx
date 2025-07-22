@@ -33,7 +33,7 @@ export default function FinancialSummarySection({ transactions }) {
   const remainingPct = clamp(100 - (expensePct + investPct + savingPct));
 
   return (
-    <div className="w-full rounded-3xl border-2 border-gray-300 shadow-sm p-6 space-y-6 bg-white">
+    <div className="w-full rounded-3xl border-2 border-gray-300 shadow-sm p-6 space-y-6 bg-gray-50">
       <p title="Displays your income, expenses, investments, savings, and balance with a monthly comparison." className="text-xl font-bold text-gray-900">Summary</p>
 
       <div className="flex justify-between items-center gap-12">

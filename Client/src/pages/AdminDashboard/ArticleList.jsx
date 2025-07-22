@@ -65,6 +65,13 @@ const ArticlesList = () => {
     }
   };
 
+  const handleDeleteArticle = async (id) => {
+    const res = await instance.delete(`/articles/${id}`)
+    if (res) {
+      setArticles(prev => prev.filter(article => article.id !== id));
+    }
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-4">
@@ -91,9 +98,12 @@ const ArticlesList = () => {
               className="border p-4 rounded shadow-md space-y-3 cursor-pointer"
               onClick={() => openModal(article.id)}
             >
-              <h3 className="text-xl font-semibold text-indigo-700">
-                {article.title}
-              </h3>
+              <div className="flex justify-between" >
+                <h3 className="text-xl font-semibold text-indigo-700">
+                  {article.title}
+                </h3>
+                <button onClick={(e) => { e.stopPropagation(); handleDeleteArticle(article.id) }} >Delete article</button>
+              </div>
 
               <h3 className="text-xl font-semibold text-indigo-700">
                 Rating: {article.rating || 0}

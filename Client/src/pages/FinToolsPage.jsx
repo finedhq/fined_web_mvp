@@ -3,27 +3,30 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth0 } from '@auth0/auth0-react'
 import instance from "../lib/axios"
+import { FiMenu, FiX } from "react-icons/fi"
+import Navbar from "../components/Navbar"
+import Footer from "../components/Footer"
 
 const tools = [
     {
-        name: "Expense Tracker",
-        image: "/images/expense-tracker.png",
+        name: "FinTracker",
+        image: "/expense.png",
         description: "Track your monthly expenses, set budgets, and visualize your financial habits.",
         route: "/fin-tools/expensetracker",
         available: true
     },
-    {
-        name: "Loan Calculator",
-        image: "/images/loan-calculator.png",
-        description: "Calculate EMIs and track your loan payments easily.",
-        available: false
-    },
-    {
-        name: "Investment Planner",
-        image: "/images/investment-planner.png",
-        description: "Plan your investments based on goals and timelines.",
-        available: false
-    }
+    // {
+    //     name: "Loan Calculator",
+    //     image: "/images/loan-calculator.png",
+    //     description: "Calculate EMIs and track your loan payments easily.",
+    //     available: false
+    // },
+    // {
+    //     name: "Investment Planner",
+    //     image: "/images/investment-planner.png",
+    //     description: "Plan your investments based on goals and timelines.",
+    //     available: false
+    // }
 ]
 
 export default function FinToolsPage() {
@@ -34,6 +37,8 @@ export default function FinToolsPage() {
 
     const [email, setEmail] = useState("")
     const [hasUnseen, setHasUnseen] = useState(false)
+
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -61,61 +66,14 @@ export default function FinToolsPage() {
         fetchHasUnseen()
     }, [email])
 
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     return (
-        <div className="px-10 py-5 min-h-screen bg-gray-50">
-            <header className="flex justify-between items-center h-[63px] py-6 bg-gray-50 box-border">
-
-                <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
-                    <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
-                </div>
-
-                <nav className="flex gap-5">
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/home')}
-                    >
-                        Home
-                    </button>
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/courses')}
-                    >
-                        Courses
-                    </button>
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/articles')}
-                    >
-                        Articles
-                    </button>
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/fin-tools')}
-                    >
-                        FinTools
-                    </button>
-
-                    {role === "Admin" ? <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-                        onClick={() => navigate('/admin')}
-                    >Admin DashBoard</button> : ""}
-
-                    <button
-                        className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-                        onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                    >
-                        LogOut
-                    </button>
-                </nav>
-
-                <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-                    <img src="bell.png" alt="Bell Icon" width="24" />
-                    {hasUnseen && (
-                        <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-                    )}
-                </div>
-            </header>
-            <div className="py-10" >
+        <div className="sm:pb-5 min-h-screen bg-gray-100">
+            <Navbar />
+            <div className="px-4 sm:px-10 py-10" >
                 <h1 className="text-3xl font-bold mb-8 text-gray-800">FinTools</h1>
                 <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {tools.map((tool, index) => (
@@ -128,13 +86,13 @@ export default function FinToolsPage() {
                             <img
                                 src={tool.image}
                                 alt={tool.name}
-                                className="w-full h-48 object-cover"
+                                className="w-full object-contain"
                             />
                             <div className="p-4">
                                 <h2 className="text-xl font-semibold text-gray-800 mb-2">
                                     {tool.name}
                                 </h2>
-                                <p className="text-gray-600 text-sm">{tool.description}</p>
+                                <p className="text-gray-600">{tool.description}</p>
                                 {!tool.available && (
                                     <span className="inline-block mt-3 text-xs font-medium bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
                                         Coming Soon
@@ -145,6 +103,7 @@ export default function FinToolsPage() {
                     ))}
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

@@ -59,6 +59,23 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
+export const deleteCourse = async (req, res) => {
+  const { id } = req.params
+  try {
+    const { error } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error
+    }
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: `Error fetching courses: ${err.message}` });
+  }
+};
+
 export const getOngoingCourse = async (req, res) => {
   const { email } = req.body;
 
@@ -182,6 +199,56 @@ export const getACard = async (req, res) => {
     const currentCard = allCards[currentIndex];
     const userProgress = progressResult.data;
 
+    // Fetch all modules in course
+    const { data: modules, error: modulesError } = await supabase
+      .from("modules")
+      .select("id")
+      .eq("course_id", course_id)
+      .order("order_index");
+
+    if (modulesError) throw modulesError;
+
+    const moduleIndex = modules.findIndex(m => m.id === module_id);
+    const prevModule = modules[moduleIndex - 1];
+    const nextModule = modules[moduleIndex + 1];
+
+    let prevModuleFirstCard = null;
+    let nextModuleFirstCard = null;
+
+    if (prevModule) {
+      const { data: prevCards, error: prevCardError } = await supabase
+        .from("cards")
+        .select("card_id")
+        .eq("module_id", prevModule.id)
+        .order("order_index")
+        .limit(1);
+
+      if (prevCardError) throw prevCardError;
+      if (prevCards.length) {
+        prevModuleFirstCard = {
+          moduleId: prevModule.id,
+          cardId: prevCards[0].card_id,
+        };
+      }
+    }
+
+    if (nextModule) {
+      const { data: nextCards, error: nextCardError } = await supabase
+        .from("cards")
+        .select("card_id")
+        .eq("module_id", nextModule.id)
+        .order("order_index")
+        .limit(1);
+
+      if (nextCardError) throw nextCardError;
+      if (nextCards.length) {
+        nextModuleFirstCard = {
+          moduleId: nextModule.id,
+          cardId: nextCards[0].card_id,
+        };
+      }
+    }
+
     res.json({
       ...currentCard,
       status: userProgress?.status || "incompleted",
@@ -189,8 +256,13 @@ export const getACard = async (req, res) => {
       prevCardId: currentIndex > 0 ? allCards[currentIndex - 1].card_id : null,
       nextCardId: currentIndex < allCards.length - 1 ? allCards[currentIndex + 1].card_id : null,
       module_total_cards: allCards.length,
-      module_progress: currentCard.order_index + 1
+      module_progress: currentCard.order_index + 1,
+      isFirstCardInModule: currentIndex === 0,
+      isLastCardInModule: currentIndex === allCards.length - 1,
+      prevModuleFirstCard,
+      nextModuleFirstCard
     });
+
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: `Failed to fetch card: ${err.message}` });
@@ -214,7 +286,7 @@ export const updateACard = async (req, res) => {
     // Get answer tags
     let optionsTags = [];
     if (typeof cardData?.options_tags === "string") {
-      try { optionsTags = JSON.parse(cardData.options_tags); } catch {}
+      try { optionsTags = JSON.parse(cardData.options_tags); } catch { }
     } else if (Array.isArray(cardData?.options_tags)) {
       optionsTags = cardData.options_tags;
     }
@@ -289,7 +361,8 @@ export const updateACard = async (req, res) => {
     const { data: modules, error: modulesError } = await supabase
       .from("modules")
       .select("id")
-      .eq("course_id", course_id);
+      .eq("course_id", course_id)
+      .order("order_index");
     if (modulesError) throw modulesError;
 
     const moduleIds = modules.map(m => m.id);

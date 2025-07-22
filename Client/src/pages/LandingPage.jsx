@@ -3,9 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
 import toast from "react-hot-toast";
 import instance from "../lib/axios";
+import Footer from '../components/Footer';
 
 export default function LandingPage() {
-  const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+  const { user, isAuthenticated, isLoading, loginWithPopup } = useAuth0();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,7 +31,7 @@ export default function LandingPage() {
   // Enhanced loading UI
   if (isLoading && isAuthenticated) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-lg text-gray-800 font-semibold">Loading...</p>
@@ -161,7 +162,7 @@ export default function LandingPage() {
   }, [courses, articles]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 font-inter">
+    <div className="min-h-screen bg-gray-100 pb-5 text-gray-800 font-inter">
       <style>
         {`
           .hide-scrollbar::-webkit-scrollbar {
@@ -197,11 +198,11 @@ export default function LandingPage() {
           }
         `}
       </style>
-      <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-3 sm:py-6 bg-white shadow-sm">
+      <header className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-10 lg:px-16 py-3 sm:py-6 bg-gray-100 shadow-sm">
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
             <img
-              src="/logo.jpg"
+              src="/logo.png"
               alt="FinEd logo"
               className="h-12 sm:h-14 w-auto object-contain"
             />
@@ -220,11 +221,11 @@ export default function LandingPage() {
           <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Courses</Link>
           <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Articles</Link>
           <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
-          <button onClick={loginWithRedirect} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
+          <button onClick={loginWithPopup} className="px-5 py-2 bg-amber-400 text-white rounded-2xl font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
         </nav>
       </header>
 
-      <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out sm:hidden z-50`}>
+      <div className={`fixed inset-y-0 left-0 w-64 bg-gray-100 shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out sm:hidden z-50`}>
         <div className="flex justify-between items-center p-5 border-b">
           <span className="font-bold text-lg">Menu</span>
           <button onClick={toggleSidebar} className="text-gray-800 focus:outline-none" aria-label="Close menu">
@@ -237,12 +238,12 @@ export default function LandingPage() {
           <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Courses</Link>
           <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>Articles</Link>
           <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-lg" onClick={toggleSidebar}>About Us</Link>
-          <button onClick={() => { loginWithRedirect(); toggleSidebar(); }} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-lg cursor-pointer">Sign up / Login</button>
+          <button onClick={() => { loginWithPopup(); toggleSidebar(); }} className="px-5 py-2 bg-amber-400 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors duration-200 text-lg cursor-pointer">Sign up / Login</button>
         </nav>
       </div>
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-white bg-opacity-80 sm:hidden z-40"
+          className="fixed inset-0 bg-gray-100 bg-opacity-80 sm:hidden z-40"
           onClick={toggleSidebar}
           aria-hidden="true"
         ></div>
@@ -270,7 +271,7 @@ export default function LandingPage() {
         <Link to={`/courses/course/${courses[0]?.id}`} className="bg-[#fbbf24] text-white py-3 px-8 rounded-lg font-bold no-underline text-base sm:text-lg hover:bg-[#e6b640] transition-colors duration-200">Give It a Go →</Link>
       </section>
 
-      <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center bg-white gap-8">
+      <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center bg-gray-100 gap-8">
         <div className="flex-1 w-full md:w-[45%] text-center md:text-left mb-10 md:mb-0">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6">Small Lessons. Big Impact.</h2>
           <ul className="list-none p-0 mb-6 space-y-4">
@@ -290,7 +291,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col-reverse md:flex-row justify-between items-center bg-white gap-8">
+      <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col-reverse md:flex-row justify-between items-center bg-gray-100 gap-8">
         <div className="flex-1 w-full md:w-[45%] flex justify-center mb-10 md:mb-0">
           <img
             src="/dashboard.png"
@@ -312,7 +313,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center bg-white gap-8">
+      <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center bg-gray-100 gap-8">
         <div className="flex-1 w-full md:w-[45%] text-center md:text-left mb-10 md:mb-0">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6">Turn Knowledge into Action</h2>
           <ul className="list-none p-0 mb-6 space-y-4">
@@ -356,10 +357,10 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[440px] pt-4 gap-8 sm:px-2 mb-10 overflow-hidden snap-x snap-mandatory hide-scrollbar">
+        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[440px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
           {courses.length > 0 ? (
             courses.map((course, index) => (
-              <div key={index} className="bg-white text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-48 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
+              <div key={index} className="bg-gray-100 text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-48 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
                 <div className='flex justify-between gap-4' >
                   <div className='max-w-3/5' >
                     <p className='text-2xl text-purple-700 font-semibold' >{course.title}</p>
@@ -384,12 +385,12 @@ export default function LandingPage() {
 
         <div className="wave absolute bottom-0 left-0 w-full h-24 overflow-hidden leading-none z-0">
           <svg viewBox="0 0 500 150" preserveAspectRatio="none" className="relative block w-full h-24">
-            <path d="M0.00,49.98 C150.00,150.00 349.90,-50.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z" className="fill-white"></path>
+            <path d="M0.00,49.98 C150.00,150.00 349.90,-50.00 500.00,49.98 L500.00,150.00 L0.00,150.00 Z" className="fill-gray-100"></path>
           </svg>
         </div>
       </section>
 
-      <section className="bg-white py-16 px-6 sm:px-10 lg:px-16">
+      <section className="bg-gray-100 py-16 px-6 sm:px-10 lg:px-16">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Articles</h2>
           <div className="flex gap-3">
@@ -412,10 +413,10 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={articleCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[390px] pt-4 gap-8 sm:px-2 mb-10 overflow-hidden snap-x snap-mandatory hide-scrollbar">
+        <div ref={articleCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[390px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
           {articles.length > 0 ? (
             articles.map((article, index) => (
-              <div key={index} className="bg-white text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-40 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
+              <div key={index} className="bg-gray-50 text-gray-900 rounded-xl p-4 shadow-lg flex flex-col justify-between h-40 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
                 <div className='flex justify-between gap-4' >
                   <div className='max-w-3/5' >
                     <p className='text-xl text-purple-700 font-semibold' >{article.title}</p>
@@ -436,45 +437,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="bg-[#f7fafc] py-12 px-6 sm:px-10 lg:px-16 flex flex-col md:flex-row flex-wrap justify-between text-[#333] font-sans gap-8">
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
-          <p className="text-base text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
-          <div className="flex gap-4">
-            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-          </div>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
-          <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
-          <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to={isAuthenticated ? "/fin-tools" : "#"} onClick={(e) => {
-            if (!isAuthenticated) {
-              e.preventDefault();
-              toast.error("Please sign in");
-            }
-          }} className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
-          <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
-          <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
-          <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] min-w-[200px] text-center md:text-left">
-          <h4 className="text-sm sm:text-base font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
-          <input type="email" placeholder="Enter your email address" className="p-3 w-full mb-4 border border-gray-200 rounded-md text-base sm:text-lg box-border" />
-          <button onClick={() => toast.error("Please sign in")} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border text-base sm:text-lg">
-            Subscribe Now
-          </button>
-        </div>
-      </footer>
+      <Footer />
 
-      <p className="text-center w-full py-10 text-xs">
-        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-      </p>
     </div>
   );
 }
