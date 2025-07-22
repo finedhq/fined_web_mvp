@@ -18,6 +18,9 @@ import ICICIBasicSavings from './components/BasicSavingsICICI.jsx';
 import ICICIYoungSavings from './components/YoungStars.jsx';
 import ICICIFD from './components/ICICIFD.jsx';
 import ICICIRD from './components/ICICIRD.JSX';
+import HDFCRD from './components/HDFCRD.jsx';
+import KotakAce from './components/KotakAce.jsx';
+import HDFCMoney from './components/HDFCMoney.jsx';
 
 function App() {
   return (
@@ -41,6 +44,9 @@ function App() {
           <Route path="/iciciyoungsavings" element={<ICICIYoungSavings/>} />
           <Route path="/icicifd" element={<ICICIFD/>} />
           <Route path="/icicird" element={<ICICIRD/>} />
+          <Route path="/hdfcrd" element={<HDFCRD/>} />
+          <Route path="/kotakace" element={<KotakAce/>} />
+          <Route path="/moneyback" element={<HDFCMoney/>} />
 
         </Routes>
     </div>

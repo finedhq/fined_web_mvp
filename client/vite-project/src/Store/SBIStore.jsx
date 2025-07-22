@@ -40,6 +40,12 @@ export const useMessagesStore= create((set,get)=>({
       seticicifd:(data)=>set({icicifd:data}),
       icicird:[],
       seticicird:(data)=>set({icicird:data}),
+      hdfcrd:[],
+      sethdfcrd:(data)=>set({hdfcrd:data}),
+      kotakace:[],
+      setkotakace:(data)=>set({kotakace:data}),
+      hdfcmoney:[],
+      sethdfcmoney:(data)=>set({hdfcmoney:data}),
 
       getSBISavings:async()=>{
             try{
@@ -274,5 +280,45 @@ export const useMessagesStore= create((set,get)=>({
             }
 
       },
+
+      getHDFCrd:async()=>{
+            try{
+                const res = await axiosInstance.get('/hdfc/rd');
+                if(res.data){
+                   set({hdfcrd:res.data});
+                }
+            }
+            catch (error) {
+               console.error('Error fetching FD data:', error);
+            }
+
+      },
+
+      getkotakace:async()=>{
+            try{
+                const res = await axiosInstance.get('/kotak/acesavings');
+                if(res.data){
+                   set({kotakace:res.data});
+                }
+            }
+            catch (error) {
+               console.error('Error fetching FD data:', error);
+            }
+
+      },
+
+       getHDFCmoney:async()=>{
+            try{
+                const res = await axiosInstance.get('/hdfc/moneyback');
+                if(res.data){
+                   set({hdfcmoney:res.data});
+                }
+            }
+            catch (error) {
+               console.error('Error fetching FD data:', error);
+            }
+
+      },
+
 
 }))
