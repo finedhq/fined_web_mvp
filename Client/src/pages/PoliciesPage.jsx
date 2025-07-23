@@ -13,6 +13,7 @@ const PoliciesPage = () => {
     const [role, setrole] = useState("")
     const [email, setEmail] = useState("")
     const [recommendedSchemes, setRecommendedSchemes] = useState([])
+    const [course_id, setCourseId] = useState("")
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
@@ -24,9 +25,18 @@ const PoliciesPage = () => {
         }
     }, [isLoading, isAuthenticated])
 
+    useEffect(() => {
+        const query = new URLSearchParams(location.search)
+        const idFromQuery = query.get("courseId")
+        if (idFromQuery) {
+            setCourseId(idFromQuery)
+        }
+    }, [location.search])
+
+
     const fetchRecommendations = async () => {
         try {
-            const res = await instance.post("/home/recommendations", { email, course_id: "e756d478-e7f6-4e8d-b0f7-d05afee13a39" });
+            const res = await instance.post("/home/recommendations", { email, course_id });
             console.log(res.data)
             setRecommendedSchemes(res.data.recommendations);
         } catch (err) {
@@ -81,9 +91,6 @@ const PoliciesPage = () => {
                         />
                         <p>
                             <span className="font-semibold">To get more accurate suggestions</span>, just complete our courses or answer a quick questionnaire—it only takes a minute!{" "}
-                            <a href="#" className="font-semibold underline">
-                                Click to get started (No preparation needed)
-                            </a>
                         </p>
                     </div>
                 </div>
@@ -92,7 +99,7 @@ const PoliciesPage = () => {
                 <div className="space-y-3">
                     {recommendedSchemes.map((scheme, idx) => (
                         <div
-                            onClick={() => {scheme.short_name ? navigate(`/${scheme.short_name}`) : toast("Coming soon !")}}
+                            onClick={() => { scheme.short_name ? navigate(`/${scheme.short_name}`) : toast("Coming soon !") }}
                             key={idx}
                             className="flex justify-between items-start bg-white px-4 py-3 rounded-lg shadow-sm cursor-pointer hover:bg-gray-300 transition-all duration-200"
                         >

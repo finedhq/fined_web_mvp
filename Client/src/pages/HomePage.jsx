@@ -368,7 +368,13 @@ const HomePage = () => {
 
                 <div className="border-t border-gray-300 py-3">
                   <div
-                    onClick={() => navigate("/policies")}
+                    onClick={() => {
+                      if (course_id) {
+                        navigate(`/policies?courseId=${course_id}`);
+                      } else {
+                        navigate("/policies");
+                      }
+                    }}
                     className="flex justify-center items-center gap-3 cursor-pointer transition"
                   >
                     <p className="font-semibold text-lg">View All</p>

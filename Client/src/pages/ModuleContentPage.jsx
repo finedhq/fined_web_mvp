@@ -92,7 +92,6 @@ const ModuleContentPage = () => {
         finStarsToAward = card.allotted_finstars || 0
       }
       const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}/updateCard`, { status: "completed", userAnswer, finStars: finStarsToAward, email, userIndex })
-      console.log(res.data)
       setCard(res?.data)
       if (res.data?.module_progress && res.data?.module_total_cards) {
         const percent = Math.round((res.data.module_progress / res.data.module_total_cards) * 100)
@@ -169,9 +168,18 @@ const ModuleContentPage = () => {
               }
               <h1 className="text-lg sm:text-2xl font-bold mb-4">{card.title}</h1>
               <div className="space-y-4 text-base text-justify">
-                {card.content_text?.split('\n').map((para, idx) => (
-                  <p key={idx}>{para}</p>
-                ))}
+                {card.content_text
+                  ?.split(/\n{2,}/)
+                  .map((para, idx) => (
+                    <p key={idx}>
+                      {para.split('\n').map((line, lineIdx) => (
+                        <React.Fragment key={lineIdx}>
+                          {line}
+                          <br />
+                        </React.Fragment>
+                      ))}
+                    </p>
+                  ))}
               </div>
             </div>
             <div className="flex justify-between mt-8">
