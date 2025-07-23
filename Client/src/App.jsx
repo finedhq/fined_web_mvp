@@ -50,7 +50,7 @@ import ICICISavings from './schemes/ICICISavings.jsx';
 import ICICIBasicSavings from './schemes/BasicSavingsICICI.jsx';
 import ICICIYoungSavings from './schemes/YoungStars.jsx';
 import ICICIFD from './schemes/ICICIFD.jsx';
-import ICICIRD from './schemes/ICICIRD.JSX';
+import ICICIRD from './schemes/ICICIRD.jsx';
 import HDFCRD from './schemes/HDFCRD.jsx';
 import KotakAce from './schemes/KotakAce.jsx';
 import HDFCMoney from './schemes/HDFCMoney.jsx';
