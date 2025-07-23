@@ -163,7 +163,7 @@ const ModuleContentPage = () => {
                 <img
                   src={card.image_url}
                   alt="image"
-                  className="float-left h-32 w-32 sm:h-48 sm:w-48 object-cover mr-4 sm:mr-8"
+                  className="float-right h-32 w-32 sm:h-48 sm:w-48 object-cover ml-4 sm:ml-8"
                 />
               }
               <h1 className="text-lg sm:text-2xl font-bold mb-4">{card.title}</h1>

@@ -47,18 +47,20 @@ export default function CourseOverviewPage() {
     setLoading(true);
     try {
       const res = await instance.post(`/courses/course/${course_id}`, { email });
-      console.log("Fetched Course Data:", res.data); // Debug log
       setCourseTitle(res.data.title);
       setCourse(res.data.data);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching course:", err); // Debug log
       setWarning("Failed to load course.");
     }
   }
 
   useEffect(() => {
-    fetchCourse();
+    const timeout = setTimeout(() => {
+      fetchCourse();
+    }, 500);
+
+    return () => clearTimeout(timeout);
   }, [hasUser]);
 
   async function fetchHasUnseen() {
