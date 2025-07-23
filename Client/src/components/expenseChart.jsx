@@ -37,7 +37,7 @@ export default function ExpensesPieChart({ data, filterMonthforPieChart, setFilt
   return (
     <div className='h-full w-full min-h-40 text-xs font-medium'>
       <div className='flex items-center justify-between' >
-        <p title="Displays how your total monthly expenses are distributed across different categories." className='text-lg font-semibold pl-2'>Expense Categories</p>
+        <p title="Displays how your total monthly expenses are distributed across different categories." className='text-base sm:text-lg font-semibold pl-2'>Expense Categories</p>
         <select
           value={filterMonthforPieChart}
           onChange={(e) => setFilterMonthforPieChart(e.target.value)}

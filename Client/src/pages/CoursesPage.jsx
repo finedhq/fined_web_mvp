@@ -337,7 +337,7 @@ export default function CoursesHomePage() {
                                         </button>
                                     </div>
                                 </div>
-                                <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[34px] h-[740px] mx-4 px-2 sm:px-0 overflow-hidden">
+                                <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[34px] h-[740px] mx-4 px-2 sm:px-0 overflow-x-auto">
                                     {courses.map((course) => (
                                         <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                                     ))}
@@ -372,7 +372,7 @@ export default function CoursesHomePage() {
                             </button>
                         </div>
                     </div>
-                    <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[36px] h-[740px] mx-4 overflow-hidden">
+                    <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[36px] h-[740px] mx-4 overflow-x-auto">
                         {courses.map((course) => (
                             <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                         ))}

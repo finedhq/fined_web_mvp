@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import axios from '../lib/axios.js';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "../lib/axios.js";
+import { Link } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const CardForm = () => {
   const { moduleId } = useParams();
@@ -20,6 +22,21 @@ const CardForm = () => {
     audio_file: null,
     video_file: null,
   });
+
+  const navigate = useNavigate()
+
+  const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

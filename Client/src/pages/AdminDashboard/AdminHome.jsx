@@ -4,7 +4,18 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 const AdminHome = () => {
   const navigate = useNavigate();
-  const { user } = useAuth0();
+  const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   const cards = [
     {

@@ -645,7 +645,7 @@ export default function ExpenseTracker() {
 
   return (
     <div className="relative bg-gray-100" >
-<Navbar />
+      <Navbar />
       {isDataLoading ?
         <div className="animate-pulse px-12 py-8 space-y-6 bg-gray-100 min-h-screen">
           <div className="flex gap-4">
@@ -695,35 +695,35 @@ export default function ExpenseTracker() {
         </div>
         :
         <div>
-          <main className="py-10 px-10" >
-            <div className="flex gap-3" >
-              <div className="w-3/4" >
+          <main className="px-4 py-5 sm:py-10 sm:px-10" >
+            <div className="sm:flex gap-3" >
+              <div className="sm:w-3/4" >
                 <FinancialSummaryBar transactions={fetchedTransactions} />
               </div>
-              <div onClick={() => setAutomatePopup(true)} className="w-1/4 h-1/10 cursor-pointer" >
+              <div onClick={() => setAutomatePopup(true)} className="mt-4 sm:mt-0 sm:w-1/4 sm:h-1/10 cursor-pointer" >
                 <img src="/automate.jpg" className="h-full w-full rounded-4xl shadow-md object-cover" />
               </div>
             </div>
-            <div className="flex gap-3 mt-4" >
-              <div className="w-3/5 space-y-4" >
+            <div className="sm:flex gap-3 mt-4" >
+              <div className="sm:w-3/5 space-y-4" >
                 <div className="flex justify-between" >
-                  <button onClick={() => setIsAddingTransaction(true)} className="bg-violet-900 hover:bg-violet-950 transition-all duration-200 py-4 px-6 text-white shadow-sm text-lg font-semibold rounded-xl flex items-center justify-center gap-4 cursor-pointer" ><p className="text-3xl" >+</p>Add transaction</button>
-                  <button onClick={() => setIsBudgetEditing(true)} className="bg-gray-50 hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Set budget goals</button>
-                  <button title="Coming Soon ..." onClick={() => toast("ℹ️ Coming Soon ...")} className="bg-gray-50 hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Add receipts & trips</button>
+                  <button onClick={() => setIsAddingTransaction(true)} className="bg-violet-900 hover:bg-violet-950 transition-all duration-200 p-2 sm:py-4 sm:px-6 text-white shadow-sm text-sm sm:text-lg font-semibold rounded-xl flex items-center justify-center gap-2 sm:gap-4 cursor-pointer" ><p className="hidden sm:block text-3xl" >+</p>Add transaction</button>
+                  <button onClick={() => setIsBudgetEditing(true)} className="bg-gray-50 hover:bg-gray-50 transition-all duration-200 p-2 sm:py-4 sm:px-6 shadow-sm text-sm sm:text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-2 sm:gap-4 cursor-pointer" ><GrNotes className="hidden sm:block text-2xl" />Set budget goals</button>
+                  <button title="Coming Soon ..." onClick={() => toast("ℹ️ Coming Soon ...")} className="bg-gray-50 hover:bg-gray-50 transition-all duration-200 p-2 sm:py-4 sm:px-6 shadow-sm text-sm sm:text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-2 sm:gap-4 cursor-pointer" ><GrNotes className="hidden sm:block text-2xl" />Add receipts & trips</button>
                 </div>
                 <div>
                   <WorkingCapitalChart data={fetchedTransactions} monthsRange={monthsRange} setMonthsRange={setMonthsRange} />
                 </div>
-                <div className="flex gap-3" >
-                  <div className="w-1/2 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-2" >
+                <div className="sm:flex gap-3" >
+                  <div className="sm:w-1/2 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-2" >
                     <ExpensesPieChart data={filteredTransactionsforPieChart} filterMonthforPieChart={filterMonthforPieChart} setFilterMonthforPieChart={setFilterMonthforPieChart} />
                   </div>
-                  <div className="w-1/2 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-2" >
+                  <div className="mt-4 sm:mt-0 sm:w-1/2 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-2" >
                     <SpendVsBudgetGauge data={gaugeBudgets} filterMonthforGaugeChart={filterMonthforGaugeChart} setFilterMonthforGaugeChart={setFilterMonthforGaugeChart} />
                   </div>
                 </div>
               </div>
-              <div className="w-2/5 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-4">
+              <div className="sm:w-2/5 mt-4 sm:mt-0 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-4" >
                   <p title="Displays a list of your most recent transactions for the selected month." className="font-semibold text-lg">Recent Transactions</p>
                   <select value={filterMonthforTransactions} onChange={(e) => setFilterMonthforTransactions(e.target.value)} className="border-2 border-gray-300 outline-none rounded-xl p-1 cursor-pointer" >
@@ -771,7 +771,7 @@ export default function ExpenseTracker() {
           </main>
           {automatePopup && (
             <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/30">
-              <div className="bg-white p-6 rounded-2xl shadow-xl w-2/5 max-h-[90vh] overflow-y-auto space-y-6 relative">
+              <div className="bg-white p-6 rounded-2xl shadow-xl sm:w-2/5 max-h-[90vh] overflow-y-auto space-y-6 relative">
                 <div className="flex justify-between items-center mb-8">
                   <p className="text-2xl font-bold text-gray-800">Automate Tracking Expenses</p>
                   <RxCross2 onClick={() => { setAutomatePopup(false); setIsUnderstood(false); setIsAutoFetch(dbAtoFetch); setIsStatusChanged(false) }} className="text-3xl cursor-pointer text-gray-600 hover:text-black transition" />
@@ -852,7 +852,7 @@ export default function ExpenseTracker() {
                   </div>
                 } */}
                 <div className="flex justify-center" >
-                <button onClick={() => toast("Coming soon!")} className="bg-amber-400 px-4 py-2 text-white rounded-xl cursor-pointer" >Coming Soon</button>
+                  <button onClick={() => toast("Coming soon!")} className="bg-amber-400 px-4 py-2 text-white rounded-xl cursor-pointer" >Coming Soon</button>
                 </div>
               </div>
             </div>
@@ -861,13 +861,13 @@ export default function ExpenseTracker() {
             <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/30">
               <div className="bg-white p-6 rounded-2xl shadow-xl w-[600px] max-h-[90vh] overflow-y-auto space-y-6">
                 <div className="flex justify-between items-center" >
-                  <p className="text-2xl font-bold text-violet-800">Set Budget Goals</p>
+                  <p className="text-md sm:text-2xl font-bold text-violet-800">Set Budget Goals</p>
                   {isMonthlyBudgetEditing ?
-                    <button onClick={() => setIsMonthlyBudgetEditing(false)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white font-semibold px-4 py-2 rounded-lg cursor-pointer" >Set category budget</button>
+                    <button onClick={() => setIsMonthlyBudgetEditing(false)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white text-sm sm:text-base font-semibold p-1 sm:px-4 sm:py-2 rounded-lg cursor-pointer" >Set category budget</button>
                     :
-                    <button onClick={() => setIsMonthlyBudgetEditing(true)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white font-semibold px-4 py-2 rounded-lg cursor-pointer" >Set monthly budget</button>
+                    <button onClick={() => setIsMonthlyBudgetEditing(true)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white text-sm sm:text-base font-semibold p-1 sm:px-4 sm:py-2 rounded-lg cursor-pointer" >Set monthly budget</button>
                   }
-                  <RxCross2 onClick={handleCross} className="text-3xl cursor-pointer" />
+                  <RxCross2 onClick={handleCross} className="text-xl sm:text-3xl cursor-pointer" />
                 </div>
                 {isMonthlyBudgetEditing ?
                   <div className="flex flex-col" >

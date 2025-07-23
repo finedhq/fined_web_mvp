@@ -271,7 +271,7 @@ const HomePage = () => {
                 <img
                   src={featuredArticle?.image_url}
                   alt="Featured"
-                  className="w-full max-w-[360px] h-48 sm:h-56 object-cover rounded-2xl"
+                  className="w-full max-w-[360px] h-48 sm:h-52 object-cover rounded-2xl"
                 />
                 <p className="text-base sm:text-md font-semibold leading-tight">{featuredArticle?.title}</p>
               </div>

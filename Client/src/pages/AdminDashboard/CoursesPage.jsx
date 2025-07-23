@@ -2,12 +2,26 @@ import React, { useState, useEffect } from "react";
 import axios from "/src/lib/axios.js";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
+import { useAuth0 } from "@auth0/auth0-react";
 // import Loader from "/src/components/Loader"; // 👈 import loader
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true); // 👈 new state
   const navigate = useNavigate();
+
+    const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   const fetchCourses = async () => {
     try {

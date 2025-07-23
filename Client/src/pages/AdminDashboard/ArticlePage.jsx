@@ -1,7 +1,21 @@
 import React, { useEffect, useRef } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const ArticlePage = ({ article, onClose }) => {
   const modalRef = useRef(null);
+
+  const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   // Close on Esc key
   useEffect(() => {
@@ -31,7 +45,7 @@ const ArticlePage = ({ article, onClose }) => {
   };
 
   return (
-    
+
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-4"
       role="dialog"
