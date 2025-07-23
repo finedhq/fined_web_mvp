@@ -77,8 +77,15 @@ const ModuleContentPage = () => {
     setCard({})
     setSelectedIndex(null)
     setDisabled(false)
-    fetchCard()
-  }, [cardId, hasUser])
+  }, [cardId])
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      fetchCard();
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [cardId, hasUser]);
 
   async function markCompleted(userAnswer = null, userIndex = null) {
     try {
