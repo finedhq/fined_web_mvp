@@ -301,7 +301,7 @@ const HomePage = () => {
             <div className="w-full xl:w-2/3">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl sm:text-3xl font-semibold">Recommended Courses</h2>
-                {/* <div className="flex gap-3 md:gap-4">
+                <div className="flex gap-3 md:gap-4">
                   <button
                     className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                     onClick={() => scrollLeft(carouselRef1)}
@@ -316,7 +316,7 @@ const HomePage = () => {
                   >
                     ❯
                   </button>
-                </div> */}
+                </div>
               </div>
               <div
                 ref={carouselRef1}
