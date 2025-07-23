@@ -40,6 +40,8 @@ export const useMessagesStore= create((set,get)=>({
       seticicifd:(data)=>set({icicifd:data}),
       icicird:[],
       seticicird:(data)=>set({icicird:data}),
+      kotakace:[],
+      setkotakace:(data)=>({kotakace:data}),
 
       getSBISavings:async()=>{
             try{
@@ -267,6 +269,19 @@ export const useMessagesStore= create((set,get)=>({
                 const res = await instance.get('/icici/rd');
                 if(res.data){
                    set({icicird:res.data});
+                }
+            }
+            catch (error) {
+               console.error('Error fetching FD data:', error);
+            }
+
+      },
+
+       getkotakace:async()=>{
+            try{
+                const res = await instance.get('/kotak/acesavings');
+                if(res.data){
+                   set({kotakace:res.data});
                 }
             }
             catch (error) {

@@ -45,7 +45,7 @@ const KotakAce = () => {
   return (
     <div className="w-screen min-h-screen bg-gray-100 p-6">
       <Navbar />
-      {kotakace.map((product, index) => {
+      {kotakace?.map((product, index) => {
         const selectedTab = activeTab[index] || tabNames[0];
         return (
           <div
