@@ -290,7 +290,7 @@ export default function CoursesHomePage() {
                                                 alt={ongoingCourse?.title || courses[5]?.title}
                                                 className="w-2/5 h-20 object-cover rounded-md"
                                             />
-                                            <div className="flex flex-col justify-center items-center w-3/5">
+                                            <div className="flex flex-col justify-center items-center">
                                                 <div className="flex gap-1">
                                                     <p className="text-xs text-gray-500 mb-1">
                                                         {ongoingCourse?.modules_count || courses[5]?.modules_count} Modules
@@ -302,9 +302,9 @@ export default function CoursesHomePage() {
                                                 </div>
                                                 <button
                                                     onClick={() => navigate(`course/${ongoingCourse?.id || courses[5]?.id}`)}
-                                                    className="bg-amber-400 text-white px-3 py-1 sm:px-6 sm:py-2 rounded-full self-end mt-2 cursor-pointer"
+                                                    className="bg-amber-400 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full self-end mt-2 cursor-pointer"
                                                 >
-                                                    {ongoingCourse?.id ? "Continue Learning" : "Start Now"}
+                                                    {ongoingCourse?.id ? "Continue Course" : "Start Now"}
                                                 </button>
                                             </div>
                                         </div>

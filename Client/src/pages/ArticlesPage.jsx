@@ -352,7 +352,7 @@ const ArticlesPage = () => {
                 <div className="h-4 bg-gray-300 rounded sm:w-5/6"></div>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-12">
+            {/* <div className="flex flex-col sm:flex-row gap-12">
               <div className="flex flex-col gap-4 sm:w-1/2">
                 <div className="h-72 bg-gray-300 rounded-2xl w-full"></div>
                 <div className="h-5 bg-gray-300 rounded w-3/4"></div>
@@ -376,7 +376,7 @@ const ArticlesPage = () => {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
           :
           <div>
@@ -420,7 +420,7 @@ const ArticlesPage = () => {
                   </button>
                 </div>
                 <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-11/12 columns-1 carousel-track-1 space-y-[22px] gap-2" >
-                  {articles.slice(3).map((article, index) =>
+                  {articles.slice(1).map((article, index) =>
                     <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
                       <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill" />
                       <div>
@@ -442,7 +442,7 @@ const ArticlesPage = () => {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
+            {/* <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
 
               <div onClick={() => openArticle(articles[1])} className='cursor-pointer min-w-1/2' >
                 <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-40 sm:h-72 object-cover mb-4 sm:mb-6" />
@@ -475,9 +475,9 @@ const ArticlesPage = () => {
                   <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-40 sm:h-72 object-cover" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="bg-gray-100 px-10 py-12 hidden sm:block">
+            {/* <div className="bg-gray-100 px-10 py-12 hidden sm:block">
               <div className="flex justify-between items-center mb-12">
                 <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
                 <div className="flex gap-3">
@@ -524,7 +524,7 @@ const ArticlesPage = () => {
                 )}
               </div>
 
-            </div>
+            </div> */}
           </div>
         :
         <div>
@@ -568,7 +568,7 @@ const ArticlesPage = () => {
                 </button>
               </div>
               <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-full columns-1 carousel-track-1 space-y-[22px] gap-2" >
-                {articles.slice(3).map((article, index) =>
+                {articles.slice(1).map((article, index) =>
                   <div key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
                     <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill" />
                     <div>
@@ -590,7 +590,7 @@ const ArticlesPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
+          {/* <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
 
             <div className='cursor-pointer min-w-1/2' >
               <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-40 sm:h-72 object-cover mb-4 sm:mb-6" />
@@ -672,7 +672,7 @@ const ArticlesPage = () => {
               )}
             </div>
 
-          </div>
+          </div> */}
         </div>
       }
 
@@ -739,7 +739,7 @@ const ArticlesPage = () => {
             <img
               src={selectedArticle.image_url || "_"}
               alt="Article"
-              className="h-60 w-full sm:max-h-full object-cover rounded-md mb-6"
+              className="h-60 w-full sm:h-3/4 sm:max-h-full object-contain rounded-md mb-6"
             />
             <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{selectedArticle.title}</h2>
             <p className="text-sm text-gray-500 mb-6">

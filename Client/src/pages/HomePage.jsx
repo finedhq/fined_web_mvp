@@ -250,9 +250,9 @@ const HomePage = () => {
                   <h3 className="text-sm sm:text-base font-semibold line-clamp-2">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
                   <button
                     onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[5]?.id}`)}
-                    className="bg-[#fbbf24] border-none p-1 sm:px-4 sm:py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-center gap-6 shadow-md transition-colors hover:bg-[#c09e2b] text-sm sm:text-base w-full"
+                    className="bg-[#fbbf24] border-none p-1 sm:px-4 sm:py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-center gap-2 shadow-md transition-colors hover:bg-[#c09e2b] text-sm sm:text-base w-full"
                   >
-                    <span>{ongoingCourse?.title ? "Continue Learning" : "Start Learning"}</span>
+                    <span>{ongoingCourse?.title ? "Continue Course" : "Start Learning"}</span>
                     <span className="text-md sm:text-2xl">→</span>
                   </button>
                 </div>
