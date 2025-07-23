@@ -14,6 +14,7 @@ const ModuleContentPage = () => {
   const [role, setrole] = useState("")
 
   const [email, setEmail] = useState("")
+  const [hasUser, setHasUser] = useState(false)
   const { courseId, moduleId, cardId } = useParams()
   const [card, setCard] = useState({})
   const [selectedIndex, setSelectedIndex] = useState(null)
@@ -33,6 +34,7 @@ const ModuleContentPage = () => {
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       setEmail(user?.email || "")
+      setHasUser(true)
       const roles = user?.["https://fined.com/roles"]
       setrole(roles?.[0] || "")
     }
@@ -76,7 +78,7 @@ const ModuleContentPage = () => {
     setSelectedIndex(null)
     setDisabled(false)
     fetchCard()
-  }, [cardId])
+  }, [cardId, hasUser])
 
   async function markCompleted(userAnswer = null, userIndex = null) {
     try {
@@ -98,6 +100,12 @@ const ModuleContentPage = () => {
       }
       if (finStarsToAward > 0) {
         toast.success(`🎉 You earned ${finStarsToAward} FinStars!`)
+      }
+      if (!nextCardId && !nextModuleCard && isLastCardInModule) {
+        toast.success("🎉 You've completed the entire course!")
+        setTimeout(() => {
+          navigate(`/home/?courseId=${courseId}`)
+        }, 1500)
       }
     } catch (err) {
       setWarning("Failed to update course card.")
@@ -192,7 +200,7 @@ const ModuleContentPage = () => {
 
               {/* Next Card or Next Module */}
               {nextCardId ? (
-                isAuthenticated ? card.status === "completed" : localCompletedCards[cardId] ? (
+                (isAuthenticated ? card.status === "completed" : localCompletedCards[cardId]) ? (
                   <button
                     onClick={() =>
                       navigate(`/courses/course/${courseId}/module/${moduleId}/card/${nextCardId}`)
@@ -220,7 +228,13 @@ const ModuleContentPage = () => {
                   Next Module <FaArrowRight />
                 </button>
               ) : (
-                <div />
+                <button
+                  disabled
+                  className="bg-gray-300 text-gray-500 px-6 py-2 rounded-full flex items-center gap-2 cursor-not-allowed"
+                  title="No further cards or modules available"
+                >
+                  Next <FaArrowRight />
+                </button>
               )}
             </div>
           </div>
@@ -309,7 +323,7 @@ const ModuleContentPage = () => {
 
               {/* Next Card or Next Module */}
               {nextCardId ? (
-                isAuthenticated ? card.status === "completed" : localCompletedCards[cardId] ? (
+                (isAuthenticated ? card.status === "completed" : localCompletedCards[cardId]) ? (
                   <button
                     onClick={() =>
                       navigate(`/courses/course/${courseId}/module/${moduleId}/card/${nextCardId}`)
@@ -337,10 +351,15 @@ const ModuleContentPage = () => {
                   Next Module <FaArrowRight />
                 </button>
               ) : (
-                <div />
+                <button
+                  disabled
+                  className="bg-gray-300 text-gray-500 px-6 py-2 rounded-full flex items-center gap-2 cursor-not-allowed"
+                  title="No further cards or modules available"
+                >
+                  Next <FaArrowRight />
+                </button>
               )}
             </div>
-
           </div>
         )}
       {warning && (

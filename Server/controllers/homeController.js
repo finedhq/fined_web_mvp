@@ -311,13 +311,37 @@ export const getRecommendations = async (req, res) => {
     const { email, course_id } = req.body;
 
     try {
-        // Parallel fetch user progress and schemes
+        // === CASE 1: course_id is null -> return stored recommendations from user profile ===
+        if (!course_id) {
+            const { data: userData, error: userError } = await supabase
+                .from("users")
+                .select("recommended_schemes")
+                .eq("email", email)
+                .single();
+
+            if (userError) throw userError;
+
+            const fallbackIds = (userData?.recommended_schemes || [])
+                .map(id => parseInt(id)) // convert strings like '7' to numbers like 7
+                .filter(id => Number.isInteger(id));
+
+            const { data: fallbackSchemes, error: fallbackError } = await supabase
+                .from("allSchemes")
+                .select("*")
+                .in("id", fallbackIds);
+
+            if (fallbackError) throw fallbackError;
+
+            return res.status(200).json({ recommendations: fallbackSchemes });
+        }
+
+        // === CASE 2: course_id is present -> compute fresh recommendations ===
         const [progressRes, schemesRes] = await Promise.all([
             supabase
                 .from("userCourses")
                 .select("answer_tags")
                 .match({ email, course_id, progress_type: "card", status: "completed" }),
-            supabase.from("schemes").select("scheme_name, tags, description, type, eligibility")
+            supabase.from("allSchemes").select("*")
         ]);
 
         if (progressRes.error) throw progressRes.error;
@@ -326,7 +350,7 @@ export const getRecommendations = async (req, res) => {
         const userTagFrequency = new Map();
 
         for (const row of progressRes.data) {
-            let tags = row.answer_tags;
+            const tags = row.answer_tags;
             if (Array.isArray(tags)) {
                 tags.forEach(tag => {
                     const norm = normalizeTag(tag);
@@ -344,7 +368,6 @@ export const getRecommendations = async (req, res) => {
         const importantUserTags = sortedUserTags.filter(([tag, freq], index) => freq >= 2 || index < 8);
         const allImportantTags = importantUserTags.map(([tag]) => tag);
 
-        // Preprocess schemes and normalize tags
         const parsedSchemes = schemesRes.data.map(scheme => {
             let rawTags = [];
             if (Array.isArray(scheme.tags)) rawTags = scheme.tags;
@@ -360,7 +383,6 @@ export const getRecommendations = async (req, res) => {
             return { ...scheme, normalizedTags };
         });
 
-        // Matching phase (fast set-based lookup)
         const matchedSchemesSet = new Set();
         for (let size = Math.min(5, allImportantTags.length); size >= 1; size--) {
             const combos = getCombinations(allImportantTags, size);
@@ -371,14 +393,13 @@ export const getRecommendations = async (req, res) => {
                     }
                 }
             }
-            if (matchedSchemesSet.size > 0) break; // break early if matches found
+            if (matchedSchemesSet.size > 0) break;
         }
 
-        let finalSchemes = matchedSchemesSet.size > 0
+        const finalSchemes = matchedSchemesSet.size > 0
             ? Array.from(matchedSchemesSet)
             : parsedSchemes;
 
-        // Scoring phase
         const scoredSchemes = finalSchemes.map(scheme => {
             let score = 0;
             const matchedTags = [];
@@ -399,13 +420,27 @@ export const getRecommendations = async (req, res) => {
             .sort((a, b) => b.matchCount - a.matchCount)
             .slice(0, 5);
 
-        return res.status(200).json({ recommendations: topSchemes });
+        if (topSchemes.length > 0) {
+            const schemeIds = topSchemes.map(s => s.id).filter(id => Number.isInteger(id));
+            const { error: updateError } = await supabase
+                .from("users")
+                .update({ recommended_schemes: schemeIds })
+                .eq("email", email);
+
+            if (updateError) throw updateError;
+
+            return res.status(200).json({ recommendations: topSchemes });
+        }
+
+        // fallback if scoring fails (optional)
+        return res.status(200).json({ recommendations: [] });
 
     } catch (err) {
         console.error("Recommendation Error:", err.message);
         return res.status(500).json({ error: "Failed to fetch recommendations" });
     }
 };
+
 
 // if (today === lastDayOfMonth) {
 //     const { data: budgetData, error: budgetError } = await supabase

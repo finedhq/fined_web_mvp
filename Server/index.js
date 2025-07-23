@@ -11,6 +11,11 @@ import articleRouter from './routes/articles.js';
 import exptrackerRouter from './routes/expenseTracker.js';
 import contactRouter from './routes/contact.js';
 
+import router from './routes/sbiRoutes.js';
+import kotakrouter from './routes/kotakRoutes.js';
+import hdfcrouter from './routes/hdfcRoutes.js';
+import icicirouter from './routes/ICICIRoutes.js';
+
 dotenv.config();
 
 const app = express();
@@ -33,8 +38,13 @@ app.use('/api/courses', courseRouter);
 app.use('/api/modules', moduleRouter);
 app.use('/api/cards', cardsRouter);
 app.use('/api/articles', articleRouter);
-app.use('/api/fin-tools/expensetracker', exptrackerRouter)
+app.use('/api/fin-tools/expensetracker', exptrackerRouter);
 app.use('/api/contact', contactRouter);
+
+app.use('/api/sbi', router);
+app.use('/api/kotak',kotakrouter);
+app.use('/api/hdfc',hdfcrouter);
+app.use('/api/icici',icicirouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
-import instance from "../lib/axios"
-import { useAuth0 } from '@auth0/auth0-react'
-import toast from "react-hot-toast"
-import { FiMenu, FiX } from "react-icons/fi"
-import Navbar from "../components/Navbar"
-import Footer from "../components/Footer"
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import instance from "../lib/axios";
+import { useAuth0 } from '@auth0/auth0-react';
+import toast from "react-hot-toast";
+import { FiMenu, FiX } from "react-icons/fi";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const imageAssets = {
   completed: "/FcomplitedModule.png",
@@ -13,110 +13,111 @@ const imageAssets = {
   locked: "/locked.png",
   pathLeftToRight: "/FpathLtoR.png",
   pathRightToLeft: "/FpathRtoL.png",
-}
+};
 
 export default function CourseOverviewPage() {
-  const navigate = useNavigate()
-  const { course_id } = useParams()
+  const navigate = useNavigate();
+  const { course_id } = useParams();
 
-  const { user, isLoading, isAuthenticated, logout } = useAuth0()
-  const [role, setrole] = useState("")
-
-  const [email, setEmail] = useState("")
-  const [courseTitle, setCourseTitle] = useState("")
-  const [course, setCourse] = useState([])
-  const [showLockedAlert, setShowLockedAlert] = useState(false)
-  const [warning, setWarning] = useState("")
-  const [loading, setLoading] = useState(true)
-
-  const [hasUnseen, setHasUnseen] = useState(false)
-  const [enteredEmail, setEnteredEmail] = useState("")
-  const [isEnteredEmail, setIsEnteredEmail] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { user, isLoading, isAuthenticated, logout } = useAuth0();
+  const [role, setRole] = useState("");
+  const [email, setEmail] = useState("");
+  const [courseTitle, setCourseTitle] = useState("");
+  const [course, setCourse] = useState([]);
+  const [showLockedAlert, setShowLockedAlert] = useState(false);
+  const [warning, setWarning] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [hasUser, setHasUser] = useState(false);
+  const [hasUnseen, setHasUnseen] = useState(false);
+  const [enteredEmail, setEnteredEmail] = useState("");
+  const [isEnteredEmail, setIsEnteredEmail] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      setEmail(user?.email || "")
-      const roles = user?.["https://fined.com/roles"]
-      setrole(roles?.[0] || "")
+      setEmail(user?.email || "");
+      setHasUser(true);
+      const roles = user?.["https://fined.com/roles"];
+      setRole(roles?.[0] || "");
     }
-  }, [isLoading, isAuthenticated])
+  }, [isLoading, isAuthenticated]);
 
   async function fetchCourse() {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await instance.post(`/courses/course/${course_id}`, { email })
-      console.log(res.data)
-      setCourseTitle(res.data.title)
-      setCourse(res.data.data)
-      setLoading(false)
+      const res = await instance.post(`/courses/course/${course_id}`, { email });
+      console.log("Fetched Course Data:", res.data); // Debug log
+      setCourseTitle(res.data.title);
+      setCourse(res.data.data);
+      setLoading(false);
     } catch (err) {
-      setWarning("Failed to load course.")
+      console.error("Error fetching course:", err); // Debug log
+      setWarning("Failed to load course.");
     }
   }
 
   useEffect(() => {
-    fetchCourse()
-  }, [])
+    fetchCourse();
+  }, [hasUser]);
 
   async function fetchHasUnseen() {
     try {
-      const res = await instance.post("/home/hasunseen", { email })
+      const res = await instance.post("/home/hasunseen", { email });
       if (res) {
-        setHasUnseen(res.data)
+        setHasUnseen(res.data);
       }
     } catch (error) {
-      toast.error("Failed to fetch notifications status.")
+      toast.error("Failed to fetch notifications status.");
     }
   }
 
   async function fetchEnteredEmail() {
     try {
-      const res = await instance.post("/articles/getenteredemail", { email })
+      const res = await instance.post("/articles/getenteredemail", { email });
       if (res.data[0]?.enteredEmail) {
-        setEnteredEmail(res.data[0]?.enteredEmail || null)
-        setIsEnteredEmail(true)
+        setEnteredEmail(res.data[0]?.enteredEmail || null);
+        setIsEnteredEmail(true);
       }
     } catch (error) {
-      setEnteredEmail("")
-      setIsEnteredEmail(false)
+      setEnteredEmail("");
+      setIsEnteredEmail(false);
     }
   }
 
   useEffect(() => {
-    if (!email) return
-    fetchEnteredEmail()
-    fetchHasUnseen()
-  }, [email])
+    if (!email) return;
+    fetchEnteredEmail();
+    fetchHasUnseen();
+  }, [email]);
 
   const saveEmail = async () => {
-    if (enteredEmail === "") return
-    setIsSaved(true)
+    if (enteredEmail === "") return;
+    setIsSaved(true);
     try {
-      await instance.post("/articles/saveemail", { email, enteredEmail })
-      toast.success("🎉 Subscribed successfully.")
-      setIsEnteredEmail(true)
+      await instance.post("/articles/saveemail", { email, enteredEmail });
+      toast.success("🎉 Subscribed successfully.");
+      setIsEnteredEmail(true);
     } catch (err) {
-      setWarning("Failed to save email.")
+      setWarning("Failed to save email.");
     } finally {
-      setIsSaved(false)
+      setIsSaved(false);
     }
-  }
+  };
 
   const removeEmail = async () => {
-    setIsSaved(true)
+    setIsSaved(true);
     try {
-      await instance.post("/articles/removeemail", { email, enteredEmail })
-      toast.success("Unsubscibed successfully.")
-      setEnteredEmail("")
-      setIsEnteredEmail(false)
+      await instance.post("/articles/removeemail", { email, enteredEmail });
+      toast.success("Unsubscribed successfully.");
+      setEnteredEmail("");
+      setIsEnteredEmail(false);
     } catch (err) {
-      setWarning("Failed to remove email.")
+      setWarning("Failed to remove email.");
     } finally {
-      setIsSaved(false)
+      setIsSaved(false);
     }
-  }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -133,18 +134,16 @@ export default function CourseOverviewPage() {
   };
 
   return (
-
-    <div className="min-h-screen sm:pb-5 bg-gray-100" >
-
+    <div className="min-h-screen pb-5 bg-gray-100 overflow-x-hidden">
       <Navbar />
 
-      {loading ?
+      {loading ? (
         <div className="flex flex-col gap-8 items-center my-20">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="w-[50%] h-24 bg-gray-300 rounded-2xl animate-pulse" />
           ))}
         </div>
-        :
+      ) : (
         <div className="py-5 px-4 sm:py-10 bg-gray-100 min-h-screen">
           <div className="bg-violet-800 text-white rounded-2xl overflow-hidden mb-6 w-full sm:max-w-3xl sm:mx-auto">
             <div className="flex items-center px-4 py-3 border-b border-white/40">
@@ -168,7 +167,14 @@ export default function CourseOverviewPage() {
 
               <div className="mt-10 flex flex-col items-center gap-14 px-4 sm:px-0">
                 {module.cards.map((card, i) => {
-                  const isClickable = i === 0 || module.cards[i - 1].status === "completed"
+                  const isClickable = i === 0 || module.cards[i - 1].status === "completed";
+                  const isOngoing = isClickable && card.status !== "completed";
+
+                  console.log(`Card ${i + 1} (ID: ${card.card_id}):`, {
+                    isClickable,
+                    isOngoing,
+                    status: card.status,
+                  }); // Debug log
 
                   return (
                     <div key={i} className={`relative w-full flex ${i % 2 === 0 ? "justify-start sm:pl-20" : "justify-end sm:pr-20"}`}>
@@ -176,9 +182,9 @@ export default function CourseOverviewPage() {
                         <button
                           onClick={() => {
                             if (isClickable) {
-                              navigate(`module/${module.moduleId}/card/${card.card_id}`)
+                              navigate(`module/${module.moduleId}/card/${card.card_id}`);
                             } else {
-                              setShowLockedAlert(true)
+                              setShowLockedAlert(true);
                             }
                           }}
                           className="transition-transform duration-200 hover:scale-110 focus:scale-90 cursor-pointer"
@@ -187,7 +193,7 @@ export default function CourseOverviewPage() {
                             src={imageAssets[
                               card.status === "completed"
                                 ? "completed"
-                                : i === 0
+                                : isOngoing
                                   ? "incompleted"
                                   : "locked"
                             ]}
@@ -208,13 +214,13 @@ export default function CourseOverviewPage() {
                         />
                       )}
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
           ))}
         </div>
-      }
+      )}
 
       <Footer />
 
@@ -227,7 +233,7 @@ export default function CourseOverviewPage() {
             </p>
             <div className="flex justify-end pt-4">
               <button
-                onClick={() => { setWarning(false); setLoading(false); navigate("/courses") }}
+                onClick={() => { setWarning(""); setLoading(false); navigate("/courses"); }}
                 className={`bg-amber-400 hover:bg-amber-500 transition-all duration-200 text-white px-4 py-2 rounded-lg ${isSaved ? "cursor-not-allowed" : "cursor-pointer"}`}
               >
                 Close

@@ -141,7 +141,7 @@ export const getACourse = async (req, res) => {
     const progressMap = Object.fromEntries(
       progressRes.data.map(item => [item.card_id, item.status])
     );
-
+    
     // Group cards by module
     const cardsByModule = {};
     for (const card of cards) {

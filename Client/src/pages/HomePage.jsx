@@ -9,6 +9,10 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
 const HomePage = () => {
+
+  const navigate = useNavigate()
+  const location = useLocation()
+
   const { user, isLoading, isAuthenticated, logout } = useAuth0()
   const [role, setrole] = useState("")
   const [email, setEmail] = useState("")
@@ -31,6 +35,7 @@ const HomePage = () => {
   const [isFetchingLog, setIsFechingLog] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showDescription, setShowDescription] = useState(false)
+  const [course_id, setCourseId] = useState("")
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -104,12 +109,19 @@ const HomePage = () => {
     fetchData();
   }, [email]);
 
+  useEffect(() => {
+    const query = new URLSearchParams(location.search)
+    const idFromQuery = query.get("courseId")
+    if (idFromQuery) {
+      setCourseId(idFromQuery)
+    }
+  }, [location.search])
+
   const fetchRecommendations = async () => {
     try {
-      const res = await instance.post("/home/recommendations", { email, course_id: "e756d478-e7f6-4e8d-b0f7-d05afee13a39" });
-      setRecommendedSchemes(res.data.recommendations);
+      const res = await instance.post("/home/recommendations", { email, course_id });
+      setRecommendedSchemes(res.data?.recommendations);
     } catch (err) {
-      toast.error("Failed to load recommended schemes.", err);
       setShowLeaderBoard(false);
     }
   };
@@ -118,7 +130,7 @@ const HomePage = () => {
     if (email) {
       fetchRecommendations()
     }
-  }, [email])
+  }, [email, course_id])
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -150,8 +162,6 @@ const HomePage = () => {
     if (showLeaderBoard) fetchLeaderboard();
     if (showFinScoreLog) fetchFinScoreLog();
   }, [showLeaderBoard, showFinScoreLog]);
-
-  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -212,11 +222,11 @@ const HomePage = () => {
                 </div>
                 <div className="flex justify-center gap-4 sm:gap-10">
                   <div title="FinStars are earned by completing tasks like reading articles, completing modules, and logging expenses." className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
-                    <img src="star.png" alt="fin-stars" className="w-5 h-5" />
+                    <img src="/star.png" alt="fin-stars" className="w-5 h-5" />
                     <p>{userData?.fin_stars}</p>
                   </div>
                   <div title={`🔥 Current Streak: You've been active for ${userData?.streak_count || 0} day${userData?.streak_count === 1 ? '' : 's'} in a row.`} className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900">
-                    <img src="flame.png" alt="streak" className="w-6 h-5" />
+                    <img src="/flame.png" alt="streak" className="w-6 h-5" />
                     <p>{userData?.streak_count}</p>
                   </div>
                   <div
@@ -224,7 +234,7 @@ const HomePage = () => {
                     onClick={() => setShowLeaderBoard(true)}
                     className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900 cursor-pointer"
                   >
-                    <img src="badge.png" alt="leaderboard" className="w-5 h-5" />
+                    <img src="/badge.png" alt="leaderboard" className="w-5 h-5" />
                     <p>{userData?.rank}</p>
                   </div>
                 </div>
@@ -335,24 +345,34 @@ const HomePage = () => {
               </div>
             </div>
             <div className="w-full xl:w-1/3">
-              <section className="bg-white rounded-3xl text-center flex flex-col space-y-2 justify-between w-full h-auto min-h-[300px] sm:h-[440px] border border-gray-300 mt-4 xl:mt-0 md:hidden xl:block">
-                <div className="flex justify-between items-center mb-2 sm:mb-5">
+              <section className="bg-white rounded-3xl border border-gray-300 text-center flex flex-col justify-between w-full min-h-[320px] sm:h-[440px] mt-4 xl:mt-0">
+                <div className="flex justify-between items-center">
                   <img src='/schemes.png' alt='schemes' className='rounded-2xl' />
                 </div>
-                <div className='space-y-3 max-h-48 overflow-y-auto px-3' >
-                  {recommendedSchemes?.length > 0 && recommendedSchemes?.map((scheme, index) =>
-                    <div key={index} className='max-h-40 truncate text-start' >
-                      <p>Scheme Name: {scheme.scheme_name}</p>
-                      <p>Eligibility: {scheme.eligibility.slice(0, 40)}...</p>
-                      <p>Description: {scheme.description.slice(0, 40)}...</p>
-                    </div>
-                  )}
-                </div>
-                <hr />
-                <div className='flex justify-center items-center' >
-                  <div className='flex items-center gap-4 cursor-pointer' >
-                    <p className='font-semibold text-lg mt-[3px]' >View All</p>
-                    <p className='text-2xl' >→</p>
+
+                {recommendedSchemes?.length > 0 ? (
+                  <div className="space-y-4 max-h-44 overflow-y-auto text-start px-2 mt-4 sm:mt-0">
+                    {recommendedSchemes.map((scheme, index) => (
+                      <div key={index} className="bg-gray-100 rounded-xl p-3">
+                        <p className="text-sm"><span className="font-medium">Name:</span> {scheme.scheme_name}</p>
+                        <p className="text-sm"><span className="font-medium">Eligibility:</span> {scheme.eligibility.slice(0, 40)}...</p>
+                        <p className="text-sm"><span className="font-medium">Description:</span> {scheme.description.slice(0, 40)}...</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-yellow-100 text-yellow-800 p-3 rounded-lg text-sm font-medium">
+                    🎯 Complete a course to see recommendations!
+                  </div>
+                )}
+
+                <div className="border-t border-gray-300 py-3">
+                  <div
+                    onClick={() => navigate("/policies")}
+                    className="flex justify-center items-center gap-3 cursor-pointer transition"
+                  >
+                    <p className="font-semibold text-lg">View All</p>
+                    <span className="text-2xl">→</span>
                   </div>
                 </div>
               </section>

@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { FiMenu, FiX } from "react-icons/fi"
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
+import TeamSection from "../components/TeamSection"
 
 const AboutUs = () => {
 
@@ -102,6 +103,55 @@ const AboutUs = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  const team = [
+    {
+      sector: "Founders",
+      members: [
+        { name: "Shravan Mutha", role: "Co-Founder", image: "team/Shravan Mutha.jpeg" },
+        { name: "Anish Pujari", role: "Co-Founder", image: "team/Anish Pujari.jpg" },
+      ]
+    },
+    {
+      sector: "Web Development",
+      members: [
+        { name: "Aditya Bandral", role: "Full Stack Developer", image: "team/Aditya bandral1.jpg" },
+        { name: "Kalp Mehta", role: "Full Stack Developer", image: "team/Kalp Mehta.jpg" },
+        { name: "Hea Kapai", role: "Frontend Developer", image: "team/Hea Kapai.jpg" },
+        { name: "Bhargav Dabhade", role: "Full Stack Developer", image: "team/Bhargav Dhabade.jpg" },
+        { name: "Sumedh Charjan", role: "Full Stack Developer", image: "team/Sumedh Charjan.jpg" },
+      ],
+    },
+    {
+      sector: "Content",
+      members: [
+        { name: "Arya Borker", role: "Content Writer", image: "team/Arya Borkar.jpg" },
+        { name: "Vinay Gupta", role: "Content Writer", image: "team/Vinay Gupta.jpg" },
+      ],
+    },
+    {
+      sector: "UI/UX",
+      members: [
+        { name: "Sanika Deshmukh", role: "UI/UX Designer", image: "team/Sanika Deshmukh.jpg" },
+        { name: "Snehal Hajare", role: "UI/UX Designer", image: "team/Snehal Hajare.jpeg" },
+      ],
+    },
+    {
+      sector: "Graphics",
+      members: [
+        { name: "Ishwari Moroney", role: "Graphic Designer", image: "team/Ishwari Moroney.jpg" },
+        { name: "Janhavi vaidya", role: "Graphic Designer", image: "team/Janhavi Vaidya.jpg" },
+        { name: "Parth Agrawal", role: "Graphic Designer", image: "team/Parth Agrawal.jpg" },
+      ],
+    },
+    {
+      sector: "Marketing",
+      members: [
+        { name: "Atharva Patil", role: "Marketing Lead", image: "team/Atharva patil.jpg" },
+        { name: "Prathamesh Naik", role: "Marketing Lead", image: "team/Prathamesh Naik.jpg" },
+      ],
+    },
+  ];
 
   return (
     <div className="bg-gray-100 pb-5 h-full w-full flex flex-col">
@@ -202,30 +252,12 @@ const AboutUs = () => {
           </p>
           <div className="w-40 h-40 bg-gray-200 rounded-lg flex items-center justify-center">
             {/* Replace this with actual mascot image */}
-            <span>Mascot Photo</span>
+            <img src="/mascot.jpg" />
           </div>
         </section>
 
         {/* Meet the Team Section */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold text-center">Meet the Team</h2>
-          <p className="text-center text-gray-600 max-w-3xl mx-auto">
-            A passionate group of educators, developers, and dreamers working together to bring financial education to everyone.
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-            {[...Array(8)].map((_, idx) => (
-              <div key={idx} className="bg-white rounded-xl shadow-sm p-4 flex flex-col items-center">
-                <img
-                  src={`/team/person${idx + 1}.jpg`}
-                  alt={`Team Member ${idx + 1}`}
-                  className="w-24 h-24 object-cover rounded-full mb-3"
-                />
-                <h4 className="text-lg font-semibold text-gray-800">Person {idx + 1}</h4>
-                <p className="text-sm text-gray-500">Team Role</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <TeamSection team={team} />
 
       </div>
 
