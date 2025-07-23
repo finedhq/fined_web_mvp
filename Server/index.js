@@ -22,7 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 app.use(cors({
-  origin: ['https://fined-web.vercel.app', 'http://localhost:5173'],
+  origin: ['https://fined-web.vercel.app', 'http://localhost:5173', 'https://www.myfined.com/'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   optionsSuccessStatus: 204
