@@ -295,9 +295,9 @@ export default function LandingPage() {
       <div className="px-6 sm:px-10 lg:px-20 flex flex-col-reverse md:flex-row justify-between items-center bg-gray-100 gap-8">
         <div className="flex-1 w-full md:w-[45%] flex justify-center mb-10 md:mb-0">
           <img
-            src="/third.jpg"
+            src="/landing3.jpg"
             alt="Dashboard preview 2"
-            className="w-full max-w-[600px] h-auto rounded-lg shadow-lg object-contain"
+            className="w-full max-w-[600px] h-auto rounded-xl shadow-lg object-contain"
           />
         </div>
         <div className="flex-1 w-full md:w-[45%] text-center md:text-left">
@@ -328,7 +328,7 @@ export default function LandingPage() {
         </div>
         <div className="flex-1 w-full md:w-[45%] flex justify-center">
           <img
-            src="/dashboard.png"
+            src="/landing4.jpg"
             alt="Organization Overview"
             className="w-full max-w-[500px] h-auto rounded-lg shadow-lg object-contain"
           />
