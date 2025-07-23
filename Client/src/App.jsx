@@ -38,7 +38,7 @@ import FDList from './schemes/SBiFd.jsx';
 import TaxSaverFDList from './schemes/SBITaxSaverFD.jsx';
 import RDList from './schemes/SBIRD.jsx';
 import PPFList from './schemes/SBIPPF.jsx';
-import NPSList from './schemes/SBINPS.JSX';
+import NPSList from './schemes/SBINPS.jsx';
 import UnnatiCardList from './schemes/SBIUnnatiCard.jsx';
 import KotakProductList from './schemes/Kotaksavings.jsx';
 import SimplySaveCardList from './schemes/SBISimplySave.jsx';
@@ -54,6 +54,7 @@ import ICICIRD from './schemes/ICICIRD.JSX';
 import HDFCRD from './schemes/HDFCRD.jsx';
 import KotakAce from './schemes/KotakAce.jsx';
 import HDFCMoney from './schemes/HDFCMoney.jsx';
+
 
 function ScrollToTop() {
   let { pathname } = useLocation()
@@ -103,7 +104,7 @@ const App = () => {
         <Route path="/termsofservice" element={<TermsOfService />} />
 
         <Route path="/fd" element={<FDList />} />
-        <Route path="/ll" element={<ProductList />} />
+        <Route path="/" element={<ProductList />} />
         <Route path="/taxsaverfd" element={<TaxSaverFDList />} />
         <Route path="/rd" element={<RDList />} />
         <Route path="/ppf" element={<PPFList />} />
@@ -120,9 +121,9 @@ const App = () => {
         <Route path="/iciciyoungsavings" element={<ICICIYoungSavings />} />
         <Route path="/icicifd" element={<ICICIFD />} />
         <Route path="/icicird" element={<ICICIRD />} />
-                  <Route path="/hdfcrd" element={<HDFCRD/>} />
-          <Route path="/kotakace" element={<KotakAce/>} />
-          <Route path="/moneyback" element={<HDFCMoney/>} />
+        <Route path="/hdfcrd" element={<HDFCRD />} />
+        <Route path="/kotakace" element={<KotakAce />} />
+        <Route path="/moneyback" element={<HDFCMoney />} />
 
         <Route path='*' element={<NotFoundPage />} />
 
