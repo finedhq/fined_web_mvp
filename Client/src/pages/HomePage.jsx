@@ -242,17 +242,17 @@ const HomePage = () => {
 
               <section className="flex items-center bg-white rounded-2xl p-2 gap-4 border border-gray-300 mt-4">
                 <img
-                  src={ongoingCourse?.thumbnail_url || recommendedCourses[5]?.thumbnail_url}
+                  src={ongoingCourse?.thumbnail_url || recommendedCourses[recommendedCourses.length - 1]?.thumbnail_url}
                   alt="Course"
                   className="w-[120px] sm:w-[140px] h-[80px] sm:h-[94px] object-cover rounded-xl flex-shrink-0"
                 />
                 <div className="flex flex-col justify-center items-center flex-grow gap-1 sm:gap-2">
-                  <h3 className="text-sm sm:text-base font-semibold line-clamp-2">{ongoingCourse?.title || recommendedCourses[5]?.title}</h3>
+                  <h3 className="text-sm sm:text-base font-semibold line-clamp-2">{ongoingCourse?.title || recommendedCourses[recommendedCourses.length - 1]?.title}</h3>
                   <button
-                    onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[5]?.id}`)}
+                    onClick={() => navigate(`/courses/course/${ongoingCourse?.id || recommendedCourses[recommendedCourses.length - 1]?.id}`)}
                     className="bg-[#fbbf24] border-none p-1 sm:px-4 sm:py-1 rounded-xl font-semibold text-white cursor-pointer flex items-center justify-center gap-2 shadow-md transition-colors hover:bg-[#c09e2b] text-sm sm:text-base w-full"
                   >
-                    <span>{ongoingCourse?.title ? "Continue Course" : "Start Learning"}</span>
+                    <span>{ongoingCourse?.title ? "Continue" : "Start"}</span>
                     <span className="text-md sm:text-2xl">→</span>
                   </button>
                 </div>
@@ -301,7 +301,7 @@ const HomePage = () => {
             <div className="w-full xl:w-2/3">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl sm:text-3xl font-semibold">Recommended Courses</h2>
-                <div className="flex gap-3 md:gap-4">
+                {/* <div className="flex gap-3 md:gap-4">
                   <button
                     className={`w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
                     onClick={() => scrollLeft(carouselRef1)}
@@ -316,7 +316,7 @@ const HomePage = () => {
                   >
                     ❯
                   </button>
-                </div>
+                </div> */}
               </div>
               <div
                 ref={carouselRef1}

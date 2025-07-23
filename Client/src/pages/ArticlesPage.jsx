@@ -344,12 +344,18 @@ const ArticlesPage = () => {
         loading ?
           <div className="min-h-screen w-full p-4 sm:p-10 bg-gray-100 space-y-10 animate-pulse">
             <div className="flex flex-col sm:flex-row gap-10">
-              <div className="bg-gray-300 rounded-3xl shadow-md sm:w-1/2 h-80"></div>
+              <div className="bg-gray-300 rounded-3xl shadow-md sm:w-1/2 h-[500px]"></div>
               <div className="flex flex-col gap-8 sm:w-1/2">
                 <div className="h-6 bg-gray-300 rounded sm:w-2/3"></div>
                 <div className="h-4 bg-gray-300 rounded sm:w-1/2"></div>
                 <div className="h-4 bg-gray-300 rounded sm:w-full"></div>
                 <div className="h-4 bg-gray-300 rounded sm:w-5/6"></div>
+                <div className="h-6 bg-gray-300 rounded sm:w-2/3"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-1/2"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-full"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-5/6"></div>
+                <div className="h-6 bg-gray-300 rounded sm:w-2/3"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-1/2"></div>
               </div>
             </div>
             {/* <div className="flex flex-col sm:flex-row gap-12">
@@ -397,32 +403,33 @@ const ArticlesPage = () => {
 
 
               <div className="flex flex-col gap-6 min-w-1/2">
-
-                <div className="flex justify-end items-center space-x-2 sm:mr-6">
-                  <button
-                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+                {articles.length > 4 &&
+                  <div className="flex justify-end items-center space-x-2 sm:mr-6">
+                    <button
+                      className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                    onClick={() => scrollLeft(carouselRef1)}
-                    disabled={!canScrollLeft1}
-                  >
-                    ❮
-                  </button>
+                      onClick={() => scrollLeft(carouselRef1)}
+                      disabled={!canScrollLeft1}
+                    >
+                      ❮
+                    </button>
 
-                  <button
-                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+                    <button
+                      className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                    onClick={() => scrollRight(carouselRef1)}
-                    disabled={!canScrollRight1}
-                  >
-                    ❯
-                  </button>
-                </div>
+                      onClick={() => scrollRight(carouselRef1)}
+                      disabled={!canScrollRight1}
+                    >
+                      ❯
+                    </button>
+                  </div>
+                }
                 <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-11/12 columns-1 carousel-track-1 space-y-[22px] gap-2" >
                   {articles.slice(1).map((article, index) =>
                     <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
-                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill" />
+                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill rounded-lg" />
                       <div>
                         <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                         <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
@@ -545,32 +552,33 @@ const ArticlesPage = () => {
 
 
             <div className="flex flex-col gap-6 min-w-1/2">
-
-              <div className="flex justify-end items-center space-x-2 sm:mr-6">
-                <button
-                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+              {articles.length > 4 &&
+                <div className="flex justify-end items-center space-x-2 sm:mr-6">
+                  <button
+                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                  onClick={() => scrollLeft(carouselRef1)}
-                  disabled={!canScrollLeft1}
-                >
-                  ❮
-                </button>
+                    onClick={() => scrollLeft(carouselRef1)}
+                    disabled={!canScrollLeft1}
+                  >
+                    ❮
+                  </button>
 
-                <button
-                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+                  <button
+                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                  onClick={() => scrollRight(carouselRef1)}
-                  disabled={!canScrollRight1}
-                >
-                  ❯
-                </button>
-              </div>
+                    onClick={() => scrollRight(carouselRef1)}
+                    disabled={!canScrollRight1}
+                  >
+                    ❯
+                  </button>
+                </div>
+              }
               <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-full columns-1 carousel-track-1 space-y-[22px] gap-2" >
                 {articles.slice(1).map((article, index) =>
                   <div key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
-                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill" />
+                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill rounded-lg" />
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                       <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>

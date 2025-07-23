@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import axios from '../lib/axios.js';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "../lib/axios.js";
+import { Link } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const ModuleForm = () => {
   const { courseId } = useParams();
@@ -12,6 +14,21 @@ const ModuleForm = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate()
+
+  const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -108,9 +125,8 @@ const ModuleForm = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-md text-white font-medium transition duration-200 ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
-            }`}
+            className={`w-full py-2 rounded-md text-white font-medium transition duration-200 ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
           >
             {loading ? "Posting..." : "Post Module"}
           </button>

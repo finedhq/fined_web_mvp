@@ -278,34 +278,36 @@ export default function CoursesHomePage() {
                                     <div className="bg-white rounded-xl hover:shadow-md transition px-4 py-3 w-full sm:w-1/4 h-fit space-y-3 sm:shrink-0 border border-gray-300">
                                         <div>
                                             <h3 className="font-semibold text-cyan-800 text-base tracking-wide sm:mb-2">
-                                                {ongoingCourse?.title || courses[5]?.title}
+                                                {ongoingCourse?.title || courses[courses.length - 1]?.title}
                                             </h3>
-                                            <p className="text-xs text-gray-600 mb-2">
-                                                {ongoingCourse?.description || courses[5]?.description}
+                                            <p className="text-xs text-gray-600 mb-2 h-16 whitespace-pre-wrap truncate">
+                                                {ongoingCourse?.description || courses[courses.length - 1]?.description}
                                             </p>
                                         </div>
-                                        <div className="flex justify-between">
+                                        <div className="flex gap-5">
                                             <img
-                                                src={ongoingCourse?.thumbnail_url || courses[5]?.thumbnail_url}
-                                                alt={ongoingCourse?.title || courses[5]?.title}
+                                                src={ongoingCourse?.thumbnail_url || courses[courses.length - 1]?.thumbnail_url}
+                                                alt={ongoingCourse?.title || courses[courses.length - 1]?.title}
                                                 className="w-2/5 h-20 object-cover rounded-md"
                                             />
-                                            <div className="flex flex-col justify-center items-center">
+                                            <div className="flex flex-col justify-center items-center w-full">
                                                 <div className="flex gap-1">
                                                     <p className="text-xs text-gray-500 mb-1">
-                                                        {ongoingCourse?.modules_count || courses[5]?.modules_count} Modules
+                                                        {ongoingCourse?.modules_count || courses[courses.length - 1]?.modules_count} Modules
                                                     </p>
                                                     <p className="text-xs text-gray-500 mb-1">&bull;</p>
                                                     <p className="text-xs text-gray-500 mb-1">
-                                                        {ongoingCourse?.duration || courses[5]?.duration} mins
+                                                        {ongoingCourse?.duration || courses[courses.length - 1]?.duration} mins
                                                     </p>
                                                 </div>
-                                                <button
-                                                    onClick={() => navigate(`course/${ongoingCourse?.id || courses[5]?.id}`)}
-                                                    className="bg-amber-400 text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full self-end mt-2 cursor-pointer"
-                                                >
-                                                    {ongoingCourse?.id ? "Continue Course" : "Start Now"}
-                                                </button>
+                                                <div className="w-full" >
+                                                    <button
+                                                        onClick={() => navigate(`course/${ongoingCourse?.id || courses[courses.length - 1]?.id}`)}
+                                                        className="bg-amber-400 text-white px-4 py-1 w-full sm:px-4 sm:py-2 rounded-full self-end mt-2 cursor-pointer"
+                                                    >
+                                                        {ongoingCourse?.id ? "Continue" : "Start Now"}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -314,8 +316,8 @@ export default function CoursesHomePage() {
 
                             <div className="w-full pb-10">
                                 <div className="flex justify-between" >
-                                    <h2 className="text-xl font-semibold">Recommended Courses</h2>
-                                    <div className="flex space-x-2 mr-2 mb-6 sm:mb-2">
+                                    <h2 className="text-xl font-semibold mb-4">Recommended Courses</h2>
+                                    {/* <div className="flex space-x-2 mr-2 mb-6 sm:mb-2">
                                         <button
                                             className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
@@ -335,9 +337,14 @@ export default function CoursesHomePage() {
                                         >
                                             ❯
                                         </button>
-                                    </div>
+                                    </div> */}
                                 </div>
-                                <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[34px] h-[740px] mx-4 px-2 sm:px-0 overflow-x-auto">
+                                {/* <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[34px] h-[740px] mx-4 px-2 sm:px-0 overflow-x-auto">
+                                    {courses.map((course) => (
+                                        <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
+                                    ))}
+                                </div> */}
+                                <div ref={carouselRef} className="flex gap-6">
                                     {courses.map((course) => (
                                         <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                                     ))}
@@ -450,7 +457,7 @@ function CourseCard({ course, isAuthenticated }) {
                 <h3 className="font-semibold text-cyan-800 text-base tracking-wide mb-2">
                     {course.title}
                 </h3>
-                <p className="text-xs text-gray-600 mb-2 whitespace-pre-wrap">{course.description}</p>
+                <p className="text-xs text-gray-600 mb-2 whitespace-pre-wrap h-16 truncate">{course.description}</p>
             </div>
         </div>
     );
