@@ -47,7 +47,7 @@ const TermsOfService = () => {
 
       <h2 className="text-xl font-semibold mt-4">Contact</h2>
       <p>
-        For questions, contact us at <strong>support@fined.app</strong>.
+        For questions, contact us at <strong>fined.personalfinance@gmail.com</strong>.
       </p>
     </div>
   );

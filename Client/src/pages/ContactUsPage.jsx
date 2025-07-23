@@ -201,8 +201,8 @@ const ContactUs = () => {
                         <ul className="space-y-3">
                             <li>
                                 📧 <strong>Email:</strong>{" "}
-                                <a href="mailto:support@fined.com" className="text-blue-600 underline">
-                                    support@fined.com
+                                <a href="mailto:fined.personalfinance@gmail.com" className="text-blue-600 underline">
+                                    fined.personalfinance@gmail.com
                                 </a>
                             </li>
                             <li>

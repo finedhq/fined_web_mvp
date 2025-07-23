@@ -200,12 +200,13 @@ export default function LandingPage() {
       </style>
       <header className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-10 lg:px-16 py-3 sm:py-6 bg-gray-100 shadow-sm">
         <div className="flex items-center justify-between w-full sm:w-auto">
-          <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
+          <div onClick={() => navigate('/')} className="flex flex-col items-center font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
             <img
               src="/logo.png"
               alt="FinEd logo"
               className="h-12 sm:h-14 w-auto object-contain"
             />
+            <span className='text-[#4100bc] text-[10px] -mt-2' >Beta</span>
           </div>
           <button
             className="sm:hidden text-gray-800 focus:outline-none p-2"
@@ -221,7 +222,7 @@ export default function LandingPage() {
           <Link to="/courses" aria-label="View courses" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Courses</Link>
           <Link to="/articles" aria-label="View articles" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">Articles</Link>
           <Link to="/about" aria-label="About us" className="text-gray-800 font-medium hover:text-blue-700 transition-colors duration-200 text-base sm:text-lg">About Us</Link>
-          <button onClick={loginWithPopup} className="px-5 py-2 bg-amber-400 text-white rounded-2xl font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
+          <button onClick={loginWithPopup} className="px-5 py-2 bg-amber-400 text-white rounded-md   font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
         </nav>
       </header>
 
@@ -268,7 +269,7 @@ export default function LandingPage() {
       <section className="bg-[#3B0DAD] text-white py-12 sm:py-16 px-6 sm:px-10 lg:px-16 text-center relative">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-5 font-semibold">Jump into your first course</h2>
         <p className="text-base sm:text-lg mb-8">No sign-in, no hassle. Start learning about money in just one click.</p>
-        <Link to={`/courses/course/${courses[0]?.id}`} className="bg-[#fbbf24] text-white py-3 px-8 rounded-lg font-bold no-underline text-base sm:text-lg hover:bg-[#e6b640] transition-colors duration-200">Give It a Go →</Link>
+        <Link to={`/courses/course/${courses[courses.length - 1]?.id}`} className="bg-[#fbbf24] text-white py-3 px-8 rounded-lg font-bold no-underline text-base sm:text-lg hover:bg-[#e6b640] transition-colors duration-200">Give It a Go →</Link>
       </section>
 
       <div className="py-12 sm:py-16 px-6 sm:px-10 lg:px-20 flex flex-col md:flex-row justify-between items-center bg-gray-100 gap-8">
@@ -357,7 +358,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[440px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
+        <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-row h-[240px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
           {courses.length > 0 ? (
             courses.map((course, index) => (
               <div key={index} className="bg-gray-100 text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-48 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
@@ -413,7 +414,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div ref={articleCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-col flex-wrap h-[390px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
+        <div ref={articleCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-row h-[190px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
           {articles.length > 0 ? (
             articles.map((article, index) => (
               <div key={index} className="bg-gray-50 text-gray-900 rounded-xl p-4 shadow-lg flex flex-col justify-between h-40 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">

@@ -170,7 +170,7 @@ const HelpPage = () => {
                 <section className="mb-10">
                     <h2 className="text-xl sm:text-2xl font-bold text-secondary mb-4">🙋‍♂️ Need More Help?</h2>
                     <ul className="space-y-3">
-                        <li>📧 Email us at: <a href="mailto:support@fined.com" className="text-blue-600 underline">support@fined.com</a></li>
+                        <li>📧 Email us at: <a href="mailto:fined.personalfinance@gmail.com" className="text-blue-600 underline">fined.personalfinance@gmail.com</a></li>
                         <li>💬 Use the Feedback form in your dashboard</li>
                         <li>🛠️ FAQs and Forum coming soon!</li>
                     </ul>

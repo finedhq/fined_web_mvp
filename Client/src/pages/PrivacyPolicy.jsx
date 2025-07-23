@@ -54,7 +54,7 @@ const PrivacyPolicy = () => {
 
       <h2 className="text-xl font-semibold mt-4">Your Rights</h2>
       <p className="mb-4">
-        You may request access, update, or deletion of your personal data by contacting us at <strong>support@fined.app</strong>.
+        You may request access, update, or deletion of your personal data by contacting us at <strong>fined.personalfinance@gmail.com</strong>.
       </p>
 
       <p className="mt-4">

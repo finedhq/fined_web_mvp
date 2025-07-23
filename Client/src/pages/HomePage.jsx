@@ -354,9 +354,9 @@ const HomePage = () => {
                   <div className="space-y-4 max-h-44 overflow-y-auto text-start px-2 mt-4 sm:mt-0">
                     {recommendedSchemes.map((scheme, index) => (
                       <div key={index} className="bg-gray-100 rounded-xl p-3">
-                        <p className="text-sm"><span className="font-medium">Name:</span> {scheme.scheme_name}</p>
-                        <p className="text-sm"><span className="font-medium">Eligibility:</span> {scheme.eligibility.slice(0, 40)}...</p>
-                        <p className="text-sm"><span className="font-medium">Description:</span> {scheme.description.slice(0, 40)}...</p>
+                        <p className="text-sm"><span className="font-medium">Name:</span> {scheme?.scheme_name}</p>
+                        <p className="text-sm"><span className="font-medium">Eligibility:</span> {scheme?.eligibility?.slice(0, 40)}...</p>
+                        <p className="text-sm"><span className="font-medium">Description:</span> {scheme?.description?.slice(0, 40)}...</p>
                       </div>
                     ))}
                   </div>

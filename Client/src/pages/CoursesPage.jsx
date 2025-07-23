@@ -280,7 +280,7 @@ export default function CoursesHomePage() {
                                             <h3 className="font-semibold text-cyan-800 text-base tracking-wide sm:mb-2">
                                                 {ongoingCourse?.title || courses[courses.length - 1]?.title}
                                             </h3>
-                                            <p className="text-xs text-gray-600 mb-2 h-16 whitespace-pre-wrap truncate">
+                                            <p className="text-xs text-gray-600 mb-2 max-h-16 whitespace-pre-wrap truncate">
                                                 {ongoingCourse?.description || courses[courses.length - 1]?.description}
                                             </p>
                                         </div>
@@ -344,7 +344,7 @@ export default function CoursesHomePage() {
                                         <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                                     ))}
                                 </div> */}
-                                <div ref={carouselRef} className="flex gap-6">
+                                <div ref={carouselRef} className="flex flex-col sm:flex-row gap-6">
                                     {courses.map((course) => (
                                         <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                                     ))}
@@ -357,7 +357,7 @@ export default function CoursesHomePage() {
                 <div className="w-full px-4 sm:px-10 py-5">
                     <div className="flex justify-between" >
                         <h2 className="text-xl font-semibold">Recommended Courses</h2>
-                        <div className="flex space-x-2 mr-2 mb-4 sm:mb-2">
+                        {/* <div className="flex space-x-2 mr-2 mb-4 sm:mb-2">
                             <button
                                 className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
@@ -377,9 +377,14 @@ export default function CoursesHomePage() {
                             >
                                 ❯
                             </button>
-                        </div>
+                        </div> */}
                     </div>
-                    <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[36px] h-[740px] mx-4 overflow-x-auto">
+                    {/* <div ref={carouselRef} className="flex flex-col flex-wrap gap-y-4 gap-x-[36px] h-[740px] mx-4 overflow-x-auto">
+                        {courses.map((course) => (
+                            <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
+                        ))}
+                    </div> */}
+                    <div ref={carouselRef} className="flex flex-col sm:flex-row gap-6 mt-4">
                         {courses.map((course) => (
                             <CourseCard key={course.id} course={course} isAuthenticated={isAuthenticated} />
                         ))}

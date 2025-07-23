@@ -51,8 +51,9 @@ export default function Navbar() {
                 <header className="flex flex-col md:flex-row md:items-center h-auto md:h-[63px] bg-gray-100 box-border mb-4">
                     {/* Mobile and Tablet Header */}
                     <div className="flex justify-between items-center w-full mt-4 xl:hidden px-4">
-                        <div onClick={() => navigate('/')} className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+                        <div onClick={() => navigate('/')} className="flex flex-col items-center font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
                             <img src="/logo.png" alt="FinEd Logo" className="h-12 w-auto object-contain" />
+                            <span className='text-[#4100bc] text-[10px] -mt-2' >Beta</span>
                         </div>
                         <div className="flex items-center gap-4">
                             <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-2 shadow-sm cursor-pointer">
@@ -69,8 +70,9 @@ export default function Navbar() {
 
                     {/* Desktop Header */}
                     <div className="hidden xl:flex xl:flex-row xl:items-center w-full mt-8 px-10 justify-between">
-                        <div onClick={() => navigate('/home')} className="flex items-center gap-2 font-bold text-lg w-32 max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
+                        <div onClick={() => navigate('/home')} className="flex flex-col items-center font-bold text-lg w-32 max-w-[180px] overflow-hidden whitespace-nowrap cursor-pointer">
                             <img src="/logo.png" alt="FinEd Logo" className="h-[60px] w-auto object-contain rounded-b-md" />
+                            <span className='text-[#4100bc] text-[10px] -mt-2' >Beta</span>
                         </div>
                         <nav className="flex flex-wrap justify-center gap-5">
                             <button
@@ -193,12 +195,13 @@ export default function Navbar() {
                 <div>
                     <header className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-10 lg:px-16 py-3 sm:py-6 bg-gray-100">
                         <div className="flex items-center justify-between w-full sm:w-auto mb-4 sm:mb-0">
-                            <div onClick={() => navigate('/')} className="flex items-center gap-3 font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
+                            <div onClick={() => navigate('/')} className="flex flex-col items-center font-bold text-lg max-w-[200px] overflow-hidden whitespace-nowrap cursor-pointer">
                                 <img
                                     src="/logo.png"
                                     alt="FinEd logo"
                                     className="h-12 sm:h-14 w-auto object-contain"
                                 />
+                                <span className='text-[#4100bc] text-[10px] -mt-2' >Beta</span>
                             </div>
                             <button
                                 className="sm:hidden text-gray-800 focus:outline-none p-2"
@@ -214,7 +217,7 @@ export default function Navbar() {
                             <Link to="/courses" aria-label="View courses" className={`w-28 h-10 text-base flex items-center justify-center border-none rounded-full cursor-pointer shadow-sm font-medium transition-colors ${location.pathname.startsWith('/courses') ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>Courses</Link>
                             <Link to="/articles" aria-label="View articles" className={`w-28 h-10 text-base flex items-center justify-center border-none rounded-full cursor-pointer shadow-sm font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>Articles</Link>
                             <Link to="/about" aria-label="About us" className={`w-28 h-10 text-base flex items-center justify-center border-none rounded-full cursor-pointer shadow-sm font-medium transition-colors ${location.pathname === '/about' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}>About Us</Link>
-                            <button onClick={loginWithPopup} className="px-5 py-2 bg-amber-400 text-white rounded-2xl font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
+                            <button onClick={loginWithPopup} className="px-5 py-2 bg-amber-400 text-white rounded-md font-bold hover:bg-amber-500 transition-colors duration-200 text-base sm:text-lg cursor-pointer">Sign up / Login</button>
                         </nav>
                     </header>
                     <div className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out sm:hidden z-50`}>
