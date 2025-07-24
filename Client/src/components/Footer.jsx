@@ -93,6 +93,8 @@ export default function Footer() {
                     <Link to="/help" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
                     <Link to="/contact" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
                     <Link to="/feedback" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
+                    <Link to="/privacy-policy" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Privacy Policy</Link>
+                    <Link to="/termsofservice" className="block mb-3 text-sm sm:text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Terms of Service</Link>
                 </div>
                 <div className="newsletter my-5 sm:m-5 w-full sm:w-auto">
                     <h4 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>

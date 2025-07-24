@@ -125,7 +125,7 @@ const AboutUs = () => {
     {
       sector: "Content",
       members: [
-        { name: "Arya Borker", role: "Content Writer", image: "team/Arya Borkar.jpg" },
+        { name: "Arya Borkar", role: "Content Writer", image: "team/Arya Borkar.jpg" },
         { name: "Vinay Gupta", role: "Content Writer", image: "team/Vinay Gupta.jpg" },
       ],
     },
@@ -140,7 +140,7 @@ const AboutUs = () => {
       sector: "Graphics",
       members: [
         { name: "Ishwari Moroney", role: "Graphic Designer", image: "team/Ishwari Moroney.jpg" },
-        { name: "Janhavi vaidya", role: "Graphic Designer", image: "team/Janhavi Vaidya.jpg" },
+        { name: "Janhavi Vaidya", role: "Graphic Designer", image: "team/Janhavi Vaidya.jpg" },
         { name: "Parth Agrawal", role: "Graphic Designer", image: "team/Parth Agrawal.jpg" },
       ],
     },
