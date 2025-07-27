@@ -28,6 +28,9 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
+app.options('*', cors()); // enable preflight for all routes
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
