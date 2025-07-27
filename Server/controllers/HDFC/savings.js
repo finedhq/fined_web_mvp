@@ -35,13 +35,11 @@ export default async function fetchAndStoreHDFCSavings (req, res) {
       .select();
 
     if (error) {
-      console.error('Insert error:', error);
       return res.status(500).json({ error: 'Insert failed' });
     }
 
     res.status(200).json(data);
   } catch (err) {
-    console.error('Scraping failed:', err.message);
     res.status(500).json({ error: 'Something went wrong' });
   }
 };
