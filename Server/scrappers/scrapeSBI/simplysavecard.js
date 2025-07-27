@@ -100,4 +100,6 @@ const fees_and_charges = await page.$$eval(".cs81Heading", (headings) => {
 };
 
 scrapeSBISimplySave()
+  .then((data) => console.log(JSON.stringify(data, null, 2)))
+  .catch((err) => console.error("Scraping failed:", err));
 

@@ -105,4 +105,6 @@ const eligibility= await page.$$eval('h2', (headings) => {
 };
 
 scrapeHDFCRD()
+  .then((data) => console.log(JSON.stringify(data, null, 2)))
+  .catch((err) => console.error("Scraping failed:", err.message));
 

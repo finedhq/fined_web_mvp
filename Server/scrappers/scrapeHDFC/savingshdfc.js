@@ -58,4 +58,6 @@ const sections = await page.$$eval(".cs81Heading", (headings) => {
 };
 
 scrapeHDFCSavings()
+  .then((data) => console.log(JSON.stringify(data, null, 2)))
+  .catch((err) => console.error("Scraping failed:", err.message));
 

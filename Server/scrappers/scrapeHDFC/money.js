@@ -28,6 +28,8 @@ const features = await page.$$eval(".cs81ContentDiv table tbody tr", (rows) => {
   return data;
 });
 
+console.log(features);
+
 
   const eligibility = [
     "Salaried Indian nationality Age: Min 21 yrs. & Max 60 Yrs.",
@@ -53,4 +55,6 @@ const features = await page.$$eval(".cs81ContentDiv table tbody tr", (rows) => {
 };
 
 scrapeHDFCMoney()
+  .then((data) => console.log(JSON.stringify(data, null, 2)))
+  .catch((err) => console.error("Scraping failed:", err.message));
 
