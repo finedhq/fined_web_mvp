@@ -35,7 +35,6 @@ export const deleteModule = async (req, res) => {
     }
     res.json(data);
   } catch (err) {
-    console.log(err)
     res.status(500).json({ error: `Error fetching module: ${err.message}` });
   }
 };

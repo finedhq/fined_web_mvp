@@ -18,13 +18,11 @@ export default async function fetchAndStoreBasicICICISavings (req, res) {
       .gte('created_at', weekStart.toISOString());
 
     if (fetchError) {
-      console.error('Fetch error:', fetchError);
       return res.status(500).json({ error: 'Failed to check existing data' });
     }
 
   
     if (existing && existing.length > 0) {
-      console.log('Returning cached SBI FD data from this week.');
       return res.status(200).json(existing);
     }
 
@@ -36,12 +34,8 @@ export default async function fetchAndStoreBasicICICISavings (req, res) {
       .select();
 
     if (error) {
-      console.error('Insert error:', error);
       return res.status(500).json({ error: 'Insert failed' });
     }
-
-    console.log('New SBI FD data scraped and stored.');
-    console.log(data);
     res.status(200).json(data);
   } catch (err) {
     console.error('Scraping failed:', err.message);

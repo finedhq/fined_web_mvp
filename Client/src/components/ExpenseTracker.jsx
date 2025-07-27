@@ -538,7 +538,6 @@ export default function ExpenseTracker() {
       }
       setIsFetching(false)
     } catch (err) {
-      console.log(err)
       if (!showNotice) {
         if (err.response?.status === 401) {
           const state = JSON.stringify({ email, status: isAutoFetch })

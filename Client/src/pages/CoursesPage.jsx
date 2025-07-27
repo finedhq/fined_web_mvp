@@ -57,7 +57,6 @@ export default function CoursesHomePage() {
         setIsFetchingOngoing(true)
         try {
             const res = await instance.post("/courses/getongoingcourse", { email })
-            console.log(res.data)
             if (res.data?.title) {
                 setOngoingCourse(res.data)
             }

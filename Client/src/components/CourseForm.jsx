@@ -46,7 +46,6 @@ const CourseForm = () => {
       }
 
       const res = await axios.post("/courses/add", formData);
-      console.log("Course added:", res.data);
 
       setForm({
         title: "",

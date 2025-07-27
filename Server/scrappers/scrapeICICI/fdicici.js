@@ -83,6 +83,4 @@ const section2 = await page.$$eval(".fdbp01InfoSectionHeading.headingLarge", (he
 };
 
 scrapeICICIFD()
-  .then((data) => console.log(JSON.stringify(data, null, 2)))
-  .catch((err) => console.error("Scraping failed:", err.message));
 

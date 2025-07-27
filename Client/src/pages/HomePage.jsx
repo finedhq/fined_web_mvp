@@ -87,7 +87,6 @@ const HomePage = () => {
     setLoading(true);
     try {
       const res = await instance.post("/home/getdata", { email, userId: user?.sub });
-      console.log(res.data)
       if (res.data?.userData) {
         setUserData(res.data.userData);
         setFeaturedArticle(res.data.featuredArticle);

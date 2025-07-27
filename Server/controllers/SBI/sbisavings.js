@@ -22,8 +22,6 @@ export default async function fetchAndStoreSBIProduct (req, res) {
     }
 
     if (existing && existing.length > 0) {
-
-      console.log(' Returning cached data from this week.');
       return res.status(200).json(existing);
     }
 
@@ -38,8 +36,6 @@ export default async function fetchAndStoreSBIProduct (req, res) {
       console.error('Insert error:', error);
       return res.status(500).json({ error: 'Insert failed' });
     }
-
-    console.log('New data scraped and stored.');
     res.status(200).json(data);
   } catch (err) {
     console.error('Scraping failed:', err.message);

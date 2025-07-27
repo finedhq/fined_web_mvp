@@ -74,6 +74,4 @@ export default async function scrapeHDFCTax () {
 };
 
 scrapeHDFCTax()
-  .then((data) => console.log(JSON.stringify(data, null, 2)))
-  .catch((err) => console.error("Scraping failed:", err.message));
 

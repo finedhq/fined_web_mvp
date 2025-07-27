@@ -4,7 +4,6 @@ import { supabase } from "../supabaseClient.js";
 export const saveUserResponse = async (req, res) => {
   try {
     const data = req.body;
-    console.log("Received response:", data);
 
     const { data: inserted, error } = await supabase
       .from("user_responses")
@@ -14,7 +13,6 @@ export const saveUserResponse = async (req, res) => {
 
     if (error) throw error;
 
-    console.log("Insert result:", inserted);
     res.status(201).json(inserted);
   } catch (err) {
     console.error("Insert error:", err.message);

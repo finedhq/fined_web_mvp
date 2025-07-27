@@ -23,8 +23,6 @@ export default async function fetchAndStoreSBIPPF (req, res){
     }
 
     if (existing && existing.length > 0) {
-
-      console.log(' Returning cached data from this week.');
       return res.status(200).json(existing);
     }
 

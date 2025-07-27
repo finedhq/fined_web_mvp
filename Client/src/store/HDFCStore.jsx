@@ -10,7 +10,6 @@ export const useMessagesStoreHDFC= create((set,get)=>({
             try{
                 const res = await axiosInstance.get('/hdfc/millenia');
                 if(res.data){
-                    console.log(res.data)
                    set({millenia:res.data});
                 }
             }

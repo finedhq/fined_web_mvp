@@ -23,7 +23,6 @@ export default async function fetchAndStoreSBIFD (req, res) {
 
   
     if (existing && existing.length > 0) {
-      console.log('Returning cached SBI FD data from this week.');
       return res.status(200).json(existing);
     }
 

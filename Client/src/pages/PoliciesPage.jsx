@@ -37,7 +37,6 @@ const PoliciesPage = () => {
     const fetchRecommendations = async () => {
         try {
             const res = await instance.post("/home/recommendations", { email, course_id });
-            console.log(res.data)
             setRecommendedSchemes(res.data.recommendations);
         } catch (err) {
             toast.error("Failed to load recommended schemes.", err);

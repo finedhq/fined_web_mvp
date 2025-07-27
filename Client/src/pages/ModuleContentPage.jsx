@@ -44,7 +44,6 @@ const ModuleContentPage = () => {
     try {
       const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}`, { email })
       const fetchedCard = res.data
-      console.log(fetchedCard)
       setCard(fetchedCard)
       setPrevCardId(fetchedCard.prevCardId)
       setNextCardId(fetchedCard.nextCardId)

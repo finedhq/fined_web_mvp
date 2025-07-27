@@ -264,7 +264,6 @@ export const getACard = async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
     res.status(500).json({ error: `Failed to fetch card: ${err.message}` });
   }
 };

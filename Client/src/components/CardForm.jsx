@@ -117,7 +117,6 @@ const CardForm = () => {
       });
 
       alert('✅ Card added successfully!');
-      console.log(res.data);
 
       // Reset form
       setForm({

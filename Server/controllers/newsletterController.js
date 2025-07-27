@@ -11,7 +11,6 @@ export const newsletter = async (req, res) => {
     if (error) throw error;
 
     if (!emails || emails.length === 0) {
-      console.log("No subscribers found.");
       return;
     }
 
