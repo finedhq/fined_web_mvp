@@ -24,12 +24,9 @@ const PORT = process.env.PORT || 8000;
 app.use(cors({
   origin: ['https://fined-web.vercel.app', 'http://localhost:5173', 'https://www.myfined.com'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   optionsSuccessStatus: 204
 }));
-
-app.options('*', cors()); // enable preflight for all routes
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
