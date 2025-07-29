@@ -167,20 +167,13 @@ export default function CourseOverviewPage() {
                 </div>
               )}
 
-              <div className="mt-10 flex flex-col items-center gap-14 px-4 sm:px-0">
+              <div className="mt-10 flex flex-col items-center gap-4 px-4 sm:px-0">
                 {module.cards.map((card, i) => {
                   const isClickable = i === 0 || module.cards[i - 1].status === "completed";
                   const isOngoing = isClickable && card.status !== "completed";
-
-                  console.log(`Card ${i + 1} (ID: ${card.card_id}):`, {
-                    isClickable,
-                    isOngoing,
-                    status: card.status,
-                  }); // Debug log
-
                   return (
-                    <div key={i} className={`relative w-full flex ${i % 2 === 0 ? "justify-start sm:pl-20" : "justify-end sm:pr-20"}`}>
-                      <div className={`flex flex-col items-center w-1/6 ${i % 2 === 0 ? 'ml-0 sm:ml-[125px]' : 'sm:mr-[120px]'}`}>
+                    <div key={i} className={`w-full flex flex-col ${i % 2 === 0 ? "items-start" : "items-end"}`}>
+                      <div className={`flex flex-col items-center w-1/6 ${i % 2 === 0 ? 'ml-0 sm:ml-[165px]' : 'sm:mr-[165px]'}`}>
                         <button
                           onClick={() => {
                             if (isClickable) {
@@ -203,7 +196,7 @@ export default function CourseOverviewPage() {
                             className="w-16 h-16 object-contain"
                           />
                         </button>
-                        <p className="text-center w-96 h-12 overflow-hidden text-ellipsis">
+                        <p className="text-center w-28 sm:w-96 mb-2 overflow-hidden text-[10px] sm:text-base text-ellipsis">
                           {card.title}
                         </p>
                       </div>
@@ -212,7 +205,7 @@ export default function CourseOverviewPage() {
                         <img
                           src={i % 2 === 0 ? imageAssets.pathLeftToRight : imageAssets.pathRightToLeft}
                           alt="path"
-                          className="absolute mt-12 top-12 left-1/2 transform -translate-x-1/2 w-6/7 sm:w-1/3"
+                          className="w-6/7 sm:w-5/12 h-16 mx-auto"
                         />
                       )}
                     </div>

@@ -19,6 +19,7 @@ export default function LandingPage() {
 
   const [courses, setCourses] = useState([]);
   const [articles, setArticles] = useState([]);
+  const [openedArticle, setOpenedArticle] = useState(null)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -361,7 +362,7 @@ export default function LandingPage() {
         <div ref={courseCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-row h-[240px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
           {courses.length > 0 ? (
             courses.map((course, index) => (
-              <div key={index} className="bg-gray-100 text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-48 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
+              <div onClick={() => toast.error("Please sign in!")} key={index} className="bg-gray-100 text-gray-900 rounded-xl p-4 shadow-md flex flex-col justify-between h-48 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content cursor-pointer">
                 <div className='flex justify-between gap-4' >
                   <div className='max-w-3/5' >
                     <p className='text-2xl text-purple-700 font-semibold' >{course.title}</p>
@@ -417,7 +418,7 @@ export default function LandingPage() {
         <div ref={articleCarouselRef} role="region" aria-label="Explore courses carousel" className="flex flex-row h-[190px] pt-4 gap-8 sm:px-2 mb-10 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
           {articles.length > 0 ? (
             articles.map((article, index) => (
-              <div key={index} className="bg-gray-50 text-gray-900 rounded-xl p-4 shadow-lg flex flex-col justify-between h-40 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content">
+              <div onClick={() => setOpenedArticle(article)} key={index} className="bg-gray-50 text-gray-900 rounded-xl p-4 shadow-lg flex flex-col justify-between h-40 w-full sm:w-[440px] shrink-0 transition-transform duration-200 hover:-translate-y-1 snap-start card-content cursor-pointer">
                 <div className='flex justify-between gap-4' >
                   <div className='max-w-3/5' >
                     <p className='text-xl text-purple-700 font-semibold' >{article.title}</p>
@@ -437,6 +438,37 @@ export default function LandingPage() {
           )}
         </div>
       </section>
+
+      {openedArticle && (
+        <div
+          className="fixed inset-0 z-20 bg-gray-100 flex items-center justify-center transition-opacity duration-500"
+        >
+          <div className="bg-white w-full h-full overflow-y-auto p-6 sm:p-10 relative rounded-none shadow-lg transition-all duration-300">
+            <button
+              onClick={() => setOpenedArticle(null)}
+              className="absolute -top-2 right-0 sm:top-0 sm:right-2 text-gray-500 hover:text-gray-700 text-4xl font-bold z-50 transition-all duration-200 cursor-pointer"
+            >
+              &times;
+            </button>
+            <img
+              src={openedArticle.image_url || "_"}
+              alt="Article"
+              className="h-60 w-full sm:h-3/4 sm:max-h-full object-contain rounded-md mb-6"
+            />
+            <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{openedArticle.title}</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              {new Date(openedArticle.created_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+              })}
+            </p>
+            <div className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify">
+              {openedArticle.content}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
 

@@ -14,6 +14,7 @@ export const getAllArticles = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
+    console.log(err)
     res.status(500).json({ error: `Error fetching articles: ${err.message}` });
   }
 };
@@ -88,6 +89,7 @@ export const fetchEnteredEmail = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
+    console.log(err)
     res.status(500).json({ error: `Error fetching entered email: ${err.message}` });
   }
 };

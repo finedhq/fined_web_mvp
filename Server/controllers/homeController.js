@@ -138,7 +138,7 @@ export const fetchData = async (req, res) => {
 
         // Parallel: Rank + Content + Ongoing course (if any)
         const [allUsersRes, articleRes, courseRes, ongoingCourseRes] = await Promise.all([
-            supabase.from("users").select("user_sub, fin_stars").order("fin_stars", { ascending: false }),
+            supabase.from("users").select("user_sub, article_score, expense_score, course_score, consistency_score"),
             supabase.from("articles").select("*").order("created_at", { ascending: false }).limit(1).single(),
             supabase.from("courses").select("*").order("created_at", { ascending: false }).limit(8),
             userData.ongoing_course_id
@@ -146,13 +146,23 @@ export const fetchData = async (req, res) => {
                 : Promise.resolve({ data: null })
         ]);
 
-        const allUsers = allUsersRes.data || [];
-        let rank = 1, userRank = null, lastStars = null;
+        const allUsers = (allUsersRes.data || []).map(user => ({
+            ...user,
+            finScore:
+                (user.article_score || 0) +
+                (user.expense_score || 0) +
+                (user.course_score || 0) +
+                (user.consistency_score || 0)
+        }));
+
+        // Sort descending by finScore
+        allUsers.sort((a, b) => b.finScore - a.finScore);
+        let rank = 1, userRank = null, lastScore = null;
         for (let i = 0; i < allUsers.length; i++) {
-            const currentStars = allUsers[i].fin_stars;
-            if (currentStars !== lastStars) {
+            const currentScore = allUsers[i].finScore;
+            if (currentScore !== lastScore) {
                 rank = i + 1;
-                lastStars = currentStars;
+                lastScore = currentScore;
             }
             if (allUsers[i].user_sub === userId) {
                 userRank = rank;
@@ -188,13 +198,24 @@ export const fetchLeaderBoard = async (req, res) => {
     try {
         const { data, error } = await supabase
             .from("users")
-            .select("user_sub, email, fin_stars")
-            .order("fin_stars", { ascending: false })
-            .limit(50);
+            .select("user_sub, email, article_score, expense_score, course_score, consistency_score");
 
         if (error) throw error;
 
-        res.json(data);
+        // Calculate finScore and sort
+        const leaderboard = data
+            .map(user => ({
+                ...user,
+                finScore:
+                    (user.article_score || 0) +
+                    (user.expense_score || 0) +
+                    (user.course_score || 0) +
+                    (user.consistency_score || 0),
+            }))
+            .sort((a, b) => b.finScore - a.finScore)
+            .slice(0, 50); // Limit to top 50
+
+        res.json(leaderboard);
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch leaderboard" });
     }

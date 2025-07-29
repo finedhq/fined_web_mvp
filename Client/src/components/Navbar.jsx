@@ -35,6 +35,7 @@ export default function Navbar() {
     }
 
     useEffect(() => {
+        if (!email) return
         fetchHasUnseen()
     }, [email])
 

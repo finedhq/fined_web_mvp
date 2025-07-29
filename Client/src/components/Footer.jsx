@@ -37,9 +37,8 @@ export default function Footer() {
     }
 
     useEffect(() => {
-        if (email) {
-            fetchEnteredEmail();
-        }
+        if (!email) return
+        fetchEnteredEmail()
     }, [email]);
 
     const saveEmail = async () => {

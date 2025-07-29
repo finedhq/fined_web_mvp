@@ -229,7 +229,7 @@ const HomePage = () => {
                     <p>{userData?.streak_count}</p>
                   </div>
                   <div
-                    title={`🏅 Your Rank: You're currently ranked #${userData?.rank || 'N/A'} based on your FinStars.`}
+                    title={`🏅 Your Rank: You're currently ranked #${userData?.rank || 'N/A'} based on your FinScore.`}
                     onClick={() => setShowLeaderBoard(true)}
                     className="bg-white px-3 py-2 w-20 rounded-full flex items-center justify-center gap-4 font-semibold shadow-sm text-gray-900 cursor-pointer"
                   >
@@ -430,7 +430,7 @@ const HomePage = () => {
         showLeaderBoard && (
           <div onClick={() => setShowLeaderBoard(false)} className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
             <div onClick={(e) => e.stopPropagation()} className="bg-white w-[90%] max-w-xl rounded-2xl shadow-xl p-6 relative">
-              <h2 className="text-xl sm:text-2xl font-bold text-center mb-4">🏆 FinStars Leaderboard</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-center mb-4">🏆 FinScore Leaderboard</h2>
               <button
                 onClick={() => setShowLeaderBoard(false)}
                 className="absolute top-3 right-4 text-xl sm:text-2xl text-gray-500 hover:text-black cursor-pointer"
@@ -460,15 +460,15 @@ const HomePage = () => {
                     let rank = 1;
                     let lastStars = null;
                     let skip = 0;
-                    const sortedLeaderboard = [...leaderboard].sort((a, b) => b.fin_stars - a.fin_stars);
+                    const sortedLeaderboard = [...leaderboard].sort((a, b) => b.finScore - a.finScore);
                     for (let i = 0; i < sortedLeaderboard.length; i++) {
                       const current = sortedLeaderboard[i];
-                      if (current.fin_stars === lastStars) {
+                      if (current.finScore === lastStars) {
                         skip++;
                       } else {
                         rank += skip;
                         skip = 1;
-                        lastStars = current.fin_stars;
+                        lastStars = current.finScore;
                       }
                       leaderboardWithRanks.push({ ...current, rank });
                     }
@@ -490,7 +490,7 @@ const HomePage = () => {
                                   <span>{name}</span>
                                 </div>
                                 <span className="font-bold text-indigo-600">
-                                  {entry.fin_stars} ⭐
+                                  {entry.finScore} ⭐
                                 </span>
                               </div>
                             );
@@ -498,7 +498,7 @@ const HomePage = () => {
                         </div>
                         <div className="flex justify-between items-center px-4 sm:px-12 pt-5 text-base sm:text-lg font-semibold">
                           <p>Your rank: {leaderboardWithRanks.find((entry) => entry.email === user?.email)?.rank ?? "N/A"}</p>
-                          <p>Your finstars: {userData?.fin_stars}</p>
+                          <p>Your finScore: {userData?.fin_score}</p>
                         </div>
                       </div>
                     );

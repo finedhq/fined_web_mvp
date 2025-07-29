@@ -104,7 +104,7 @@ const ArticlesPage = () => {
 
   async function fetchHasUnseen() {
     try {
-      const res = await instance.post("/home/hasunseen", { email })
+      const res = await instance.post("/home/hasunseen", { email: user?.email })
       if (res) {
         setHasUnseen(res.data)
       }
@@ -116,7 +116,7 @@ const ArticlesPage = () => {
   async function fetchEnteredEmail() {
     setLoading(true)
     try {
-      const res = await instance.post("/articles/getenteredemail", { email })
+      const res = await instance.post("/articles/getenteredemail", { email: user?.email })
       if (res.data[0]?.enteredEmail) {
         setEnteredEmail(res.data[0]?.enteredEmail || null)
         setIsEnteredEmail(true)
@@ -312,11 +312,13 @@ const ArticlesPage = () => {
     setSelectedArticle(article)
     setIsArticleClosed(false)
     setIsFadingOut(false)
-    await fetchArticleRating({ email, articleId: article.id })
-    try {
-      await instance.post("/articles/updatetask", { email })
-    } catch (err) {
-      toast.error("Failed to upload tasks.")
+    if (isAuthenticated) {
+      await fetchArticleRating({ email, articleId: article.id })
+      try {
+        await instance.post("/articles/updatetask", { email })
+      } catch (err) {
+        toast.error("Failed to upload tasks.")
+      }
     }
   }
 
@@ -537,7 +539,7 @@ const ArticlesPage = () => {
         <div>
           <div className="flex flex-col sm:flex-row px-4 sm:px-10 py-5 sm:py-10 gap-6">
 
-            <div className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
+            <div onClick={() => openArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
               <div className="relative">
                 <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-48 sm:h-96 object-cover" />
                 <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
@@ -577,7 +579,7 @@ const ArticlesPage = () => {
               }
               <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-full columns-1 carousel-track-1 space-y-[22px] gap-2" >
                 {articles.slice(1).map((article, index) =>
-                  <div key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
+                  <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
                     <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill rounded-lg" />
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
@@ -765,23 +767,25 @@ const ArticlesPage = () => {
                 <p className="text-gray-700 font-medium text-lg">Fetching more articles...</p>
               </div>
             )}
-            <div className="mt-20 flex flex-col items-center">
-              <p className="text-lg font-semibold text-gray-700 mb-2">Rate this article</p>
-              <div className="flex gap-3">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => { setArticleRating(star); saveArticleRating({ email, articleId: selectedArticle.id, rating: star }) }}
-                    className={`text-3xl transition-transform transform hover:scale-125 cursor-pointer duration-200
+            {isAuthenticated &&
+              <div className="mt-20 flex flex-col items-center">
+                <p className="text-lg font-semibold text-gray-700 mb-2">Rate this article</p>
+                <div className="flex gap-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => { setArticleRating(star); saveArticleRating({ email, articleId: selectedArticle.id, rating: star }) }}
+                      className={`text-3xl transition-transform transform hover:scale-125 cursor-pointer duration-200
 ${(fetchedArticleRating !== null ? fetchedArticleRating : articleRating) >= star
-                        ? "text-yellow-400"
-                        : "text-gray-300"}`}
-                  >
-                    ★
-                  </button>
-                ))}
+                          ? "text-yellow-400"
+                          : "text-gray-300"}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            }
           </div>
         </div>
       )}
