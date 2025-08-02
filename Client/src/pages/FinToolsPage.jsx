@@ -75,7 +75,7 @@ export default function FinToolsPage() {
             <Navbar />
             <div className="px-4 sm:px-10 py-10" >
                 <h1 className="text-3xl font-bold mb-8 text-gray-800">FinTools</h1>
-                <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                <div className="w-68 mx-auto sm:mx-0">
                     {tools.map((tool, index) => (
                         <div
                             key={index}
@@ -86,7 +86,7 @@ export default function FinToolsPage() {
                             <img
                                 src={tool.image}
                                 alt={tool.name}
-                                className="w-full object-contain"
+                                className="object-contain"
                             />
                             <div className="p-4">
                                 <h2 className="text-xl font-semibold text-gray-800 mb-2">

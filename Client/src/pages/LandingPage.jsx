@@ -455,16 +455,18 @@ export default function LandingPage() {
               alt="Article"
               className="h-60 w-full sm:h-3/4 sm:max-h-full object-contain rounded-md mb-6"
             />
-            <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{openedArticle.title}</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              {new Date(openedArticle.created_at).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-              })}
-            </p>
-            <div className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {openedArticle.content}
+            <div className='sm:px-40' >
+              <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{openedArticle.title}</h2>
+              <p className="text-sm font-medium text-gray-500 mb-6">
+                {new Date(openedArticle.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                })}
+              </p>
+              <div className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify sm:font-medium">
+                {openedArticle.content}
+              </div>
             </div>
           </div>
         </div>

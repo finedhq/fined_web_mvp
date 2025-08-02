@@ -258,10 +258,10 @@ const HomePage = () => {
               </section>
             </div>
 
-            <section className="bg-white px-4 sm:px-5 py-2 rounded-2xl font-sans flex flex-col justify-between w-full h-80 border border-gray-300 col-span-1 md:col-span-1 xl:col-span-1">
+            <section onClick={() => navigate("/articles")} className="bg-white px-4 sm:px-5 py-2 rounded-2xl font-sans flex flex-col justify-between w-full h-80 border border-gray-300 col-span-1 md:col-span-1 xl:col-span-1 cursor-pointer">
               <div className="flex justify-between items-center">
                 <h3 className="text-base sm:text-lg font-bold">Featured</h3>
-                <div onClick={() => navigate("/articles")} className="flex items-center gap-2 font-semibold cursor-pointer">
+                <div className="flex items-center gap-2 font-semibold">
                   <span className="text-sm sm:text-base">View More</span>
                   <span className="text-xl sm:text-2xl">→</span>
                 </div>
@@ -352,10 +352,14 @@ const HomePage = () => {
                 {recommendedSchemes?.length > 0 ? (
                   <div className="space-y-4 max-h-44 overflow-y-auto text-start px-2 mt-4 sm:mt-0">
                     {recommendedSchemes.map((scheme, index) => (
-                      <div key={index} className="bg-gray-100 rounded-xl p-3">
-                        <p className="text-sm"><span className="font-medium">Name:</span> {scheme?.scheme_name}</p>
-                        <p className="text-sm"><span className="font-medium">Eligibility:</span> {scheme?.eligibility?.slice(0, 40)}...</p>
-                        <p className="text-sm"><span className="font-medium">Description:</span> {scheme?.description?.slice(0, 40)}...</p>
+                      <div key={index} className="sm:px-3 flex gap-2">
+                        <div className='h-9 w-9 sm:h-12 sm:w-12' >
+                          <img src={scheme?.bank_name === "HDFC Bank" ? "/hdfc.png" : scheme?.bank_name === "SBI Bank" ? "/sbi.png" : scheme?.bank_name === "ICICI Bank" ? "/icici.png" : "/kotak.png"} alt='bank_logo' className='h-9 w-9 sm:h-12 sm:w-12' />
+                        </div>
+                        <div>
+                        <p className="text-sm sm:text-base font-semibold">{scheme?.bank_name} {scheme?.scheme_name}</p>
+                        <p className="text-sm">{scheme?.description.slice(0,40)}...</p>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -377,7 +381,7 @@ const HomePage = () => {
                     className="flex justify-center items-center gap-3 cursor-pointer transition"
                   >
                     <p className="font-semibold text-lg">View All</p>
-                    <span className="text-2xl">→</span>
+                    <span className="text-2xl -mt-[3px]">→</span>
                   </div>
                 </div>
               </section>

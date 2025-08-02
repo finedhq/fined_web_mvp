@@ -103,13 +103,11 @@ const PoliciesPage = () => {
                             className="flex justify-between items-start bg-white px-4 py-3 rounded-lg shadow-sm cursor-pointer hover:bg-gray-300 transition-all duration-200"
                         >
                             {/* Left */}
-                            <div className="flex gap-3 items-start">
-                                <span className="text-sm font-semibold mt-1">{idx + 1}</span>
-                                <img
-                                    src="https://cdn-icons-png.flaticon.com/512/888/888879.png"
-                                    alt="icon"
-                                    className="w-6 h-6 mt-1"
-                                />
+                            <div className="flex gap-2 sm:gap-3 items-start">
+                                <span className="text-sm font-semibold mt-2">{idx + 1}</span>
+                                <div className='h-9 w-9' >
+                                    <img src={scheme?.bank_name === "HDFC Bank" ? "/hdfc.png" : scheme?.bank_name === "SBI Bank" ? "/sbi.png" : scheme?.bank_name === "ICICI Bank" ? "/icici.png" : "/kotak.png"} alt='bank_logo' className='h-9 w-9' />
+                                </div>
                                 <div>
                                     <p className="font-semibold text-sm text-gray-900">{scheme.bank_name} {scheme.scheme_name}</p>
                                     <p className="text-xs text-gray-600 leading-snug">{scheme.description}</p>

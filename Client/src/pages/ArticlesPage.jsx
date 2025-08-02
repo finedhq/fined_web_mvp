@@ -695,7 +695,7 @@ const ArticlesPage = () => {
         >
           <button
             className={`absolute left-1 sm:left-6 top-1/2 transform -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full shadow-md 
-        flex items-center justify-center text-base sm:text-lg transition-all duration-200 z-50
+        sm:flex items-center justify-center text-base sm:text-lg transition-all duration-200 z-50 hidden
         ${selectedIndex > 0
                 ? "bg-amber-400 text-white hover:bg-amber-500 cursor-pointer"
                 : "bg-white text-amber-300 cursor-not-allowed"
@@ -713,7 +713,7 @@ const ArticlesPage = () => {
           </button>
           <button
             className={`absolute right-1 sm:right-6 top-1/2 transform -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full shadow-md 
-        flex items-center justify-center text-lg transition-all duration-200 z-50
+        sm:flex items-center justify-center text-lg transition-all duration-200 z-50 hidden
         ${(selectedIndex < articles.length - 1 || hasMore)
                 ? "bg-amber-400 text-white hover:bg-amber-500 cursor-pointer"
                 : "bg-white text-amber-300 cursor-not-allowed"
@@ -751,16 +751,18 @@ const ArticlesPage = () => {
               alt="Article"
               className="h-60 w-full sm:h-3/4 sm:max-h-full object-contain rounded-md mb-6"
             />
-            <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{selectedArticle.title}</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              {new Date(selectedArticle.created_at).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-              })}
-            </p>
-            <div className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {selectedArticle.content}
+            <div className='sm:px-40' >
+              <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{selectedArticle.title}</h2>
+              <p className="text-sm font-medium text-gray-500 mb-6">
+                {new Date(selectedArticle.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                })}
+              </p>
+              <div className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify sm:font-medium">
+                {selectedArticle.content}
+              </div>
             </div>
             {(prefetchingNext || loading) && selectedIndex === articles.length - 1 && hasMore && (
               <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-40">
