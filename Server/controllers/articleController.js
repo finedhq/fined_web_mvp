@@ -1,5 +1,5 @@
 import { supabase } from "../supabaseClient.js";
-
+import { v4 as uuidv4 } from "uuid";
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
 
 export const getAllArticles = async (req, res) => {
@@ -271,14 +271,14 @@ export const addArticle = async (req, res) => {
     const imageFile = req.file;
     let image_url = "";
 
-    if (imageFile) {
-      const path = `articles/${title.replace(/ /g, "_")}_${imageFile.originalname}`;
+    const uploadToSupabase = async (file, folder) => {
+      const ext = file.originalname.split(".").pop();
+      const safeTitle = title ? title.replace(/[^a-zA-Z0-9_-]/g, "_") : "untitled";
+      const path = `${folder}/${safeTitle}_${uuidv4()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(SUPABASE_BUCKET)
-        .upload(path, imageFile.buffer, {
-          contentType: imageFile.mimetype,
-        });
+        .upload(path, file.buffer, { contentType: file.mimetype });
 
       if (uploadError) throw uploadError;
 
@@ -286,7 +286,11 @@ export const addArticle = async (req, res) => {
         .from(SUPABASE_BUCKET)
         .getPublicUrl(path);
 
-      image_url = publicUrlData.publicUrl;
+      return publicUrlData.publicUrl;
+    };
+
+    if (imageFile) {
+      image_url = await uploadToSupabase(imageFile, "articles");
     }
 
     const { data, error } = await supabase
@@ -299,6 +303,7 @@ export const addArticle = async (req, res) => {
 
     res.status(201).json(data);
   } catch (err) {
+    console.error("Error adding article:", err);
     res.status(500).json({ error: `Failed to add article: ${err.message}` });
   }
 };
