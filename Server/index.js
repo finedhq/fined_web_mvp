@@ -22,7 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 app.use(cors({
-  origin: ['https://fined-web.vercel.app', 'http://localhost:5173', 'https://www.myfined.com'],
+  origin: ['https://fined-web.vercel.app', 'http://localhost:5173', 'https://www.myfined.com', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   optionsSuccessStatus: 204
@@ -45,6 +45,11 @@ app.use('/api/sbi', router);
 app.use('/api/kotak',kotakrouter);
 app.use('/api/hdfc',hdfcrouter);
 app.use('/api/icici',icicirouter);
+
+app.get('/', (req, res) => {
+  console.log('Server is running');
+  res.send('Hello FinEd!')
+})
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
