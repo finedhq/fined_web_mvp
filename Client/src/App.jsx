@@ -32,6 +32,8 @@ import ContactUs from './pages/ContactUsPage.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
 import TermsOfService from './pages/TermsOfService.jsx';
 import PoliciesPage from './pages/PoliciesPage.jsx';
+import OnboardingFlow from './pages/OnboardingFlow.jsx';
+import TestPage from './test-page.jsx';
 
 import ProductList from './schemes/Sbisavings.jsx';
 import FDList from './schemes/SBiFd.jsx';
@@ -84,7 +86,10 @@ const App = () => {
         <Route path="/admin/articles/add" element={<ArticleForm></ArticleForm>}></Route>
         <Route path="/admin/articles" element={<ArticleList></ArticleList>}></Route>
 
+
         <Route path="/" element={<LandingPage />} />
+        <Route path="/test" element={<TestPage />} />
+        <Route path="/onboarding" element={<OnboardingFlow />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/policies" element={<PoliciesPage />} />
         <Route path="/courses" element={<CoursesHomePage />} />
