@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import instance from "../../lib/axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import ArticlePage from "./ArticlePage";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const ArticlesList = () => {
   const [articles, setArticles] = useState([]);
@@ -11,6 +12,19 @@ const ArticlesList = () => {
   const [totalArticles, setTotalArticles] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+    const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   const selectedId = searchParams.get("article");
   const selectedArticle = articles.find(
@@ -65,6 +79,13 @@ const ArticlesList = () => {
     }
   };
 
+  const handleDeleteArticle = async (id) => {
+    const res = await instance.delete(`/articles/${id}`)
+    if (res) {
+      setArticles(prev => prev.filter(article => article.id !== id));
+    }
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-4">
@@ -91,9 +112,12 @@ const ArticlesList = () => {
               className="border p-4 rounded shadow-md space-y-3 cursor-pointer"
               onClick={() => openModal(article.id)}
             >
-              <h3 className="text-xl font-semibold text-indigo-700">
-                {article.title}
-              </h3>
+              <div className="flex justify-between" >
+                <h3 className="text-xl font-semibold text-indigo-700">
+                  {article.title}
+                </h3>
+                <button onClick={(e) => { e.stopPropagation(); handleDeleteArticle(article.id) }} >Delete article</button>
+              </div>
 
               <h3 className="text-xl font-semibold text-indigo-700">
                 Rating: {article.rating || 0}

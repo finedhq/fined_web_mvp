@@ -1,5 +1,5 @@
 import { supabase } from "../supabaseClient.js";
-
+import { v4 as uuidv4 } from "uuid";
 const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET;
 
 export const getAllArticles = async (req, res) => {
@@ -10,6 +10,22 @@ export const getAllArticles = async (req, res) => {
       .select("*")
       .order("created_at", { ascending: false })
       .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: `Error fetching articles: ${err.message}` });
+  }
+};
+
+export const deleteArticle = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { error } = await supabase
+      .from('articles')
+      .delete()
+      .eq('id', id);
 
     if (error) throw error;
     res.json(data);
@@ -73,6 +89,7 @@ export const fetchEnteredEmail = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (err) {
+    console.log(err)
     res.status(500).json({ error: `Error fetching entered email: ${err.message}` });
   }
 };
@@ -80,123 +97,85 @@ export const fetchEnteredEmail = async (req, res) => {
 export const updateTask = async (req, res) => {
   const { email } = req.body;
   const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
   try {
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .select("article_streak_count, article_score, last_article_read_date, consistency_score, expense_score")
+      .select("article_streak_count, article_score, last_article_read_date, article_count_today, consistency_score, expense_score, course_score")
       .eq("email", email)
       .single();
 
     if (userError) throw userError;
 
-    let currentStreak = userData?.article_streak_count || 0;
-    let lastReadDate = userData?.last_article_read_date?.split("T")[0] || null;
-    let articleScore = userData?.article_score || 0;
-    let consistencyScore = userData?.consistency_score || 0;
-    let expenseScore = userData?.expense_score || 0;
-    let newStreak = currentStreak;
-    let bonus = 0;
-    let penalty = 0;
-    let shouldUpdateStreak = false;
+    const {
+      article_streak_count: currentStreak = 0,
+      last_article_read_date: lastReadDateRaw,
+      article_score: articleScore = 0,
+      article_count_today = 0,
+      consistency_score = 0,
+      expense_score = 0,
+      course_score = 0
+    } = userData;
 
-    const oldTotalScore = articleScore + consistencyScore + expenseScore;
+    const lastReadDate = lastReadDateRaw?.split("T")[0] || null;
+    const oldTotalScore = articleScore + consistency_score + expense_score + course_score;
 
-    const { data: existing, error: taskError } = await supabase
-      .from("user_tasks")
-      .select("article, article_count")
-      .eq("email", email)
-      .eq("date", today)
-      .maybeSingle();
-
-    if (taskError) throw taskError;
-
-    let articleCount = existing?.article_count || 0;
-
-    if (articleCount >= 3) {
+    // If already read 3 articles today
+    if (lastReadDate === today && article_count_today >= 3) {
       return res.json({ updated: false, message: "Daily article limit (3) reached." });
     }
 
+    let bonus = 0;
+    let penalty = 0;
+    let newStreak = currentStreak;
     let todayScore = 2;
+    let newCountToday = lastReadDate === today ? article_count_today + 1 : 1;
 
-    if (!existing?.article) {
-      shouldUpdateStreak = true;
-
-      if (lastReadDate === yesterdayStr) {
-        newStreak = currentStreak + 1;
-      } else if (lastReadDate === today) {
-        newStreak = currentStreak;
+    if (lastReadDate !== today) {
+      // New day logic
+      if (lastReadDate === yesterday) {
+        newStreak++;
       } else {
-        if (currentStreak > 3) penalty -= 5;
+        if (currentStreak > 3) penalty = -5;
         newStreak = 1;
       }
 
-      if (newStreak % 3 === 0) bonus += 5;
-
+      if (newStreak % 3 === 0) bonus = 5;
       todayScore += bonus + penalty;
     }
 
     const cappedTotal = Math.min(articleScore + todayScore, 150);
     const actualScoreToAdd = cappedTotal - articleScore;
 
-    const { error: taskUpdateError } = await supabase
-      .from("user_tasks")
-      .upsert(
-        {
-          email,
-          date: today,
-          article: true,
-          article_count: articleCount + 1,
-        },
-        { onConflict: ["email", "date"] }
-      );
+    const updates = {
+      article_score: cappedTotal,
+      last_article_read_date: today,
+      article_count_today: newCountToday,
+    };
 
-    if (taskUpdateError) throw taskUpdateError;
-
-    if (shouldUpdateStreak || lastReadDate !== today) {
-      const { error: streakUpdateError } = await supabase
-        .from("users")
-        .update({
-          article_streak_count: newStreak,
-          last_article_read_date: today,
-          article_score: cappedTotal,
-        })
-        .eq("email", email);
-
-      if (streakUpdateError) throw streakUpdateError;
-    } else if (actualScoreToAdd > 0) {
-      const { error: scoreOnlyUpdateError } = await supabase
-        .from("users")
-        .update({
-          article_score: cappedTotal,
-        })
-        .eq("email", email);
-
-      if (scoreOnlyUpdateError) throw scoreOnlyUpdateError;
+    if (lastReadDate !== today) {
+      updates.article_streak_count = newStreak;
     }
 
-    const { data: updatedUserData, error: newFetchError } = await supabase
+    const { error: updateError } = await supabase
       .from("users")
-      .select("article_score, consistency_score, expense_score")
-      .eq("email", email)
-      .single();
+      .update(updates)
+      .eq("email", email);
 
-    if (newFetchError) throw newFetchError;
+    if (updateError) throw updateError;
 
-    const newTotalScore = (updatedUserData.article_score || 0) + (updatedUserData.consistency_score || 0) + (updatedUserData.expense_score || 0);
-
+    const newTotalScore = cappedTotal + consistency_score + expense_score + course_score;
     const delta = newTotalScore - oldTotalScore;
 
-    let articlePart = `✅ Read article (${articleCount + 1}/3 today)`;
-    let bonusPart = bonus > 0 ? `🎉 Bonus: +${bonus} for ${newStreak % 3 === 0 ? "3-day streak" : "milestone"}` : "";
-    let penaltyPart = penalty < 0 ? `⚠️ Penalty: ${penalty} for breaking streak` : "";
-
-    let description = [articlePart, bonusPart, penaltyPart].filter(Boolean).join(" | ");
-
     if (delta !== 0) {
+      const parts = [
+        `✅ Read article (${newCountToday}/3 today)`,
+        bonus > 0 ? `🎉 Bonus: +${bonus} for 3-day streak` : "",
+        penalty < 0 ? `⚠️ Penalty: ${penalty} for breaking streak` : ""
+      ];
+      const description = parts.filter(Boolean).join(" | ");
+
       const { error: logError } = await supabase
         .from("finScoreLogs")
         .insert({
@@ -212,7 +191,7 @@ export const updateTask = async (req, res) => {
 
     res.json({
       updated: true,
-      articleCount: articleCount + 1,
+      articleCount: newCountToday,
       pointsEarned: actualScoreToAdd,
       streak: newStreak,
       bonus,
@@ -221,7 +200,8 @@ export const updateTask = async (req, res) => {
     });
 
   } catch (err) {
-    return res.status(500).json({ error: `Error updating article task: ${err.message}` });
+    console.error("Article Task Error:", err);
+    res.status(500).json({ error: `Error updating article task: ${err.message}` });
   }
 };
 
@@ -291,14 +271,14 @@ export const addArticle = async (req, res) => {
     const imageFile = req.file;
     let image_url = "";
 
-    if (imageFile) {
-      const path = `articles/${title.replace(/ /g, "_")}_${imageFile.originalname}`;
+    const uploadToSupabase = async (file, folder) => {
+      const ext = file.originalname.split(".").pop();
+      const safeTitle = title ? title.replace(/[^a-zA-Z0-9_-]/g, "_") : "untitled";
+      const path = `${folder}/${safeTitle}_${uuidv4()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(SUPABASE_BUCKET)
-        .upload(path, imageFile.buffer, {
-          contentType: imageFile.mimetype,
-        });
+        .upload(path, file.buffer, { contentType: file.mimetype });
 
       if (uploadError) throw uploadError;
 
@@ -306,7 +286,11 @@ export const addArticle = async (req, res) => {
         .from(SUPABASE_BUCKET)
         .getPublicUrl(path);
 
-      image_url = publicUrlData.publicUrl;
+      return publicUrlData.publicUrl;
+    };
+
+    if (imageFile) {
+      image_url = await uploadToSupabase(imageFile, "articles");
     }
 
     const { data, error } = await supabase
@@ -319,6 +303,7 @@ export const addArticle = async (req, res) => {
 
     res.status(201).json(data);
   } catch (err) {
+    console.error("Error adding article:", err);
     res.status(500).json({ error: `Failed to add article: ${err.message}` });
   }
 };

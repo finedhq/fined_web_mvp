@@ -4,18 +4,18 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 const AdminHome = () => {
   const navigate = useNavigate();
-  const { user,isLoading,isAuthenticated } = useAuth0();
+  const { user, isLoading, isAuthenticated, logout } = useAuth0()
   const [role, setrole] = useState("")
-useEffect(() => {
-  if(!isLoading && isAuthenticated){
-    const roles = user?.["https://fined.com/roles"];
-    setrole(roles[0])
-    console.log(roles[0]);
-    if(roles[0]!=='Admin') navigate('/');
-  }else if(!isLoading && !isAuthenticated) navigate('/')
 
-}, [user,isAuthenticated,isLoading])
-
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   const cards = [
     {
@@ -55,7 +55,7 @@ useEffect(() => {
       {/* Top Navigation */}
       <div className="w-full max-w-6xl flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-12 w-auto rounded-md" />
+          <img onClick={() => navigate('/')} src="/logo.png" alt="FinEd Logo" className="h-12 w-auto rounded-md cursor-pointer" />
           <h2 className="text-2xl font-bold text-indigo-700">FinEd Admin Panel</h2>
         </div>
         <button
@@ -83,8 +83,8 @@ useEffect(() => {
               onClick={card.onClick}
               disabled={card.disabled}
               className={`flex flex-col items-center justify-center p-6 rounded-xl shadow-md text-white font-semibold text-lg text-center transition ${card.disabled
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700"
                 }`}
             >
               <span className="text-4xl mb-3">{card.icon}</span>

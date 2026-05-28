@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "/src/lib/axios.js";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
+import { useAuth0 } from "@auth0/auth0-react";
 // import Loader from "/src/components/Loader"; // 👈 import loader
 
 const CoursesPage = () => {
@@ -9,11 +10,23 @@ const CoursesPage = () => {
   const [loading, setLoading] = useState(true); // 👈 new state
   const navigate = useNavigate();
 
+    const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
+
   const fetchCourses = async () => {
     try {
       const res = await axios.get("/courses/getall");
       setCourses(res.data);
-      console.log(res.data);
     } catch (err) {
       console.error("Error fetching courses:", err);
     } finally {
@@ -24,6 +37,13 @@ const CoursesPage = () => {
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  const handleDeleteCourse = async (id) => {
+    const res = await axios.delete(`/courses/${id}`)
+    if (res) {
+      setCourses(prev => prev.filter(course => course.id !== id));
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 p-10">
@@ -80,9 +100,12 @@ const CoursesPage = () => {
                   </div>
                 )}
                 <div className="p-6">
+                  <div className="flex justify-between" >
                   <h2 className="text-xl font-bold text-gray-900 mb-3 truncate">
                     {course.title}
                   </h2>
+                  <button onClick={() => handleDeleteCourse(course.id)} >Delete Course</button>
+                  </div>
                   <p className="text-gray-700 mb-5 line-clamp-3">
                     {course.description}
                   </p>

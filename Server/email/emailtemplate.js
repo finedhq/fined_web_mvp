@@ -28,7 +28,7 @@ export const Newsletter_template = `<!DOCTYPE html>
               <p style="text-align: justify; max-height: 48px; overflow: hidden" >
                 {{content}}
               </p>
-              <a href="http://localhost:5173/articles" style="display:inline-block; background:#007bff; color:#ffffff; padding:10px 20px; text-decoration:none; border-radius:5px;">Read More</a>
+              <a href="https://fined-web.vercel.app/articles" style="display:inline-block; background:#007bff; color:#ffffff; padding:10px 20px; text-decoration:none; border-radius:5px;">Read More</a>
             </td>
           </tr>
 

@@ -1,7 +1,21 @@
 import { useState } from "react"
 import instance from "../../lib/axios"
+import { useAuth0 } from "@auth0/auth0-react"
 
 export default function NewsLetter() {
+
+      const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
     const [data, setData] = useState({
         title: "",

@@ -9,6 +9,8 @@ import { GrNotes } from "react-icons/gr"
 import { RxCross2 } from "react-icons/rx"
 import { AiTwotoneDelete } from "react-icons/ai"
 import { useAuth0 } from '@auth0/auth0-react'
+import toast from "react-hot-toast"
+import Navbar from "./Navbar"
 
 export default function ExpenseTracker() {
 
@@ -95,30 +97,30 @@ export default function ExpenseTracker() {
     }
   }, [isLoading, isAuthenticated])
 
-  async function fetchBankEmail() {
-    const res = await instance.post("/fin-tools/expensetracker/fetchBankEmail", { email })
-    if (res.data.data[0]?.bankEmail) {
-      setBankEmail(res.data.data[0].bankEmail)
-      setisGmailConnected(true)
-      setIsAutoFetch(res.data.data[0].autofetchStatus)
-      setDbAutoFetch(res.data.data[0].autofetchStatus)
-    }
-  }
+  // async function fetchBankEmail() {
+  //   const res = await instance.post("/fin-tools/expensetracker/fetchBankEmail", { email })
+  //   if (res.data.data[0]?.bankEmail) {
+  //     setBankEmail(res.data.data[0].bankEmail)
+  //     setisGmailConnected(true)
+  //     setIsAutoFetch(res.data.data[0].autofetchStatus)
+  //     setDbAutoFetch(res.data.data[0].autofetchStatus)
+  //   }
+  // }
 
-  useEffect(() => {
-    if (!email) return
-    fetchBankEmail()
-  }, [isGmailConnected, email])
+  // useEffect(() => {
+  //   if (!email) return
+  //   fetchBankEmail()
+  // }, [isGmailConnected, email])
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const queryEmail = params.get('email')
-    if (queryEmail) {
-      setWarning("Connected to automated expense tracker successfully !")
-    }
-    const cleanUrl = window.location.origin + window.location.pathname
-    window.history.replaceState({}, document.title, cleanUrl)
-  })
+  // useEffect(() => {
+  //   const params = new URLSearchParams(window.location.search)
+  //   const queryEmail = params.get('email')
+  //   if (queryEmail) {
+  //     setWarning("Connected to automated expense tracker successfully !")
+  //   }
+  //   const cleanUrl = window.location.origin + window.location.pathname
+  //   window.history.replaceState({}, document.title, cleanUrl)
+  // })
 
   const fetchUserCategories = async () => {
     try {
@@ -232,7 +234,7 @@ export default function ExpenseTracker() {
   }, [monthsRange, email])
 
   useEffect(() => {
-    if (fetchedTransactions.length > 0) {
+    if (fetchedTransactions.length >= 0) {
       fetchCategoryBudgets()
     }
   }, [fetchedTransactions])
@@ -536,12 +538,11 @@ export default function ExpenseTracker() {
       }
       setIsFetching(false)
     } catch (err) {
-      console.log(err)
       if (!showNotice) {
         if (err.response?.status === 401) {
           const state = JSON.stringify({ email, status: isAutoFetch })
           const encodedState = encodeURIComponent(state)
-          window.location.href = `http://localhost:8000/api/fin-tools/expensetracker/bank-auth?state=${encodedState}`
+          window.location.href = `https://finedwebmvp-production.up.railway.app/api/fin-tools/expensetracker/bank-auth?state=${encodedState}`
         } else {
           setWarning("Error fetching Gmail transactions. Try again.")
         }
@@ -583,51 +584,51 @@ export default function ExpenseTracker() {
     }
   }
 
-  function handleDeleteFetchedTransaction(messageId) {
-    setFetchedFromMails(prev =>
-      prev.filter(t => t.messageId !== messageId)
-    )
-  }
+  // function handleDeleteFetchedTransaction(messageId) {
+  //   setFetchedFromMails(prev =>
+  //     prev.filter(t => t.messageId !== messageId)
+  //   )
+  // }
 
-  async function confirmDisconnect() {
-    try {
-      const res = await instance.post("/fin-tools/expensetracker/disconnect", { email })
-      if (res.data?.message) {
-        setWarning("Disconnected successfully.")
-        setisGmailConnected(false)
-      } else {
-        setWarning("Disconnection failed.")
-      }
-    } catch (err) {
-      setWarning("Something went wrong while disconnecting.")
-    } finally {
-      setDisconnectWarning(false);
-    }
-  }
+  // async function confirmDisconnect() {
+  //   try {
+  //     const res = await instance.post("/fin-tools/expensetracker/disconnect", { email })
+  //     if (res.data?.message) {
+  //       setWarning("Disconnected successfully.")
+  //       setisGmailConnected(false)
+  //     } else {
+  //       setWarning("Disconnection failed.")
+  //     }
+  //   } catch (err) {
+  //     setWarning("Something went wrong while disconnecting.")
+  //   } finally {
+  //     setDisconnectWarning(false);
+  //   }
+  // }
 
-  async function saveStatusChange() {
-    try {
-      const res = await instance.post("/fin-tools/expensetracker/statuschange", { email, isAutoFetch })
-      if (res.data?.message) {
-        setWarning("Changes saved successfully.")
-        setAutomatePopup(false)
-        setIsStatusChanged(false)
-      } else {
-        setWarning("Failed to save changes")
-      }
-    } catch (err) {
-      setWarning("Something went wrong while making changes.")
-    }
-  }
+  // async function saveStatusChange() {
+  //   try {
+  //     const res = await instance.post("/fin-tools/expensetracker/statuschange", { email, isAutoFetch })
+  //     if (res.data?.message) {
+  //       setWarning("Changes saved successfully.")
+  //       setAutomatePopup(false)
+  //       setIsStatusChanged(false)
+  //     } else {
+  //       setWarning("Failed to save changes")
+  //     }
+  //   } catch (err) {
+  //     setWarning("Something went wrong while making changes.")
+  //   }
+  // }
 
-  function handleFetch() {
-    if (isGmailConnected) {
-      handleCheckAndFetch()
-    }
-    else {
-      setAutomatePopup(true)
-    }
-  }
+  // function handleFetch() {
+  //   if (isGmailConnected) {
+  //     handleCheckAndFetch()
+  //   }
+  //   else {
+  //     setAutomatePopup(true)
+  //   }
+  // }
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
@@ -642,61 +643,10 @@ export default function ExpenseTracker() {
 
 
   return (
-    <div className="relative px-10 py-5 bg-gray-50" >
-      <header className="flex justify-between items-center h-[63px] bg-gray-50 box-border">
-
-        <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
-        </div>
-
-        <nav className="flex gap-5">
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/home')}
-          >
-            Home
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname.startsWith('/courses') ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/courses')}
-          >
-            Courses
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname.startsWith('/articles') ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/articles')}
-          >
-            Articles
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname.startsWith('/fin-tools') ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/fin-tools')}
-          >
-            FinTools
-          </button>
-
-          {role === "Admin" ? <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/admin')}
-          >Admin DashBoard</button> : ""}
-
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-          >
-            LogOut
-          </button>
-        </nav>
-
-        <div onClick={() => navigate("/notifications")} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-          <img src="/bell.png" alt="Bell Icon" width="24" />
-          {hasUnseen && (
-            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-          )}
-        </div>
-      </header>
+    <div className="relative bg-gray-100" >
+      <Navbar />
       {isDataLoading ?
-        <div className="animate-pulse px-12 py-8 space-y-6 bg-gray-50 min-h-screen">
+        <div className="animate-pulse px-12 py-8 space-y-6 bg-gray-100 min-h-screen">
           <div className="flex gap-4">
             <div className="w-3/4 h-32 bg-gray-300 rounded-xl"></div>
             <div className="w-1/4 h-32 bg-gray-300 rounded-xl"></div>
@@ -744,35 +694,35 @@ export default function ExpenseTracker() {
         </div>
         :
         <div>
-          <main className="py-10" >
-            <div className="flex gap-3" >
-              <div className="w-3/4" >
+          <main className="px-4 py-5 sm:py-10 sm:px-10" >
+            <div className="sm:flex gap-3" >
+              <div className="sm:w-3/4" >
                 <FinancialSummaryBar transactions={fetchedTransactions} />
               </div>
-              <div onClick={() => setAutomatePopup(true)} className="w-1/4 cursor-pointer" >
-                <img src="/automate.jpg" className="h-full w-full" />
+              <div onClick={() => setAutomatePopup(true)} className="mt-4 sm:mt-0 sm:w-1/4 sm:h-1/10 cursor-pointer" >
+                <img src="/automate.jpg" className="h-full w-full rounded-4xl shadow-md object-cover" />
               </div>
             </div>
-            <div className="flex gap-3 mt-4" >
-              <div className="w-3/5 space-y-4" >
+            <div className="sm:flex gap-3 mt-4" >
+              <div className="sm:w-3/5 space-y-4" >
                 <div className="flex justify-between" >
-                  <button onClick={() => setIsAddingTransaction(true)} className="bg-violet-900 hover:bg-violet-950 transition-all duration-200 py-4 px-6 text-white shadow-sm text-lg font-semibold rounded-xl flex items-center justify-center gap-4 cursor-pointer" ><p className="text-3xl" >+</p>Add transaction</button>
-                  <button onClick={() => setIsBudgetEditing(true)} className="bg-white hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Set budget goals</button>
-                  <button className="bg-white hover:bg-gray-50 transition-all duration-200 py-4 px-6 shadow-sm text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-4 cursor-pointer" ><GrNotes className="text-2xl" />Add receipts & trips</button>
+                  <button onClick={() => setIsAddingTransaction(true)} className="bg-violet-900 hover:bg-violet-950 transition-all duration-200 p-2 sm:py-4 sm:px-6 text-white shadow-sm text-sm sm:text-lg font-semibold rounded-xl flex items-center justify-center gap-2 sm:gap-4 cursor-pointer" ><p className="hidden sm:block text-3xl" >+</p>Add transaction</button>
+                  <button onClick={() => setIsBudgetEditing(true)} className="bg-gray-50 hover:bg-gray-50 transition-all duration-200 p-2 sm:py-4 sm:px-6 shadow-sm text-sm sm:text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-2 sm:gap-4 cursor-pointer" ><GrNotes className="hidden sm:block text-2xl" />Set budget goals</button>
+                  <button title="Coming Soon ..." onClick={() => toast("ℹ️ Coming Soon ...")} className="bg-gray-50 hover:bg-gray-50 transition-all duration-200 p-2 sm:py-4 sm:px-6 shadow-sm text-sm sm:text-lg font-semibold rounded-xl border-2 border-gray-300 flex items-center justify-center gap-2 sm:gap-4 cursor-pointer" ><GrNotes className="hidden sm:block text-2xl" />Add receipts & trips</button>
                 </div>
                 <div>
                   <WorkingCapitalChart data={fetchedTransactions} monthsRange={monthsRange} setMonthsRange={setMonthsRange} />
                 </div>
-                <div className="flex gap-3" >
-                  <div className="w-1/2 border-2 border-gray-300 bg-white shadow-sm rounded-2xl p-2" >
+                <div className="sm:flex gap-3" >
+                  <div className="sm:w-1/2 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-2" >
                     <ExpensesPieChart data={filteredTransactionsforPieChart} filterMonthforPieChart={filterMonthforPieChart} setFilterMonthforPieChart={setFilterMonthforPieChart} />
                   </div>
-                  <div className="w-1/2 border-2 border-gray-300 bg-white shadow-sm rounded-2xl p-2" >
+                  <div className="mt-4 sm:mt-0 sm:w-1/2 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-2" >
                     <SpendVsBudgetGauge data={gaugeBudgets} filterMonthforGaugeChart={filterMonthforGaugeChart} setFilterMonthforGaugeChart={setFilterMonthforGaugeChart} />
                   </div>
                 </div>
               </div>
-              <div className="w-2/5 border-2 border-gray-300 bg-white shadow-sm rounded-2xl p-4">
+              <div className="sm:w-2/5 mt-4 sm:mt-0 border-2 border-gray-300 bg-gray-50 shadow-sm rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-4" >
                   <p title="Displays a list of your most recent transactions for the selected month." className="font-semibold text-lg">Recent Transactions</p>
                   <select value={filterMonthforTransactions} onChange={(e) => setFilterMonthforTransactions(e.target.value)} className="border-2 border-gray-300 outline-none rounded-xl p-1 cursor-pointer" >
@@ -820,7 +770,7 @@ export default function ExpenseTracker() {
           </main>
           {automatePopup && (
             <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/30">
-              <div className="bg-white p-6 rounded-2xl shadow-xl w-2/5 max-h-[90vh] overflow-y-auto space-y-6 relative">
+              <div className="bg-white p-6 rounded-2xl shadow-xl sm:w-2/5 max-h-[90vh] overflow-y-auto space-y-6 relative">
                 <div className="flex justify-between items-center mb-8">
                   <p className="text-2xl font-bold text-gray-800">Automate Tracking Expenses</p>
                   <RxCross2 onClick={() => { setAutomatePopup(false); setIsUnderstood(false); setIsAutoFetch(dbAtoFetch); setIsStatusChanged(false) }} className="text-3xl cursor-pointer text-gray-600 hover:text-black transition" />
@@ -847,7 +797,7 @@ export default function ExpenseTracker() {
                     </ul>
                   </div>
                 </div>
-                {!isGmailConnected ?
+                {/* {!isGmailConnected ?
                   <div className="pt-4 flex flex-col">
                     <label className="flex items-center space-x-2 text-sm text-gray-700">
                       <input
@@ -899,7 +849,10 @@ export default function ExpenseTracker() {
                       </button>
                     </div>
                   </div>
-                }
+                } */}
+                <div className="flex justify-center" >
+                  <button onClick={() => toast("Coming soon!")} className="bg-amber-400 px-4 py-2 text-white rounded-xl cursor-pointer" >Coming Soon</button>
+                </div>
               </div>
             </div>
           )}
@@ -907,13 +860,13 @@ export default function ExpenseTracker() {
             <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/30">
               <div className="bg-white p-6 rounded-2xl shadow-xl w-[600px] max-h-[90vh] overflow-y-auto space-y-6">
                 <div className="flex justify-between items-center" >
-                  <p className="text-2xl font-bold text-violet-800">Set Budget Goals</p>
+                  <p className="text-md sm:text-2xl font-bold text-violet-800">Set Budget Goals</p>
                   {isMonthlyBudgetEditing ?
-                    <button onClick={() => setIsMonthlyBudgetEditing(false)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white font-semibold px-4 py-2 rounded-lg cursor-pointer" >Set category budget</button>
+                    <button onClick={() => setIsMonthlyBudgetEditing(false)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white text-sm sm:text-base font-semibold p-1 sm:px-4 sm:py-2 rounded-lg cursor-pointer" >Set category budget</button>
                     :
-                    <button onClick={() => setIsMonthlyBudgetEditing(true)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white font-semibold px-4 py-2 rounded-lg cursor-pointer" >Set monthly budget</button>
+                    <button onClick={() => setIsMonthlyBudgetEditing(true)} className="bg-violet-800 hover:bg-violet-900 transition-all duration-200 text-white text-sm sm:text-base font-semibold p-1 sm:px-4 sm:py-2 rounded-lg cursor-pointer" >Set monthly budget</button>
                   }
-                  <RxCross2 onClick={handleCross} className="text-3xl cursor-pointer" />
+                  <RxCross2 onClick={handleCross} className="text-xl sm:text-3xl cursor-pointer" />
                 </div>
                 {isMonthlyBudgetEditing ?
                   <div className="flex flex-col" >
@@ -1025,7 +978,7 @@ export default function ExpenseTracker() {
               <div className="bg-white p-6 rounded-2xl shadow-xl w-[600px] max-h-[90vh] overflow-y-auto space-y-6">
                 <div className="flex justify-between items-center">
                   <p className="text-2xl font-bold text-violet-800">Add Transaction</p>
-                  <div className="flex justify-end">
+                  {/* <div className="flex justify-end">
                     {isFetching ? (
                       <div className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg cursor-not-allowed text-white font-semibold">
                         <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1042,7 +995,7 @@ export default function ExpenseTracker() {
                         Fetch transactions from mails
                       </button>
                     )}
-                  </div>
+                  </div> */}
                   <RxCross2 onClick={() => { setIsAddingTransaction(false); setIsCustomCategory(false) }} className="text-3xl cursor-pointer" />
                 </div>
                 <div className="space-y-4">
@@ -1209,7 +1162,7 @@ export default function ExpenseTracker() {
               </div>
             </div>
           )}
-          {fetchingFromMails && (
+          {/* {fetchingFromMails && (
             <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/30">
               <div className="bg-white p-6 rounded-2xl shadow-xl w-[500px] space-y-4">
                 <div className="flex justify-between items-center">
@@ -1366,7 +1319,7 @@ export default function ExpenseTracker() {
                 }
               </div>
             </div>
-          )}
+          )} */}
           {warning && (
             <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
               <div className="bg-white p-6 rounded-2xl shadow-xl w-[500px] space-y-4">
@@ -1470,7 +1423,7 @@ export default function ExpenseTracker() {
               </div>
             </div>
           }
-          {disconnectWarning && (
+          {/* {disconnectWarning && (
             <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
               <div className="bg-white p-6 rounded-2xl shadow-xl w-1/2 space-y-4">
                 <p className="text-xl font-bold text-red-600">⚠️ Disconnect Gmail</p>
@@ -1493,7 +1446,7 @@ export default function ExpenseTracker() {
                 </div>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       }
     </div>
