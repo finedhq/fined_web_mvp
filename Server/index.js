@@ -21,6 +21,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+<<<<<<< HEAD
+app.use(cors({ origin: ['http://localhost:5173', 'https://my-fined.vercel.app'], credentials: true }));
+=======
 app.use(cors({
   origin: ['https://fined-web.vercel.app', 'http://localhost:5173', 'https://www.myfined.com', 'http://localhost:3000'],
   credentials: true,
@@ -28,6 +31,7 @@ app.use(cors({
   optionsSuccessStatus: 204
 }));
 
+>>>>>>> 1e5e4c54664e93f4524706bb6f330040aadd39e6
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
