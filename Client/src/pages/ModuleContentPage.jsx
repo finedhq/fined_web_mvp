@@ -6,6 +6,34 @@ import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 import toast from 'react-hot-toast'
 
+const getPoints = (index) => index + 1; // A=1, B=2, C=3, D=4 
+
+const getFinancialProfile = (totalScore) => {
+  if (totalScore <= 7) return {
+    type: "Comfort Seeker",
+    goal: "Build security and avoid risk",
+    products: ["High-interest savings", "Emergency fund", "Fixed Deposits (FDs)"]
+  }; // [cite: 31, 37, 38, 39, 40, 41]
+
+  if (totalScore <= 10) return {
+    type: "Disciplined Planner",
+    goal: "Organise and plan money efficiently",
+    products: ["Recurring Deposit (RD)", "Goal-based savings", "Starter SIP"]
+  }; // [cite: 32, 44, 45, 46, 47]
+
+  if (totalScore <= 14) return {
+    type: "Balanced Spender",
+    goal: "Balance lifestyle and savings",
+    products: ["Hybrid mutual funds", "Automated savings", "Liquid funds"]
+  }; // [cite: 33, 50, 51, 52, 54]
+
+  return {
+    type: "Future Builder",
+    goal: "Long-term wealth creation",
+    products: ["Equity mutual funds / SIP", "Index funds", "ELSS (tax saving)"]
+  }; // [cite: 34, 57, 58, 59, 60]
+};
+
 const ModuleContentPage = () => {
 
   const navigate = useNavigate()
@@ -14,21 +42,32 @@ const ModuleContentPage = () => {
   const [role, setrole] = useState("")
 
   const [email, setEmail] = useState("")
+  const [hasUser, setHasUser] = useState(false)
   const { courseId, moduleId, cardId } = useParams()
   const [card, setCard] = useState({})
   const [selectedIndex, setSelectedIndex] = useState(null)
   const [disabled, setDisabled] = useState(false)
   const [prevCardId, setPrevCardId] = useState(null)
   const [nextCardId, setNextCardId] = useState(null)
+  const [isFirstCardInModule, setIsFirstCardInModule] = useState(false)
+  const [isLastCardInModule, setIsLastCardInModule] = useState(false)
+  const [prevModuleCard, setPrevModuleCard] = useState(null)
+  const [nextModuleCard, setNextModuleCard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [progressPercent, setProgressPercent] = useState(0)
   const [warning, setWarning] = useState("")
 
+  const [localCompletedCards, setLocalCompletedCards] = useState({})
+
+  const [showResult, setShowResult] = useState(false);
+  const [finalProfile, setFinalProfile] = useState(null);
+
+  console.log('card: ',card)
+
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate("/")
-    } else if (!isLoading && isAuthenticated) {
-      setEmail(user?.email)
+    if (!isLoading && isAuthenticated) {
+      setEmail(user?.email || "")
+      setHasUser(true)
       const roles = user?.["https://fined.com/roles"]
       setrole(roles?.[0] || "")
     }
@@ -38,10 +77,13 @@ const ModuleContentPage = () => {
     try {
       const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}`, { email })
       const fetchedCard = res.data
-      console.log(fetchedCard)
       setCard(fetchedCard)
       setPrevCardId(fetchedCard.prevCardId)
       setNextCardId(fetchedCard.nextCardId)
+      setIsFirstCardInModule(fetchedCard.isFirstCardInModule)
+      setIsLastCardInModule(fetchedCard.isLastCardInModule)
+      setPrevModuleCard(fetchedCard.prevModuleFirstCard)
+      setNextModuleCard(fetchedCard.nextModuleFirstCard)
       if (fetchedCard.module_progress && fetchedCard.module_total_cards) {
         const percent = Math.round((fetchedCard.module_progress / fetchedCard.module_total_cards) * 100)
         setProgressPercent(percent)
@@ -63,15 +105,21 @@ const ModuleContentPage = () => {
   }
 
   useEffect(() => {
-    if (!email) return
     setLoading(true)
     setCard({})
     setSelectedIndex(null)
     setDisabled(false)
-    fetchCard()
-  }, [cardId, email])
+  }, [cardId])
 
-  async function markCompleted(userAnswer = null) {
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      fetchCard();
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [cardId, hasUser]);
+
+  async function markCompleted(userAnswer = null, userIndex = null) {
     try {
       let finStarsToAward = 0
       if (card.content_type === "question") {
@@ -82,7 +130,7 @@ const ModuleContentPage = () => {
       } else {
         finStarsToAward = card.allotted_finstars || 0
       }
-      const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}/updateCard`, { status: "completed", userAnswer, finStars: finStarsToAward, email })
+      const res = await instance.post(`/courses/course/${courseId}/module/${moduleId}/card/${cardId}/updateCard`, { status: "completed", userAnswer, finStars: finStarsToAward, email, userIndex })
       setCard(res?.data)
       if (res.data?.module_progress && res.data?.module_total_cards) {
         const percent = Math.round((res.data.module_progress / res.data.module_total_cards) * 100)
@@ -90,6 +138,12 @@ const ModuleContentPage = () => {
       }
       if (finStarsToAward > 0) {
         toast.success(`🎉 You earned ${finStarsToAward} FinStars!`)
+      }
+      if (!nextCardId && !nextModuleCard && isLastCardInModule) {
+        toast.success("🎉 You've completed the entire course!")
+        // setTimeout(() => {
+        //   navigate(`/home/?courseId=${courseId}`)
+        // }, 1500)
       }
     } catch (err) {
       setWarning("Failed to update course card.")
@@ -99,18 +153,41 @@ const ModuleContentPage = () => {
   useEffect(() => {
     if (!card?.content_type || !card?.card_id) return
     if (card.content_type === "question") return
-    if (card.status !== "completed") {
+    if (card.status !== "completed" && isAuthenticated) {
       markCompleted(null)
+    } else if (!isAuthenticated) {
+      setLocalCompletedCards(prev => ({ ...prev, [cardId]: true }))
     }
   }, [card?.card_id, email])
 
   async function checkIsCorrect(index) {
-    if (disabled) return
+    if (disabled) return;
 
-    setSelectedIndex(index)
+    // 1. Calculate points for this answer
+    const points = getPoints(index);
+
+    // 2. Update session storage score
+    const currentTotal = parseInt(sessionStorage.getItem('quiz_score') || '0');
+    const newTotal = currentTotal + points;
+    sessionStorage.setItem('quiz_score', newTotal.toString());
+
     const selectedOption = card.options[index]
+    setSelectedIndex(index)
     setDisabled(true)
-    await markCompleted(selectedOption)
+
+    if (isAuthenticated) {
+      await markCompleted(selectedOption, index)
+    } else {
+      setLocalCompletedCards(prev => ({ ...prev, [cardId]: true }))
+    }
+
+    if (!nextCardId && !nextModuleCard && isLastCardInModule) {
+      const profile = getFinancialProfile(newTotal);
+      setFinalProfile(profile);
+      setShowResult(true);
+      // Clear session storage after showing result if desired
+      sessionStorage.removeItem('quiz_score');
+    }
   }
 
   return (
@@ -122,7 +199,7 @@ const ModuleContentPage = () => {
           ))}
         </div>
         :
-        card?.content_type === "text" ? (
+        card?.content_type === "text" || card?.content_type === "image" ? (
           <div>
             <div className='flex items-center gap-4 mb-6' >
               <RxCross2 onClick={() => navigate(`/courses/course/${courseId}`)} className='text-2xl cursor-pointer' />
@@ -136,18 +213,32 @@ const ModuleContentPage = () => {
                 {card?.module_progress}/{card?.module_total_cards} cards
               </p>
             </div>
-            <div className="w-full">
+            <div className="w-full min-h-[75vh]">
               {card.image_url &&
                 <img
                   src={card.image_url}
                   alt="image"
-                  className="float-left h-48 w-48 object-cover mr-8"
+                  className="float-right h-32 w-32 sm:h-48 sm:w-48 object-cover ml-4 sm:ml-8"
                 />
               }
-              <h1 className="text-2xl font-bold mb-4">{card.title}</h1>
-              <p className='text-justify' >{card.content_text}</p>
+              <h1 className="text-lg sm:text-2xl font-bold mb-4">{card.title}</h1>
+              <div className="space-y-4 text-base text-justify">
+                {card.content_text
+                  ?.split(/\n{2,}/)
+                  .map((para, idx) => (
+                    <p key={idx}>
+                      {para.split('\n').map((line, lineIdx) => (
+                        <React.Fragment key={lineIdx}>
+                          {line}
+                          <br />
+                        </React.Fragment>
+                      ))}
+                    </p>
+                  ))}
+              </div>
             </div>
             <div className="flex justify-between mt-8">
+              {/* Previous Card or Previous Module */}
               {prevCardId ? (
                 <button
                   onClick={() =>
@@ -157,11 +248,22 @@ const ModuleContentPage = () => {
                 >
                   <FaArrowLeft /> Previous
                 </button>
+              ) : prevModuleCard && isFirstCardInModule ? (
+                <button
+                  onClick={() =>
+                    navigate(`/courses/course/${courseId}/module/${prevModuleCard.moduleId}/card/${prevModuleCard.cardId}`)
+                  }
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full flex items-center gap-2 cursor-pointer"
+                >
+                  <FaArrowLeft /> Previous Module
+                </button>
               ) : (
                 <div />
               )}
+
+              {/* Next Card or Next Module */}
               {nextCardId ? (
-                card.status === "completed" ? (
+                (isAuthenticated ? card.status === "completed" : localCompletedCards[cardId]) ? (
                   <button
                     onClick={() =>
                       navigate(`/courses/course/${courseId}/module/${moduleId}/card/${nextCardId}`)
@@ -179,8 +281,23 @@ const ModuleContentPage = () => {
                     Next <FaArrowRight />
                   </button>
                 )
+              ) : nextModuleCard && isLastCardInModule ? (
+                <button
+                  onClick={() =>
+                    navigate(`/courses/course/${courseId}/module/${nextModuleCard.moduleId}/card/${nextModuleCard.cardId}`)
+                  }
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full flex items-center gap-2 cursor-pointer"
+                >
+                  Next Module <FaArrowRight />
+                </button>
               ) : (
-                <div />
+                <button
+                  disabled
+                  className="bg-gray-300 text-gray-500 px-6 py-2 rounded-full flex items-center gap-2 cursor-not-allowed"
+                  title="No further cards or modules available"
+                >
+                  Next <FaArrowRight />
+                </button>
               )}
             </div>
           </div>
@@ -208,18 +325,24 @@ const ModuleContentPage = () => {
                 const isCorrectAnswer = option === card.correct_answer
 
                 let optionClass = 'bg-gray-200 hover:bg-gray-400'
+
                 if (disabled) {
-                  if (isSelected && isCorrectAnswer) optionClass = 'bg-green-400'
-                  else if (isSelected && !isCorrectAnswer) optionClass = 'bg-red-400'
-                  else if (isCorrectAnswer) optionClass = 'bg-green-300'
-                  else optionClass = 'bg-gray-200 opacity-50'
+                  if (card.correct_answer) {
+                    if (isSelected && isCorrectAnswer) optionClass = 'bg-green-400'
+                    else if (isSelected && !isCorrectAnswer) optionClass = 'bg-red-400'
+                    else if (isCorrectAnswer) optionClass = 'bg-green-300'
+                    else optionClass = 'bg-gray-200 opacity-50'
+                  } else {
+                    if (isSelected) optionClass = 'bg-amber-300 text-blue-900 font-semibold'
+                    else optionClass = 'bg-gray-200 opacity-50'
+                  }
                 }
 
                 return (
                   <div
                     key={index}
                     onClick={() => checkIsCorrect(index)}
-                    className={`w-2/3 flex justify-between items-center transition-all duration-200 px-4 py-2 cursor-pointer rounded-lg ${optionClass}`}
+                    className={`w-full sm:w-2/3 flex justify-between items-center transition-all duration-200 px-4 py-2 cursor-pointer rounded-lg ${optionClass}`}
                   >
                     <p className='rounded-full bg-gray-300 px-3 py-1'>
                       {String.fromCharCode(65 + index)}
@@ -231,13 +354,14 @@ const ModuleContentPage = () => {
               })}
             </div>
 
-            {disabled && (
+            {disabled && card?.correct_answer && (
               <div className='bg-gray-100 p-4 rounded-xl my-4 text-lg text-center font-medium'>
-                Correct Answer: <span className="font-bold">{card?.correct_answer}</span>
+                Correct Answer: <span className="font-bold">{card.correct_answer}</span>
               </div>
             )}
 
             <div className="flex justify-between mt-8">
+              {/* Previous Card or Previous Module */}
               {prevCardId ? (
                 <button
                   onClick={() =>
@@ -247,11 +371,22 @@ const ModuleContentPage = () => {
                 >
                   <FaArrowLeft /> Previous
                 </button>
+              ) : prevModuleCard && isFirstCardInModule ? (
+                <button
+                  onClick={() =>
+                    navigate(`/courses/course/${courseId}/module/${prevModuleCard.moduleId}/card/${prevModuleCard.cardId}`)
+                  }
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full flex items-center gap-2 cursor-pointer"
+                >
+                  <FaArrowLeft /> Previous Module
+                </button>
               ) : (
                 <div />
               )}
+
+              {/* Next Card or Next Module */}
               {nextCardId ? (
-                card?.status === "completed" ? (
+                (isAuthenticated ? card.status === "completed" : localCompletedCards[cardId]) ? (
                   <button
                     onClick={() =>
                       navigate(`/courses/course/${courseId}/module/${moduleId}/card/${nextCardId}`)
@@ -269,12 +404,63 @@ const ModuleContentPage = () => {
                     Next <FaArrowRight />
                   </button>
                 )
+              ) : nextModuleCard && isLastCardInModule ? (
+                <button
+                  onClick={() =>
+                    navigate(`/courses/course/${courseId}/module/${nextModuleCard.moduleId}/card/${nextModuleCard.cardId}`)
+                  }
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full flex items-center gap-2 cursor-pointer"
+                >
+                  Next Module <FaArrowRight />
+                </button>
               ) : (
-                <div />
+                <button
+                  disabled
+                  className="bg-gray-300 text-gray-500 px-6 py-2 rounded-full flex items-center gap-2 cursor-not-allowed"
+                  title="No further cards or modules available"
+                >
+                  Next <FaArrowRight />
+                </button>
               )}
             </div>
           </div>
         )}
+
+      {showResult && finalProfile && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center">
+            <h2 className="text-sm uppercase tracking-widest text-indigo-600 font-bold mb-2">Your Financial Personality</h2>
+            <h3 className="text-3xl font-extrabold text-gray-900 mb-4">{finalProfile.type}</h3>
+
+            <div className="bg-indigo-50 p-4 rounded-xl mb-6">
+              <p className="text-sm text-indigo-800 font-semibold mb-1">Primary Goal</p>
+              <p className="text-gray-700">{finalProfile.goal}</p>
+            </div>
+
+            <div className="text-left mb-8">
+              <p className="text-sm font-bold text-gray-500 mb-3 ml-1">Recommended for you:</p>
+              <ul className="space-y-2">
+                {finalProfile.products.map((p, i) => (
+                  <li key={i} className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <span className="text-green-500">✔</span> {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('quiz_score');
+                navigate(`/home/?courseId=${courseId}`);
+              }}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all"
+            >
+              Finish Journey
+            </button>
+          </div>
+        </div>
+      )}
+
       {warning && (
         <div className="fixed inset-0 z-20 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-2xl shadow-xl w-[500px] space-y-4">

@@ -3,13 +3,17 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 import toast from 'react-hot-toast'
+import { FiMenu, FiX } from "react-icons/fi"
+import Navbar from "../components/Navbar"
+import Footer from "../components/Footer"
+import TeamSection from "../components/TeamSection"
 
 const AboutUs = () => {
 
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const { user, isLoading, isAuthenticated, logout, loginWithPopup } = useAuth0()
   const [role, setrole] = useState("")
 
   const [email, setEmail] = useState("")
@@ -18,6 +22,7 @@ const AboutUs = () => {
   const [enteredEmail, setEnteredEmail] = useState("")
   const [isEnteredEmail, setIsEnteredEmail] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -65,7 +70,7 @@ const AboutUs = () => {
       setWarning("🎉 Subscribed successfully.")
       setIsEnteredEmail(true)
     } catch (err) {
-      toast.success("Failed to save email.")
+      toast.error("❌ Failed to save email.")
     } finally {
       setIsSaved(false)
     }
@@ -79,77 +84,81 @@ const AboutUs = () => {
       setEnteredEmail("")
       setIsEnteredEmail(false)
     } catch (err) {
-      toast.success("Failed to remove email.")
+      toast.error("❌ Failed to remove email.")
     } finally {
       setIsSaved(false)
     }
   }
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsSidebarOpen(false);
+    };
+    if (isSidebarOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isSidebarOpen]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const team = [
+    {
+      sector: "Founders",
+      members: [
+        { name: "Shravan Mutha", role: "Co-Founder", image: "team/Shravan Mutha.jpeg" },
+        { name: "Anish Pujari", role: "Co-Founder", image: "team/Anish Pujari.jpg" },
+      ]
+    },
+    {
+      sector: "Web Development",
+      members: [
+        { name: "Aditya Bandral", role: "Full Stack Developer", image: "team/Aditya bandral1.jpg" },
+        { name: "Kalp Mehta", role: "Full Stack Developer", image: "team/Kalp Mehta.jpg" },
+        { name: "Hea Kapai", role: "Frontend Developer", image: "team/Hea Kapai.jpg" },
+        { name: "Bhargav Dabhade", role: "Full Stack Developer", image: "team/Bhargav Dhabade.jpg" },
+        { name: "Sumedh Charjan", role: "Full Stack Developer", image: "team/Sumedh Charjan.jpg" },
+      ],
+    },
+    {
+      sector: "Content",
+      members: [
+        { name: "Arya Borkar", role: "Content Writer", image: "team/Arya Borkar.jpg" },
+        { name: "Vinay Gupta", role: "Content Writer", image: "team/Vinay Gupta.jpg" },
+      ],
+    },
+    {
+      sector: "UI/UX",
+      members: [
+        { name: "Sanika Deshmukh", role: "UI/UX Designer", image: "team/Sanika Deshmukh.jpg" },
+        { name: "Snehal Hajare", role: "UI/UX Designer", image: "team/Snehal Hajare.jpeg" },
+      ],
+    },
+    {
+      sector: "Graphics",
+      members: [
+        { name: "Ishwari Moroney", role: "Graphic Designer", image: "team/Ishwari Moroney.jpg" },
+        { name: "Janhavi Vaidya", role: "Graphic Designer", image: "team/Janhavi Vaidya.jpg" },
+        { name: "Parth Agrawal", role: "Graphic Designer", image: "team/Parth Agrawal.jpg" },
+      ],
+    },
+    {
+      sector: "Marketing",
+      members: [
+        { name: "Atharva Patil", role: "Marketing Lead", image: "team/Atharva patil.jpg" },
+        { name: "Prathamesh Naik", role: "Marketing Lead", image: "team/Prathamesh Naik.jpg" },
+      ],
+    },
+  ];
+
   return (
-    <div className="bg-gray-100 h-full w-full flex flex-col px-10 pt-5">
+    <div className="bg-gray-100 pb-5 h-full w-full flex flex-col">
 
-      <header className="flex justify-between items-center h-[63px] py-6 bg-gray-100 box-border">
+      <Navbar />
 
-        <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
-          <img src="logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
-        </div>
-
-        <nav className="flex gap-5">
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => {
-              if (isAuthenticated) navigate('/home')
-              else toast.error("Please sign in .");
-            }
-            }
-          >
-            Home
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/courses')}
-          >
-            Courses
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/articles')}
-          >
-            Articles
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => {
-              if (isAuthenticated) navigate('/fin-tools')
-              else toast.error("Please sign in ");
-            }
-            }
-          >
-            FinTools
-          </button>
-
-          {role === "Admin" ? <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/admin')}
-          >Admin DashBoard</button> : ""}
-
-          {isAuthenticated && <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-          >
-            LogOut
-          </button>}
-        </nav>
-
-        <div onClick={() => { isAuthenticated ? navigate("/notifications") : toast.error("Please sign in") }} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-          <img src="bell.png" alt="Bell Icon" width="24" />
-          {hasUnseen && (
-            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-          )}
-        </div>
-      </header>
-
-      <div className="max-w-5xl self-center py-10 space-y-10" >
+      <div className="max-w-5xl text-base sm:text-lg self-center px-4 py-5 sm:px-0 sm:py-10 space-y-10" >
         {/* About Us Section */}
         <section className="flex flex-col md:flex-row items-center gap-6">
           <div className="flex-1 space-y-4">
@@ -161,13 +170,13 @@ const AboutUs = () => {
           </div>
           <div className="w-40 h-40 bg-gray-200 rounded-lg flex items-center justify-center">
             {/* Replace this with your actual logo */}
-            <img src="/logo.jpg" />
+            <img src="/logo.png" />
           </div>
         </section>
 
         {/* Who We Are */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Who We Are</h2>
+          <h2 className="text-2xl font-bold">Who We Are</h2>
           <p>
             At FinEd, we believe that understanding money is a basic life skill — not a luxury. We’re building
             a platform that makes financial literacy easy, engaging, and free for everyone.
@@ -181,7 +190,7 @@ const AboutUs = () => {
 
         {/* Why We Started */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Why We Started</h2>
+          <h2 className="text-2xl font-bold">Why We Started</h2>
           <p>
             Most of us grow up without ever being taught how to manage money. Schools don’t cover it, financial
             products are confusing, and the internet is full of myths.
@@ -194,7 +203,7 @@ const AboutUs = () => {
 
         {/* What We're Building */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">What We’re Building</h2>
+          <h2 className="text-2xl font-bold">What We’re Building</h2>
           <p>
             We’re building more than just a learning platform. FinEd is designed to be your personal financial
             growth companion.
@@ -209,7 +218,7 @@ const AboutUs = () => {
 
         {/* Our Vision */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Our Vision</h2>
+          <h2 className="text-2xl font-bold">Our Vision</h2>
           <p>
             We envision a future where every Indian — no matter their background — can understand, manage, and
             grow their money confidently.
@@ -222,112 +231,37 @@ const AboutUs = () => {
 
         {/* For Financial Institutions */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">For Financial Institutions</h2>
+          <h2 className="text-2xl font-bold">For Financial Institutions</h2>
           <p>
             FinEd is also a powerful partner for financial institutions. We help banks, NBFCs, and credit
             unions to educate their users, build trust, and drive smarter product adoption by:
           </p>
           <ul className="list-disc list-inside space-y-2">
-            <li>🔹 Offering customized literacy courses</li>
-            <li>🔹 Bridging product awareness gaps</li>
-            <li>🔹 Providing user insights for better targeting</li>
+            <li>Offering customized literacy courses</li>
+            <li>Bridging product awareness gaps</li>
+            <li>Providing user insights for better targeting</li>
           </ul>
         </section>
 
         {/* Mascot */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">A Friendly Face: Meet Finix</h2>
+          <h2 className="text-2xl font-bold">A Friendly Face: Meet Finix</h2>
           <p>
             Our mascot, Finix, adds a friendly face to your learning journey. While finance is serious
             business, learning it doesn’t have to be dull.
           </p>
           <div className="w-40 h-40 bg-gray-200 rounded-lg flex items-center justify-center">
             {/* Replace this with actual mascot image */}
-            <span>Mascot Photo</span>
+            <img src="/mascot.jpg" />
           </div>
         </section>
 
-        {/* Meet the Team */}
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Meet the Team</h2>
-          <p>[Leave blank for now]</p>
-        </section>
+        {/* Meet the Team Section */}
+        <TeamSection team={team} />
 
       </div>
 
-      <footer className="bg-[#f7fafc] py-10 -mx-10 px-10 flex flex-wrap justify-between text-[#333] font-sans">
-
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
-          <p className="text-base text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
-          <div className="flex gap-4">
-            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-          </div>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
-          <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
-          <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to={isAuthenticated ? "fin-tools" : "#"} onClick={(e) => {
-            if (!isAuthenticated) {
-              e.preventDefault();
-              toast.error("Please sign in");
-            }
-          }} className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
-          <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
-          <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
-          <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
-        </div>
-        <div className="newsletter m-5">
-          <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
-          {isEnteredEmail ?
-            <div>
-              <p className="py-3 pl-3 pr-28 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" >{enteredEmail}</p>
-              {isSaved ?
-                <div className="flex items-center justify-center gap-2 text-[#fbbf24] font-semibold">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Unsubscribing...
-                </div>
-                :
-                <button
-                  onClick={() => { isAuthenticated ? removeEmail() : toast.error("Please sign in") }}
-                  className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Unubscribe
-                </button>
-              }
-            </div>
-            :
-            <div>
-              <input value={enteredEmail} onChange={(e) => setEnteredEmail(e.target.value.trim())} type="email" placeholder="Enter your email address" className="p-3 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" />
-              {isSaved ?
-                <button className="flex items-center justify-center gap-2 p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Subscribing...
-                </button>
-                :
-                <button onClick={() => { isAuthenticated ? saveEmail() : toast.error("Please sign in") }} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Subscribe Now
-                </button>
-              }
-            </div>
-          }
-        </div>
-      </footer>
-
-      <p className="text-center justify-center w-full my-10 text-xs">
-        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-      </p>
+      <Footer />
 
     </div>
   );

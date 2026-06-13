@@ -8,7 +8,8 @@ import {
   fetchEnteredEmail,
   updateTask,
   rate,
-  fetchRating
+  fetchRating,
+  deleteArticle
 } from "../controllers/articleController.js";
 
 const router = express.Router();
@@ -27,6 +28,8 @@ router.post("/updatetask", updateTask);
 router.post("/fetchrating", fetchRating);
 
 router.post("/rate", rate);
+
+router.delete("/:id", deleteArticle);
 
 router.post("/add", upload.single("image"), addArticle);
 

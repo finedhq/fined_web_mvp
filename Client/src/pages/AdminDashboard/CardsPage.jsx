@@ -2,12 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from '/src/lib/axios.js';
 import Loader from "../../components/Loader";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const CardsPage = () => {
   const { moduleId } = useParams();
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
+
+    const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -22,6 +36,13 @@ const CardsPage = () => {
     };
     fetchCards();
   }, [moduleId]);
+
+  const handleDeleteCard = async (id) => {
+    const res = await axios.delete(`/cards/${id}`)
+    if (res) {
+      setCards(prev => prev.filter(card => card.card_id !== id));
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-10 px-6">
@@ -69,9 +90,10 @@ const CardsPage = () => {
                   </h2>
                   <p className="text-xs text-gray-500">Finstars: {card.allotted_finstars || 0}</p>
                 </div>
-
-                <p className='text-lg font-semibold text-indigo-800' >Title: {card.title}</p>
-
+                <div className='flex justify-between' >
+                  <p className='text-lg font-semibold text-indigo-800' >Title: {card.title}</p>
+                  <button onClick={() => handleDeleteCard(card.card_id)} >Delete Card</button>
+                </div>
                 {card.content_text && (
                   <p className="text-gray-700">{card.content_text}</p>
                 )}

@@ -4,12 +4,15 @@ import instance from "../lib/axios"
 import { useAuth0 } from '@auth0/auth0-react'
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import { FiMenu, FiX } from "react-icons/fi"
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
 const ArticlesPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const { user, isLoading, isAuthenticated, logout, loginWithPopup } = useAuth0()
   const [role, setrole] = useState("")
 
   const [email, setEmail] = useState("")
@@ -33,6 +36,7 @@ const ArticlesPage = () => {
   const [prefetchingNext, setPrefetchingNext] = useState(false)
   const [fetchingArticle, setFetchingArticle] = useState(false)
   const ARTICLES_PER_PAGE = 30
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const [articleRating, setArticleRating] = useState(0)
   const [fetchedArticleRating, setFetchedArticleRating] = useState(null)
@@ -100,7 +104,7 @@ const ArticlesPage = () => {
 
   async function fetchHasUnseen() {
     try {
-      const res = await instance.post("/home/hasunseen", { email })
+      const res = await instance.post("/home/hasunseen", { email: user?.email })
       if (res) {
         setHasUnseen(res.data)
       }
@@ -112,7 +116,7 @@ const ArticlesPage = () => {
   async function fetchEnteredEmail() {
     setLoading(true)
     try {
-      const res = await instance.post("/articles/getenteredemail", { email })
+      const res = await instance.post("/articles/getenteredemail", { email: user?.email })
       if (res.data[0]?.enteredEmail) {
         setEnteredEmail(res.data[0]?.enteredEmail || null)
         setIsEnteredEmail(true)
@@ -308,107 +312,68 @@ const ArticlesPage = () => {
     setSelectedArticle(article)
     setIsArticleClosed(false)
     setIsFadingOut(false)
-    await fetchArticleRating({ email, articleId: article.id })
-    try {
-      const res = await instance.post("/articles/updatetask", { email })
-      if (res.data.articleCount === 1) {
-        toast.success("Task completed !")
+    if (isAuthenticated) {
+      await fetchArticleRating({ email, articleId: article.id })
+      try {
+        await instance.post("/articles/updatetask", { email })
+      } catch (err) {
+        toast.error("Failed to upload tasks.")
       }
-    } catch (err) {
-      toast.error("Failed to upload tasks.")
     }
   }
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsSidebarOpen(false);
+    };
+    if (isSidebarOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isSidebarOpen]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
 
   return (
-    <div className="mx-auto px-10 py-5 bg-gray-100 font-inter text-[#1e1e1e]">
+    <div className="bg-gray-100 font-inter pb-5 text-[#1e1e1e] 2xl:max-w-[2500px] 2xl:mx-auto">
 
-      <header className="flex justify-between items-center h-[63px] bg-gray-100 box-border">
+      <Navbar />
 
-        <div className="flex items-center gap-2 font-bold text-lg max-w-[180px] overflow-hidden whitespace-nowrap">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[60px] w-auto object-contain" />
-        </div>
-
-        <nav className="flex gap-5">
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/home' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => {
-              if (isAuthenticated) navigate('/home')
-              else toast.error("Please sign in .");
-            }
-            }
-          >
-            Home
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/courses' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/courses')}
-          >
-            Courses
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/articles' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/articles')}
-          >
-            Articles
-          </button>
-          <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => {
-              if (isAuthenticated) navigate('/fin-tools')
-              else toast.error("Please sign in ");
-            }
-            }
-          >
-            FinTools
-          </button>
-
-          {role === "Admin" ? <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors ${location.pathname === '/fin-tools' ? 'bg-amber-400 text-white' : 'bg-white text-gray-700 hover:bg-gray-200'}`}
-            onClick={() => navigate('/admin')}
-          >Admin DashBoard</button> : ""}
-
-          {isAuthenticated && <button
-            className={`px-6 py-2 text-base border-none rounded-full cursor-pointer font-medium transition-colors bg-white text-gray-700 hover:bg-gray-200`}
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-          >
-            LogOut
-          </button>}
-        </nav>
-
-        <div onClick={() => { isAuthenticated ? navigate("/notifications") : toast.error("Please sign in") }} className="relative bg-white rounded-full p-3 shadow-md cursor-pointer">
-          <img src="bell.png" alt="Bell Icon" width="24" />
-          {hasUnseen && (
-            <div className="absolute top-0 right-1 w-3 h-3 bg-amber-400 rounded-full" />
-          )}
-        </div>
-      </header>
       {isAuthenticated ?
         loading ?
-          <div className="min-h-screen w-full p-10 bg-gray-50 space-y-10 animate-pulse">
-            <div className="flex gap-10">
-              <div className="bg-gray-300 rounded-3xl shadow-md w-1/2 h-96"></div>
-              <div className="flex flex-col gap-8 w-1/2">
-                <div className="h-6 bg-gray-300 rounded w-2/3"></div>
-                <div className="h-4 bg-gray-300 rounded w-1/2"></div>
-                <div className="h-4 bg-gray-300 rounded w-full"></div>
-                <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+          <div className="min-h-screen w-full p-4 sm:p-10 bg-gray-100 space-y-10 animate-pulse">
+            <div className="flex flex-col sm:flex-row gap-10">
+              <div className="bg-gray-300 rounded-3xl shadow-md sm:w-1/2 h-[500px]"></div>
+              <div className="flex flex-col gap-8 sm:w-1/2">
+                <div className="h-6 bg-gray-300 rounded sm:w-2/3"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-1/2"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-full"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-5/6"></div>
+                <div className="h-6 bg-gray-300 rounded sm:w-2/3"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-1/2"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-full"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-5/6"></div>
+                <div className="h-6 bg-gray-300 rounded sm:w-2/3"></div>
+                <div className="h-4 bg-gray-300 rounded sm:w-1/2"></div>
               </div>
             </div>
-            <div className="flex gap-12">
-              <div className="flex flex-col gap-4 w-1/2">
+            {/* <div className="flex flex-col sm:flex-row gap-12">
+              <div className="flex flex-col gap-4 sm:w-1/2">
                 <div className="h-72 bg-gray-300 rounded-2xl w-full"></div>
                 <div className="h-5 bg-gray-300 rounded w-3/4"></div>
                 <div className="h-4 bg-gray-300 rounded w-full"></div>
                 <div className="h-4 bg-gray-300 rounded w-5/6"></div>
               </div>
-              <div className="flex flex-col gap-4 w-1/2">
+              <div className="flex flex-col gap-4 sm:w-1/2">
                 <div className="h-5 bg-gray-300 rounded w-1/2"></div>
                 <div className="h-4 bg-gray-300 rounded w-full"></div>
                 <div className="h-64 bg-gray-300 rounded-2xl w-full"></div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="sm:grid grid-cols-2 gap-6 hidden">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex gap-5 mb-6 p-4 bg-white rounded-lg shadow">
                   <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
@@ -419,19 +384,19 @@ const ArticlesPage = () => {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
           :
           <div>
-            <div className="flex py-10 gap-6">
+            <div className="flex flex-col sm:flex-row px-4 sm:px-10 py-5 sm:py-10 gap-6">
 
               <div onClick={() => openArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
                 <div className="relative">
-                  <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-96 object-cover" />
+                  <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-48 sm:h-96 object-cover" />
                   <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
                 </div>
                 <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
+                  <h2 className="text-base sm:text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
                   <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
                   <p className='text-gray-600 text-sm mb-4' >[ . . . ]</p>
                   <p className="text-xs text-gray-400">{new Date(articles[0]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
@@ -440,37 +405,38 @@ const ArticlesPage = () => {
 
 
               <div className="flex flex-col gap-6 min-w-1/2">
-
-                <div className="flex justify-end items-center space-x-2 mr-6">
-                  <button
-                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+                {articles.length > 4 &&
+                  <div className="flex justify-end items-center space-x-2 sm:mr-6">
+                    <button
+                      className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                    onClick={() => scrollLeft(carouselRef1)}
-                    disabled={!canScrollLeft1}
-                  >
-                    ❮
-                  </button>
+                      onClick={() => scrollLeft(carouselRef1)}
+                      disabled={!canScrollLeft1}
+                    >
+                      ❮
+                    </button>
 
-                  <button
-                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+                    <button
+                      className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                    onClick={() => scrollRight(carouselRef1)}
-                    disabled={!canScrollRight1}
-                  >
-                    ❯
-                  </button>
-                </div>
-                <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-[500px] w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
-                  {articles.slice(3).map((article, index) =>
-                    <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-6 cursor-pointer h-36 w-[690px]">
-                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-40 h-36 object-cover" />
+                      onClick={() => scrollRight(carouselRef1)}
+                      disabled={!canScrollRight1}
+                    >
+                      ❯
+                    </button>
+                  </div>
+                }
+                <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-11/12 columns-1 carousel-track-1 space-y-[22px] gap-2" >
+                  {articles.slice(1).map((article, index) =>
+                    <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
+                      <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill rounded-lg" />
                       <div>
-                        <p className="text-xs text-gray-400 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
-                        <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
-                        <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                        <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                        <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
+                        <p className="text-gray-600 text-justify text-[10px] sm:text-sm max-h-8 sm:max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
+                        <p className='text-gray-600 text-[8px] sm:text-sm' >[ . . . ]</p>
                       </div>
                     </div>
                   )}
@@ -485,40 +451,42 @@ const ArticlesPage = () => {
               </div>
             </div>
 
-            <div className="flex gap-6 bg-gray-100 py-12">
+            {/* <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
 
               <div onClick={() => openArticle(articles[1])} className='cursor-pointer min-w-1/2' >
-                <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-72 object-cover mb-6" />
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
-                <div className="flex items-center text-sm text-gray-500 mb-4">
+                <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-40 sm:h-72 object-cover mb-4 sm:mb-6" />
+                <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[1]?.title || ""}</h2>
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                 </div>
-                <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-                <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
+                <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
               </div>
 
-              <div onClick={() => openArticle(articles[2])} className="flex flex-col gap-10 min-w-1/2 cursor-pointer">
-                <div className='mr-6' >
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
+              <hr className='sm:hidden' />
+
+              <div onClick={() => openArticle(articles[2])} className="flex flex-col gap-4 sm:gap-10 min-w-1/2 cursor-pointer">
+                <div className='sm:mr-6' >
+                  <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[2]?.title || ""}</h2>
+                  <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                   </div>
-                  <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-                  <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                  <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[2]?.content || ""}</p>
+                  <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
                 </div>
-                <div className='mr-6' >
-                  <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
+                <div className='sm:mr-6' >
+                  <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-40 sm:h-72 object-cover" />
                 </div>
               </div>
-            </div>
+            </div> */}
 
-            <div className="bg-gray-100 py-12">
+            {/* <div className="bg-gray-100 px-10 py-12 hidden sm:block">
               <div className="flex justify-between items-center mb-12">
                 <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
                 <div className="flex gap-3">
@@ -544,7 +512,7 @@ const ArticlesPage = () => {
                 </div>
               </div>
 
-              <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="max-h-[80vh] columns-2 carousel-track-2 space-x-4" >
+              <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="max-h-[570px] columns-2 carousel-track-2 space-x-4" >
                 {articles.slice(3).map((article, index) =>
                   <div key={index + 4} onClick={() => openArticle(article)} className="flex gap-5 mb-6 p-4 cursor-pointer">
                     <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 rounded-md object-cover" />
@@ -565,19 +533,19 @@ const ArticlesPage = () => {
                 )}
               </div>
 
-            </div>
+            </div> */}
           </div>
         :
         <div>
-          <div className="flex py-10 gap-6">
+          <div className="flex flex-col sm:flex-row px-4 sm:px-10 py-5 sm:py-10 gap-6">
 
-            <div className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
+            <div onClick={() => openArticle(articles[0])} className="bg-white min-w-1/2 rounded-3xl overflow-hidden cursor-pointer">
               <div className="relative">
-                <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-96 object-cover" />
+                <img src={articles[0]?.image_url || "_"} alt="article_image_1" onLoad={() => checkScroll(carouselRef1.current, setCanScrollLeft1, setCanScrollRight1)} className="w-full h-48 sm:h-96 object-cover" />
                 <span className="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full font-semibold shadow">Featured</span>
               </div>
               <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
+                <h2 className="text-base sm:text-xl font-semibold text-gray-900 mb-2">{articles[0]?.title || ""}</h2>
                 <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
                 <p className='text-gray-600 text-sm mb-4' >[ . . . ]</p>
                 <p className="text-xs text-gray-400">{new Date(articles[0]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
@@ -586,37 +554,38 @@ const ArticlesPage = () => {
 
 
             <div className="flex flex-col gap-6 min-w-1/2">
-
-              <div className="flex justify-end items-center space-x-2 mr-6">
-                <button
-                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+              {articles.length > 4 &&
+                <div className="flex justify-end items-center space-x-2 sm:mr-6">
+                  <button
+                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollLeft1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                  onClick={() => scrollLeft(carouselRef1)}
-                  disabled={!canScrollLeft1}
-                >
-                  ❮
-                </button>
+                    onClick={() => scrollLeft(carouselRef1)}
+                    disabled={!canScrollLeft1}
+                  >
+                    ❮
+                  </button>
 
-                <button
-                  className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
+                  <button
+                    className={`w-10 h-10 rounded-full text-lg flex items-center justify-center 
               transition-all duration-200 cursor-pointer 
               ${canScrollRight1 ? 'bg-amber-400 text-white hover:bg-amber-500' : 'bg-white text-amber-300'}`}
-                  onClick={() => scrollRight(carouselRef1)}
-                  disabled={!canScrollRight1}
-                >
-                  ❯
-                </button>
-              </div>
-              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-[500px] w-[690px] columns-1 carousel-track-1 space-y-[22px]" >
-                {articles.slice(3).map((article, index) =>
-                  <div key={index + 4} className="flex gap-6 cursor-pointer h-36 w-[690px]">
-                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-40 h-36 object-cover" />
+                    onClick={() => scrollRight(carouselRef1)}
+                    disabled={!canScrollRight1}
+                  >
+                    ❯
+                  </button>
+                </div>
+              }
+              <div ref={carouselRef1} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="h-72 sm:h-[500px] sm:w-full columns-1 carousel-track-1 space-y-[22px] gap-2" >
+                {articles.slice(1).map((article, index) =>
+                  <div onClick={() => openArticle(article)} key={index + 4} className="flex gap-4 sm:gap-6 cursor-pointer h-20 w-11/12 sm:h-36 sm:w-[630px]">
+                    <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-24 h-20 sm:w-40 sm:h-36 object-fill rounded-lg" />
                     <div>
-                      <p className="text-xs text-gray-400 mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
-                      <p className="text-gray-600 text-justify text-sm max-h-16 overflow-hidden">{articles[0]?.content || ""}</p>
-                      <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                      <p className="text-[10px] sm:text-xs text-gray-400 sm:mb-1">{new Date(article?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
+                      <h3 className="text-xs sm:text-lg font-semibold text-gray-900 mb-1">{article?.title || ""}</h3>
+                      <p className="text-gray-600 text-justify text-[10px] sm:text-sm max-h-8 sm:max-h-16 sm:w-11/12 overflow-hidden">{articles[0]?.content || ""}</p>
+                      <p className='text-gray-600 text-[8px] sm:text-sm' >[ . . . ]</p>
                     </div>
                   </div>
                 )}
@@ -631,40 +600,42 @@ const ArticlesPage = () => {
             </div>
           </div>
 
-          <div className="flex gap-6 bg-gray-100 py-12">
+          {/* <div className="flex flex-col sm:flex-row gap-6 px-4 sm:px-10 py-12 bg-gray-100">
 
             <div className='cursor-pointer min-w-1/2' >
-              <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-72 object-cover mb-6" />
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">{articles[1]?.title || ""}</h2>
-              <div className="flex items-center text-sm text-gray-500 mb-4">
+              <img src={articles[1]?.image_url || "_"} alt="article_image_2" onLoad={() => checkScroll(carouselRef2.current, setCanScrollLeft2, setCanScrollRight2)} className="rounded-2xl w-full h-40 sm:h-72 object-cover mb-4 sm:mb-6" />
+              <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[1]?.title || ""}</h2>
+              <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <p>{new Date(articles[1]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
               </div>
-              <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-              <p className='text-gray-600 text-sm' >[ . . . ]</p>
+              <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
+              <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
             </div>
 
-            <div className="flex flex-col gap-10 min-w-1/2 cursor-pointer">
-              <div className='mr-6' >
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{articles[2]?.title || ""}</h3>
-                <div className="flex items-center text-sm text-gray-500 mb-4">
+            <hr className='sm:hidden' />
+
+            <div className="flex flex-col gap-4 sm:gap-10 min-w-1/2 cursor-pointer">
+              <div className='sm:mr-6' >
+                <h2 className="text-md sm:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">{articles[2]?.title || ""}</h2>
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
                   <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   <p>{new Date(articles[2]?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) || ""}</p>
                 </div>
-                <p className="text-gray-600 text-justify text-sm max-h-10 overflow-hidden">{articles[0]?.content || ""}</p>
-                <p className='text-gray-600 text-sm' >[ . . . ]</p>
+                <p className="text-gray-600 text-justify text-xs sm:text-sm h-12 sm:max-h-10 overflow-hidden">{articles[2]?.content || ""}</p>
+                <p className='text-gray-600 text-xs sm:text-sm' >[ . . . ]</p>
               </div>
-              <div className='mr-6' >
-                <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-64 object-cover" />
+              <div className='sm:mr-6' >
+                <img src={articles[2]?.image_url || "_"} alt="article_image_3" className="rounded-2xl w-full h-40 sm:h-72 object-cover" />
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-100 py-12">
+          <div className="bg-gray-100 px-10 py-12 hidden sm:block">
             <div className="flex justify-between items-center mb-12">
               <h2 className="text-3xl font-semibold text-gray-900">Explore More</h2>
               <div className="flex gap-3">
@@ -690,7 +661,7 @@ const ArticlesPage = () => {
               </div>
             </div>
 
-            <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'hidden', columnGap: '0rem' }} className="max-h-[80vh] columns-2 carousel-track-2 space-x-4" >
+            <div ref={carouselRef2} style={{ scrollbarWidth: 'none', overflowX: 'auto', columnGap: '0rem' }} className="max-h-[570px] columns-2 carousel-track-2 space-x-4" >
               {articles.slice(3).map((article, index) =>
                 <div key={index + 4} className="flex gap-5 mb-6 p-4 cursor-pointer">
                   <img src={article?.image_url || "_"} alt={`article_image_${index + 4}`} className="w-33 h-32 rounded-md object-cover" />
@@ -711,83 +682,11 @@ const ArticlesPage = () => {
               )}
             </div>
 
-          </div>
+          </div> */}
         </div>
       }
 
-      <footer className="bg-[#f7fafc] py-10 -mx-10 px-10 flex flex-wrap justify-between text-[#333] font-sans">
-
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] flex flex-col items-center md:items-start">
-          <img src="/logo.jpg" alt="FinEd Logo" className="h-[50px] mb-3" />
-          <p className="text-base text-gray-700 mb-4 text-center md:text-left">Financial Education made Easy.</p>
-          <div className="flex gap-4">
-            <Link to="https://www.linkedin.com/company/fined-personal-finance/"><img src="/linkedin.png" alt="LinkedIn" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-            <Link to="https://www.instagram.com/fined.personalfinance"><img src="/insta.jpg" alt="Instagram" className="w-8 h-8 transition-transform duration-200 hover:scale-110 cursor-pointer" /></Link>
-          </div>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">FEATURED</h4>
-          <Link to="/courses" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Courses</Link>
-          <Link to="/articles" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Articles</Link>
-          <Link to={isAuthenticated ? "/fin-tools" : "#"} onClick={(e) => {
-            if (!isAuthenticated) {
-              e.preventDefault();
-              toast.error("Please sign in");
-            }
-          }} className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">FinTools</Link>
-          <Link to="/about" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">About Us</Link>
-        </div>
-        <div className="flex-1 basis-full md:basis-[200px] m-5 min-w-[200px] font-semibold text-center md:text-left">
-          <h4 className="text-sm font-semibold text-gray-500 uppercase mb-4">OTHER</h4>
-          <Link to="/help" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Help</Link>
-          <Link to="/contact" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Contact Us</Link>
-          <Link to="/feedback" className="block mb-3 text-base text-gray-800 no-underline transition-colors duration-300 hover:text-blue-600">Feedback</Link>
-        </div>
-        <div className="newsletter m-5">
-          <h4 className="text-sm font-semibold text-gray-400 uppercase mb-4">NEWSLETTER</h4>
-          {isEnteredEmail ?
-            <div>
-              <p className="py-3 pl-3 pr-28 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" >{enteredEmail}</p>
-              {isSaved ?
-                <div className="flex items-center justify-center gap-2 text-[#fbbf24] font-semibold">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Unsubscribing...
-                </div>
-                :
-                <button
-                  onClick={() => { isAuthenticated ? removeEmail() : toast.error("Please sign in") }}
-                  className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Unubscribe
-                </button>
-              }
-            </div>
-            :
-            <div>
-              <input value={enteredEmail} onChange={(e) => setEnteredEmail(e.target.value.trim())} type="email" placeholder="Enter your email address" className="p-3 w-full mb-3 border border-gray-200 rounded-md text-sm box-border" />
-              {isSaved ?
-                <button className="flex items-center justify-center gap-2 p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  <svg className="animate-spin h-5 w-5 text-[#fbbf24]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                  Subscribing...
-                </button>
-                :
-                <button onClick={() => { isAuthenticated ? saveEmail() : toast.error("Please sign in") }} className="p-3 w-full bg-[#fbbf24] text-white font-semibold border-none rounded-md cursor-pointer transition-colors hover:bg-[#e6b640] box-border">
-                  Subscribe Now
-                </button>
-              }
-            </div>
-          }
-        </div>
-      </footer>
-
-      <p className="text-center justify-center w-full mt-10 mb-5 text-xs">
-        © Copyright {new Date().getFullYear()}, All Rights Reserved by FinEd.
-      </p>
+      <Footer />
 
       {!isArticleClosed && (
         <div
@@ -795,8 +694,8 @@ const ArticlesPage = () => {
             }`}
         >
           <button
-            className={`absolute left-6 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full shadow-md 
-        flex items-center justify-center text-lg transition-all duration-200 z-50
+            className={`absolute left-1 sm:left-6 top-1/2 transform -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full shadow-md 
+        sm:flex items-center justify-center text-base sm:text-lg transition-all duration-200 z-50 hidden
         ${selectedIndex > 0
                 ? "bg-amber-400 text-white hover:bg-amber-500 cursor-pointer"
                 : "bg-white text-amber-300 cursor-not-allowed"
@@ -813,8 +712,8 @@ const ArticlesPage = () => {
             <FaArrowLeft />
           </button>
           <button
-            className={`absolute right-6 top-1/2 transform -translate-y-1/2 w-12 h-12 rounded-full shadow-md 
-        flex items-center justify-center text-lg transition-all duration-200 z-50
+            className={`absolute right-1 sm:right-6 top-1/2 transform -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full shadow-md 
+        sm:flex items-center justify-center text-lg transition-all duration-200 z-50 hidden
         ${(selectedIndex < articles.length - 1 || hasMore)
                 ? "bg-amber-400 text-white hover:bg-amber-500 cursor-pointer"
                 : "bg-white text-amber-300 cursor-not-allowed"
@@ -843,48 +742,52 @@ const ArticlesPage = () => {
                   setSelectedArticle(null);
                 }, 500);
               }}
-              className="absolute top-0 right-2 text-gray-500 hover:text-gray-700 text-4xl font-bold z-50 transition-all duration-200 cursor-pointer"
+              className="absolute -top-2 right-0 sm:top-0 sm:right-2 text-gray-500 hover:text-gray-700 text-4xl font-bold z-50 transition-all duration-200 cursor-pointer"
             >
               &times;
             </button>
             <img
               src={selectedArticle.image_url || "_"}
               alt="Article"
-              className="w-full max-h-full object-cover rounded-md mb-6"
+              className="h-60 w-full sm:h-3/4 sm:max-h-full object-contain rounded-md mb-6"
             />
-            <h2 className="text-4xl font-extrabold text-gray-800 mb-3">{selectedArticle.title}</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              {new Date(selectedArticle.created_at).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-              })}
-            </p>
-            <div className="text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-              {selectedArticle.content}
+            <div className='sm:px-40' >
+              <h2 className="text-xl sm:text-4xl font-bold sm:font-extrabold text-gray-800 mb-3">{selectedArticle.title}</h2>
+              <p className="text-sm font-medium text-gray-500 mb-6">
+                {new Date(selectedArticle.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                })}
+              </p>
+              <div className="text-base sm:text-lg text-gray-700 leading-relaxed whitespace-pre-line text-justify sm:font-medium">
+                {selectedArticle.content}
+              </div>
             </div>
             {(prefetchingNext || loading) && selectedIndex === articles.length - 1 && hasMore && (
               <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-40">
                 <p className="text-gray-700 font-medium text-lg">Fetching more articles...</p>
               </div>
             )}
-            <div className="mt-20 flex flex-col items-center">
-              <p className="text-lg font-semibold text-gray-700 mb-2">Rate this article</p>
-              <div className="flex gap-3">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => { setArticleRating(star); saveArticleRating({ email, articleId: selectedArticle.id, rating: star }) }}
-                    className={`text-3xl transition-transform transform hover:scale-125 cursor-pointer duration-200
+            {isAuthenticated &&
+              <div className="mt-20 flex flex-col items-center">
+                <p className="text-lg font-semibold text-gray-700 mb-2">Rate this article</p>
+                <div className="flex gap-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => { setArticleRating(star); saveArticleRating({ email, articleId: selectedArticle.id, rating: star }) }}
+                      className={`text-3xl transition-transform transform hover:scale-125 cursor-pointer duration-200
 ${(fetchedArticleRating !== null ? fetchedArticleRating : articleRating) >= star
-                        ? "text-yellow-400"
-                        : "text-gray-300"}`}
-                  >
-                    ★
-                  </button>
-                ))}
+                          ? "text-yellow-400"
+                          : "text-gray-300"}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            }
           </div>
         </div>
       )}

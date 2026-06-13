@@ -2,12 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from '/src/lib/axios.js';
 import Loader from "../../components/Loader";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const ModulesPage = () => {
   const { courseId } = useParams();
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+    const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const [role, setrole] = useState("")
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate("/")
+    } else if (!isLoading && isAuthenticated) {
+      const roles = user?.["https://fined.com/roles"]
+      setrole(roles?.[0] || "")
+      if (roles?.[0] !== "Admin") navigate("/")
+    }
+  }, [isLoading, isAuthenticated])
 
   useEffect(() => {
     const fetchModules = async () => {
@@ -23,6 +37,13 @@ const ModulesPage = () => {
 
     fetchModules();
   }, [courseId]);
+
+  const handleDeleteModule = async (id) => {
+    const res = await axios.delete(`/modules/${id}`)
+    if (res) {
+      setModules(prev => prev.filter(module => module.id !== id));
+    }
+  };
 
   return (
     <main className="min-h-screen px-6 py-10 bg-gradient-to-br from-white to-blue-50">
@@ -67,9 +88,12 @@ const ModulesPage = () => {
                 key={mod.id}
                 className="bg-white shadow-md border border-gray-200 rounded-lg p-5 hover:shadow-lg transition"
               >
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {mod.title}
-                </h3>
+                <div className='flex justify-between' >
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    {mod.title}
+                  </h3>
+                  <button onClick={() => handleDeleteModule(mod.id)} >Delete Module</button>
+                </div>
                 <p className="text-gray-600 text-sm mb-2">
                   {mod.description || <span className="italic text-gray-400">No description provided.</span>}
                 </p>

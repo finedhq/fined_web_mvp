@@ -9,13 +9,29 @@ import moduleRouter from './routes/modules.js';
 import cardsRouter from './routes/cards.js';
 import articleRouter from './routes/articles.js';
 import exptrackerRouter from './routes/expenseTracker.js';
+import contactRouter from './routes/contact.js';
+
+import router from './routes/sbiRoutes.js';
+import kotakrouter from './routes/kotakRoutes.js';
+import hdfcrouter from './routes/hdfcRoutes.js';
+import icicirouter from './routes/ICICIRoutes.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+<<<<<<< HEAD
 app.use(cors({ origin: ['http://localhost:5173', 'https://my-fined.vercel.app'], credentials: true }));
+=======
+app.use(cors({
+  origin: ['https://fined-web.vercel.app', 'http://localhost:5173', 'https://www.myfined.com', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  optionsSuccessStatus: 204
+}));
+
+>>>>>>> 1e5e4c54664e93f4524706bb6f330040aadd39e6
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,7 +42,18 @@ app.use('/api/courses', courseRouter);
 app.use('/api/modules', moduleRouter);
 app.use('/api/cards', cardsRouter);
 app.use('/api/articles', articleRouter);
-app.use('/api/fin-tools/expensetracker', exptrackerRouter)
+app.use('/api/fin-tools/expensetracker', exptrackerRouter);
+app.use('/api/contact', contactRouter);
+
+app.use('/api/sbi', router);
+app.use('/api/kotak',kotakrouter);
+app.use('/api/hdfc',hdfcrouter);
+app.use('/api/icici',icicirouter);
+
+app.get('/', (req, res) => {
+  console.log('Server is running');
+  res.send('Hello FinEd!')
+})
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
