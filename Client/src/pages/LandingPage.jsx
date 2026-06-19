@@ -254,9 +254,22 @@ export default function LandingPage() {
       <main className="flex flex-col lg:flex-row justify-between items-center px-6 sm:px-10 lg:px-16 py-12 sm:py-16 lg:py-20">
         <div className="max-w-full lg:max-w-xl mb-10 lg:mb-0">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl mb-5 font-semibold text-center lg:text-left leading-tight">Take Control of Your Financial Future—For Free</h1>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 text-center lg:text-left">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 text-center lg:text-left mb-8">
             FinEd simplifies finance with bite-sized, engaging courses designed to help you save more, invest smarter, and take control of your money - all for free!
           </p>
+
+          {/* CTA Button for New Users */}
+          <div className="flex justify-center lg:justify-start">
+            <Link
+              to="/onboarding"
+              className="group relative inline-flex items-center gap-2 sm:gap-3 px-5 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full font-bold text-sm sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 no-underline overflow-hidden max-w-full justify-center"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-700 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <span className="relative flex items-center gap-2 text-center">
+                New to FinEd? Here's how you can get started →
+              </span>
+            </Link>
+          </div>
         </div>
         <div className="w-full lg:w-[600px] flex justify-center">
           <img
